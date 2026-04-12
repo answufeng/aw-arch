@@ -10,9 +10,6 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 
-/**
- * FlowEventBus 的单元测试。
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class FlowEventBusTest {
 
@@ -33,7 +30,7 @@ class FlowEventBusTest {
 
     @Test
     fun `post and observe normal event`() = runTest {
-        var received: Any? = null
+        var received: TestEvent? = null
 
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             FlowEventBus.observe<TestEvent>().first().also { received = it }
@@ -42,8 +39,8 @@ class FlowEventBusTest {
         FlowEventBus.post(TestEvent("hello"))
         job.join()
 
-        assertTrue(received is TestEvent)
-        assertEquals("hello", (received as TestEvent).value)
+        assertNotNull(received)
+        assertEquals("hello", received?.value)
     }
 
     @Test
@@ -67,22 +64,37 @@ class FlowEventBusTest {
         assertTrue(testReceived)
         assertFalse(otherReceived)
 
-        // cleanup
         job2.cancel()
+    }
+
+    // ==================== tryPost ====================
+
+    @Test
+    fun `tryPost sends event successfully`() = runTest {
+        var received: TestEvent? = null
+
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            FlowEventBus.observe<TestEvent>().first().also { received = it }
+        }
+
+        val result = FlowEventBus.tryPost(TestEvent("tryPost"))
+        job.join()
+
+        assertTrue(result)
+        assertNotNull(received)
+        assertEquals("tryPost", received?.value)
     }
 
     // ==================== 粘性事件 ====================
 
     @Test
     fun `sticky event replays to new subscriber`() = runTest {
-        // 先发送粘性事件
         FlowEventBus.postSticky(TestEvent("sticky"))
 
-        // 后订阅也能收到
         var received: TestEvent? = null
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             FlowEventBus.observeSticky<TestEvent>().first().also {
-                received = it as? TestEvent
+                received = it
             }
         }
         job.join()
@@ -92,9 +104,58 @@ class FlowEventBusTest {
     }
 
     @Test
+    fun `tryPostSticky sends sticky event`() = runTest {
+        val result = FlowEventBus.tryPostSticky(TestEvent("trySticky"))
+        assertTrue(result)
+
+        var received: TestEvent? = null
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            FlowEventBus.observeSticky<TestEvent>().first().also {
+                received = it
+            }
+        }
+        job.join()
+
+        assertNotNull(received)
+        assertEquals("trySticky", received?.value)
+    }
+
+    @Test
     fun `removeSticky clears sticky event channel`() {
         FlowEventBus.removeSticky(TestEvent::class.java.name)
-        // 应该不抛异常，即使通道不存在
+    }
+
+    // ==================== 类型安全 observe ====================
+
+    @Test
+    fun `observe returns type-safe flow without manual cast`() = runTest {
+        var received: TestEvent? = null
+
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            FlowEventBus.observe<TestEvent>().first().also { received = it }
+        }
+
+        FlowEventBus.post(TestEvent("type-safe"))
+        job.join()
+
+        assertNotNull(received)
+        assertEquals("type-safe", received?.value)
+    }
+
+    @Test
+    fun `observe filters out wrong types`() = runTest {
+        var testReceived: TestEvent? = null
+
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            FlowEventBus.observe<TestEvent>().first().also { testReceived = it }
+        }
+
+        FlowEventBus.post(OtherEvent(1))
+        FlowEventBus.post(TestEvent("correct"))
+        job.join()
+
+        assertNotNull(testReceived)
+        assertEquals("correct", testReceived?.value)
     }
 
     // ==================== clear ====================
@@ -106,8 +167,6 @@ class FlowEventBusTest {
 
         FlowEventBus.clear()
 
-        // 重新获取的 flow 应该是一个新的空 flow
-        // 验证方式：发新事件可以被新订阅者接收
         var received = false
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
             FlowEventBus.observe<TestEvent>().first()
@@ -124,8 +183,8 @@ class FlowEventBusTest {
 
     @Test
     fun `custom key isolates same event type`() = runTest {
-        var receivedA: Any? = null
-        var receivedB: Any? = null
+        var receivedA: TestEvent? = null
+        var receivedB: TestEvent? = null
 
         val jobA = launch(UnconfinedTestDispatcher(testScheduler)) {
             FlowEventBus.observe<TestEvent>("channel_A").first().also { receivedA = it }
@@ -138,11 +197,27 @@ class FlowEventBusTest {
         FlowEventBus.post(TestEvent("forA"), key = "channel_A")
         jobA.join()
 
-        assertTrue(receivedA is TestEvent)
-        assertEquals("forA", (receivedA as TestEvent).value)
-        assertNull(receivedB) // channel_B should not have received
+        assertNotNull(receivedA)
+        assertEquals("forA", receivedA?.value)
+        assertNull(receivedB)
 
-        // cleanup
         jobB.cancel()
+    }
+
+    // ==================== observeRaw ====================
+
+    @Test
+    fun `observeRaw returns SharedFlow with Any type`() = runTest {
+        var received: Any? = null
+
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            FlowEventBus.observeRaw(TestEvent::class.java.name).first().also { received = it }
+        }
+
+        FlowEventBus.post(TestEvent("raw"))
+        job.join()
+
+        assertNotNull(received)
+        assertTrue(received is TestEvent)
     }
 }

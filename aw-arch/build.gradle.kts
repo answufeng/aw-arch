@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.dokka)
 }
 
 android {
@@ -54,7 +55,8 @@ dependencies {
     implementation(libs.material)
     implementation(libs.annotation)
 
-    // BrickTestRule 在 src/main 中引用测试依赖，consumer 自行提供
+    api(libs.hilt.android)
+
     compileOnly(libs.junit)
     compileOnly(libs.coroutines.test)
 
@@ -68,4 +70,4 @@ dependencies {
     androidTestImplementation(libs.androidx.test.ext.junit)
 }
 
-apply(from = "${rootDir}/gradle/publish.gradle")
+apply(from = "${rootDir}/gradle/publish.gradle.kts")

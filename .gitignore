@@ -53,3 +53,9 @@ captures/
 *.swp
 *.swo
 *~
+
+# Trae IDE
+.trae/
+
+# Dokka output
+docs/api/

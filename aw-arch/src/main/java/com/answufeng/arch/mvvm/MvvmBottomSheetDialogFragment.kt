@@ -1,16 +1,12 @@
 package com.answufeng.arch.mvvm
 
+import android.content.Context
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.BaseBottomSheetDialogFragment
 import com.answufeng.arch.base.BaseViewModel
-import kotlinx.coroutines.launch
 
 /**
  * MVVM BottomSheetDialogFragment 基类。
@@ -32,45 +28,32 @@ import kotlinx.coroutines.launch
  * @param VM ViewModel 类型
  */
 abstract class MvvmBottomSheetDialogFragment<VB : ViewBinding, VM : BaseViewModel>
-    : BaseBottomSheetDialogFragment<VB>() {
+    : BaseBottomSheetDialogFragment<VB>(), MvvmView<VM> {
 
     protected lateinit var viewModel: VM
         private set
 
+    override val mvvmViewModel: VM get() = viewModel
+
+    override val viewContext: Context get() = requireContext()
+
     /** 返回 ViewModel 的 Class 对象 */
     abstract fun viewModelClass(): Class<VM>
 
+    /**
+     * 创建 ViewModel 实例。子类可覆写以自定义创建方式（如 Hilt 注入）。
+     */
+    protected open fun createViewModel(): VM {
+        return ViewModelProvider(this)[viewModelClass()]
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel = ViewModelProvider(this)[viewModelClass()]
+        viewModel = createViewModel()
         super.onViewCreated(view, savedInstanceState)
         collectUIEvents()
     }
 
-    private fun collectUIEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect { onUIEvent(it) }
-            }
-        }
+    override fun onNavigateBack() {
+        dismiss()
     }
-
-    protected open fun onUIEvent(event: BaseViewModel.UIEvent) {
-        when (event) {
-            is BaseViewModel.UIEvent.Toast ->
-                Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
-            is BaseViewModel.UIEvent.Loading -> onLoading(event.show)
-            is BaseViewModel.UIEvent.NavigateBack -> dismiss()
-            is BaseViewModel.UIEvent.Navigate -> onNavigate(event.route, event.extras)
-            is BaseViewModel.UIEvent.Custom -> onCustomEvent(event.key, event.data)
-        }
-    }
-
-    /** Loading 事件回调 */
-    protected open fun onLoading(show: Boolean) {}
-
-    /** 导航事件回调 */
-    protected open fun onNavigate(route: String, extras: Map<String, Any>?) {}
-
-    /** 自定义事件回调 */
-    protected open fun onCustomEvent(key: String, data: Any?) {}
 }

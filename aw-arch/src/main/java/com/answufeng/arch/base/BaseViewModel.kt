@@ -17,17 +17,23 @@ import kotlinx.coroutines.withContext
  * MVVM 模式的 ViewModel 基类。
  *
  * 提供：
- * - **协程快捷启动** [launch]：自动捕获异常并分发给 [handleException]
+ * - **协程快捷启动** [launch] / [launchIO] / [launchDefault]：自动捕获异常并分发给 [handleException]
  * - **通用 UI 事件** [UIEvent]：Toast / Loading / Navigate / 自定义
+ * - **SavedStateHandle 便捷方法**：[getSavedState] / [setSavedState] / [savedStateFlow]
+ * - **线程切换** [withMain]：在 IO/Default 协程中切回主线程
  *
  * ### 子类示例
  * ```kotlin
- * class HomeViewModel : BaseViewModel() {
- *     fun loadData() = launch {
- *         showLoading()
- *         val data = repository.fetch()
- *         showLoading(false)
- *         // update LiveData / StateFlow ...
+ * class HomeViewModel(
+ *     private val repository: HomeRepository,
+ *     savedStateHandle: SavedStateHandle
+ * ) : BaseViewModel(savedStateHandle) {
+ *     private val _data = MutableStateFlow<List<Item>>(emptyList())
+ *     val data: StateFlow<List<Item>> = _data.asStateFlow()
+ *
+ *     fun loadData() = launchIO {
+ *         val result = repository.fetchItems()
+ *         withMain { _data.value = result }
  *     }
  * }
  * ```
@@ -45,9 +51,22 @@ abstract class BaseViewModel(
     protected val savedStateHandle: SavedStateHandle? = null
 ) : ViewModel() {
 
-    /** 通用 UI 事件流（使用 Channel 确保事件不丢失，一次性消费） */
     private val _uiEvent = Channel<UIEvent>(Channel.BUFFERED)
+
+    /** 通用 UI 事件流（使用 Channel 确保事件不丢失，一次性消费） */
     val uiEvent: Flow<UIEvent> = _uiEvent.receiveAsFlow()
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        handleException(throwable)
+    }
+
+    private fun resolveHandler(onError: ((Throwable) -> Unit)?): CoroutineExceptionHandler {
+        return if (onError != null) {
+            CoroutineExceptionHandler { _, throwable -> onError(throwable) }
+        } else {
+            exceptionHandler
+        }
+    }
 
     /**
      * 启动协程并自动处理异常。
@@ -59,29 +78,31 @@ abstract class BaseViewModel(
         onError: ((Throwable) -> Unit)? = null,
         block: suspend CoroutineScope.() -> Unit
     ) {
-        val handler = CoroutineExceptionHandler { _, throwable ->
-            onError?.invoke(throwable) ?: handleException(throwable)
-        }
-        viewModelScope.launch(handler, block = block)
+        viewModelScope.launch(resolveHandler(onError), block = block)
     }
 
-    /** 发送一次性 UI 事件 */
-    protected fun sendEvent(event: UIEvent) {
+    /**
+     * 发送一次性 UI 事件。
+     *
+     * 内部使用 [Channel.send]，如果缓冲区满会挂起。
+     * 可在任意调度器上安全调用（内部自动切到主线程发送）。
+     */
+    protected open fun sendEvent(event: UIEvent) {
         viewModelScope.launch { _uiEvent.send(event) }
     }
 
     /** 显示 Toast */
-    protected fun showToast(message: String) = sendEvent(UIEvent.Toast(message))
+    protected open fun showToast(message: String) = sendEvent(UIEvent.Toast(message))
 
     /** 显示/隐藏全局 Loading */
-    protected fun showLoading(show: Boolean = true) = sendEvent(UIEvent.Loading(show))
+    protected open fun showLoading(show: Boolean = true) = sendEvent(UIEvent.Loading(show))
 
     /** 触发导航 */
-    protected fun navigate(route: String, extras: Map<String, Any>? = null) =
+    protected open fun navigate(route: String, extras: Map<String, Any>? = null) =
         sendEvent(UIEvent.Navigate(route, extras))
 
     /** 触发返回 */
-    protected fun navigateBack() = sendEvent(UIEvent.NavigateBack)
+    protected open fun navigateBack() = sendEvent(UIEvent.NavigateBack)
 
     /**
      * 在 IO 线程启动协程，适合网络请求、数据库操作等耗时任务。
@@ -102,10 +123,7 @@ abstract class BaseViewModel(
         onError: ((Throwable) -> Unit)? = null,
         block: suspend CoroutineScope.() -> Unit
     ) {
-        val handler = CoroutineExceptionHandler { _, throwable ->
-            onError?.invoke(throwable) ?: handleException(throwable)
-        }
-        viewModelScope.launch(Dispatchers.IO + handler, block = block)
+        viewModelScope.launch(Dispatchers.IO + resolveHandler(onError), block = block)
     }
 
     /**
@@ -118,10 +136,7 @@ abstract class BaseViewModel(
         onError: ((Throwable) -> Unit)? = null,
         block: suspend CoroutineScope.() -> Unit
     ) {
-        val handler = CoroutineExceptionHandler { _, throwable ->
-            onError?.invoke(throwable) ?: handleException(throwable)
-        }
-        viewModelScope.launch(Dispatchers.Default + handler, block = block)
+        viewModelScope.launch(Dispatchers.Default + resolveHandler(onError), block = block)
     }
 
     /**
@@ -157,6 +172,7 @@ abstract class BaseViewModel(
      * 默认异常处理，子类可覆写以统一错误上报/展示逻辑。
      *
      * 默认通过 [BrickArch.logger] 记录日志并弹出 Toast。
+     * 如果在非主线程调用 showToast，内部会自动切到主线程。
      */
     protected open fun handleException(throwable: Throwable) {
         BrickArch.logger.e("BaseViewModel", "Unhandled exception in ${this::class.simpleName}", throwable)

@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.answufeng.arch.event.FlowEventBus
 import com.answufeng.arch.ext.collectOnLifecycle
 import com.answufeng.arch.state.LoadState
@@ -12,7 +13,6 @@ import com.answufeng.arch.state.loadStateCatching
 import com.answufeng.arch.state.retryLoadState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import androidx.lifecycle.lifecycleScope
 
 data class DemoEvent(val message: String)
 
@@ -24,9 +24,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tvLog = TextView(this).apply { textSize = 14f }
+        tvLog = findViewById(R.id.tvLog)
         val container = findViewById<LinearLayout>(R.id.container)
-        container.addView(tvLog)
 
         container.addView(button("Test LoadState") {
             lifecycleScope.launch {
@@ -34,9 +33,11 @@ class MainActivity : AppCompatActivity() {
                     delay(500)
                     "Data loaded successfully!"
                 }
-                state.onLoading { log("Loading...") }
-                state.onSuccess { log("Success: $it") }
-                state.onError { log("Error: ${it.message}") }
+                when (state) {
+                    is LoadState.Loading -> log("Loading...")
+                    is LoadState.Success -> log("Success: ${state.data}")
+                    is LoadState.Error -> log("Error: ${state.message}")
+                }
             }
         })
 
@@ -48,16 +49,43 @@ class MainActivity : AppCompatActivity() {
                     if (attempt < 3) throw RuntimeException("Attempt $attempt failed")
                     "Recovered on attempt $attempt"
                 }
-                state.onSuccess { log("Success: $it") }
-                state.onError { log("Failed after retries: ${it.message}") }
+                when (state) {
+                    is LoadState.Success -> log("Success: ${state.data}")
+                    is LoadState.Error -> log("Failed after retries: ${state.message}")
+                    is LoadState.Loading -> log("Loading...")
+                }
             }
         })
 
-        container.addView(button("Post Event") {
+        container.addView(button("Post Event (suspend)") {
             lifecycleScope.launch {
                 FlowEventBus.post(DemoEvent("Hello from FlowEventBus!"))
-                log("Event posted")
+                log("Event posted (suspend)")
             }
+        })
+
+        container.addView(button("Post Event (tryPost)") {
+            val success = FlowEventBus.tryPost(DemoEvent("Hello from tryPost!"))
+            log("tryPost result: $success")
+        })
+
+        container.addView(button("Post Sticky Event") {
+            lifecycleScope.launch {
+                FlowEventBus.postSticky(DemoEvent("Sticky event!"))
+                log("Sticky event posted")
+            }
+        })
+
+        container.addView(button("Open MVVM Demo") {
+            startActivity(android.content.Intent(this, MvvmDemoActivity::class.java))
+        })
+
+        container.addView(button("Open MVI Demo") {
+            startActivity(android.content.Intent(this, MviDemoActivity::class.java))
+        })
+
+        container.addView(button("Open Nav Demo") {
+            startActivity(android.content.Intent(this, NavDemoActivity::class.java))
         })
 
         FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { event ->
@@ -69,5 +97,8 @@ class MainActivity : AppCompatActivity() {
         return Button(this).apply { this.text = text; setOnClickListener { onClick() } }
     }
 
-    private fun log(msg: String) { tvLog.append("$msg\n") }
+    private fun log(msg: String) {
+        tvLog.append("$msg\n")
+        android.util.Log.d("Demo", msg)
+    }
 }

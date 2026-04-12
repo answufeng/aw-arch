@@ -1,18 +1,12 @@
 package com.answufeng.arch.mvvm
 
+import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.BaseFragment
 import com.answufeng.arch.base.BaseViewModel
-import kotlinx.coroutines.launch
 
 /**
  * MVVM Fragment 基类。
@@ -23,10 +17,14 @@ import kotlinx.coroutines.launch
  * @param VB ViewBinding 类型
  * @param VM ViewModel 类型
  */
-abstract class MvvmFragment<VB : ViewBinding, VM : BaseViewModel> : BaseFragment<VB>() {
+abstract class MvvmFragment<VB : ViewBinding, VM : BaseViewModel> : BaseFragment<VB>(), MvvmView<VM> {
 
     protected lateinit var viewModel: VM
         private set
+
+    override val mvvmViewModel: VM get() = viewModel
+
+    override val viewContext: Context get() = requireContext()
 
     /** 返回 ViewModel 的 Class 对象，子类必须实现 */
     abstract fun viewModelClass(): Class<VM>
@@ -36,44 +34,24 @@ abstract class MvvmFragment<VB : ViewBinding, VM : BaseViewModel> : BaseFragment
      */
     open val shareViewModelWithActivity: Boolean = false
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel = if (shareViewModelWithActivity) {
+    /**
+     * 创建 ViewModel 实例。子类可覆写以自定义创建方式（如 Hilt 注入）。
+     */
+    protected open fun createViewModel(): VM {
+        return if (shareViewModelWithActivity) {
             ViewModelProvider(requireActivity())[viewModelClass()]
         } else {
             ViewModelProvider(this)[viewModelClass()]
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        viewModel = createViewModel()
         super.onViewCreated(view, savedInstanceState)
         collectUIEvents()
     }
 
-    private fun collectUIEvents() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect { event ->
-                    onUIEvent(event)
-                }
-            }
-        }
+    override fun onNavigateBack() {
+        requireActivity().onBackPressedDispatcher.onBackPressed()
     }
-
-    protected open fun onUIEvent(event: BaseViewModel.UIEvent) {
-        when (event) {
-            is BaseViewModel.UIEvent.Toast -> {
-                Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
-            }
-            is BaseViewModel.UIEvent.Loading -> onLoading(event.show)
-            is BaseViewModel.UIEvent.NavigateBack -> requireActivity().onBackPressedDispatcher.onBackPressed()
-            is BaseViewModel.UIEvent.Navigate -> onNavigate(event.route, event.extras)
-            is BaseViewModel.UIEvent.Custom -> onCustomEvent(event.key, event.data)
-        }
-    }
-
-    /** Loading 事件回调，子类按需覆写 */
-    protected open fun onLoading(show: Boolean) {}
-
-    /** 导航事件回调，子类按需覆写 */
-    protected open fun onNavigate(route: String, extras: Map<String, Any>?) {}
-
-    /** 自定义事件回调 */
-    protected open fun onCustomEvent(key: String, data: Any?) {}
 }

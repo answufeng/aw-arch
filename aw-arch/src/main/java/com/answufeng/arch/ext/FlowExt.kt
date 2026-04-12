@@ -26,7 +26,7 @@ import kotlinx.coroutines.flow.map
 fun <T> Flow<T>.throttleFirst(windowMillis: Long = 500): Flow<T> = flow {
     var lastEmitTime = 0L
     collect { value ->
-        val now = System.currentTimeMillis()
+        val now = System.nanoTime() / 1_000_000L
         if (now - lastEmitTime >= windowMillis) {
             lastEmitTime = now
             emit(value)
@@ -65,7 +65,7 @@ fun <T> Flow<T>.debounceAction(timeoutMillis: Long = 300): Flow<T> = debounce(ti
 fun View.throttleClicks(intervalMillis: Long = 500): Flow<Unit> = callbackFlow {
     var lastClickTime = 0L
     setOnClickListener {
-        val now = System.currentTimeMillis()
+        val now = System.nanoTime() / 1_000_000L
         if (now - lastClickTime >= intervalMillis) {
             lastClickTime = now
             trySend(Unit)

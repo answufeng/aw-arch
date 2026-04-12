@@ -3,6 +3,7 @@
 agp = "8.7.3"
 kotlin = "2.0.21"
 ksp = "2.0.21-1.0.28"
+dokka = "2.0.0"
 
 # 依赖注入
 hilt = "2.52"
@@ -116,3 +117,4 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

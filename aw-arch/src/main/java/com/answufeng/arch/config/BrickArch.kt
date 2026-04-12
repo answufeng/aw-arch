@@ -6,13 +6,13 @@ package com.answufeng.arch.config
  * 在 Application.onCreate() 中初始化：
  * ```kotlin
  * BrickArch.init {
- *     logger = TimberBrickLogger()  // 替换为 Timber 等自定义实现
+ *     logger = TimberBrickLogger()
  * }
  * ```
  */
 object BrickArch {
 
-    /** 全局日志实现，默认使用 Android [android.util.Log] */
+    /** 全局日志实现，默认使用 Android Log（测试环境自动降级为 println） */
     var logger: BrickLogger = DefaultBrickLogger()
 
     /**
@@ -41,18 +41,47 @@ interface BrickLogger {
 }
 
 /**
- * 默认日志实现，使用 Android [android.util.Log]。
+ * 默认日志实现。
+ *
+ * Android 环境使用 [android.util.Log]；
+ * 非 Android 环境（如 JVM 单元测试）降级为 [System.out]。
+ *
+ * 通过尝试调用 [android.util.Log.isLoggable] 来检测运行环境，
+ * 因为 Android 单元测试中 android.jar 的方法默认抛出 RuntimeException，
+ * 而 Robolectric 环境下可以正常调用。
  */
 internal class DefaultBrickLogger : BrickLogger {
+
+    private val isAndroid: Boolean by lazy {
+        try {
+            android.util.Log.isLoggable("BrickArch", android.util.Log.VERBOSE)
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
     override fun d(tag: String, message: String) {
-        android.util.Log.d(tag, message)
+        if (isAndroid) {
+            android.util.Log.d(tag, message)
+        } else {
+            println("[DEBUG][$tag] $message")
+        }
     }
 
     override fun w(tag: String, message: String, throwable: Throwable?) {
-        android.util.Log.w(tag, message, throwable)
+        if (isAndroid) {
+            android.util.Log.w(tag, message, throwable)
+        } else {
+            println("[WARN][$tag] $message ${throwable?.stackTraceToString()?.orEmpty()}")
+        }
     }
 
     override fun e(tag: String, message: String, throwable: Throwable?) {
-        android.util.Log.e(tag, message, throwable)
+        if (isAndroid) {
+            android.util.Log.e(tag, message, throwable)
+        } else {
+            println("[ERROR][$tag] $message ${throwable?.stackTraceToString()?.orEmpty()}")
+        }
     }
 }

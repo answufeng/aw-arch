@@ -4,9 +4,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
 
-/**
- * LoadState 的单元测试，验证状态判断和操作符行为。
- */
 class LoadStateTest {
 
     // ==================== 基本状态 ====================
@@ -241,7 +238,20 @@ class LoadStateTest {
             throw RuntimeException("fail $attempt")
         }
         assertTrue(state is LoadState.Error)
-        // times=2 retries + 1 final attempt = 3 total
         assertEquals(3, attempt)
+    }
+
+    @Test
+    fun `retryLoadState respects maxDelayMillis`() = runTest {
+        var attempt = 0
+        val state = retryLoadState<String>(
+            times = 2,
+            initialDelayMillis = 10,
+            maxDelayMillis = 15
+        ) {
+            attempt++
+            throw RuntimeException("fail $attempt")
+        }
+        assertTrue(state is LoadState.Error)
     }
 }

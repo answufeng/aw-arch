@@ -1,6 +1,7 @@
 package com.answufeng.arch.nav
 
 import android.os.Bundle
+import android.os.SystemClock
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.AnimRes
 import androidx.annotation.IdRes
@@ -12,6 +13,7 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.answufeng.arch.R
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
 /**
@@ -56,13 +58,10 @@ class BrickNav private constructor(
     private val routes = mutableMapOf<String, KClass<out Fragment>>()
     private val interceptors = mutableListOf<NavInterceptor>()
 
-    /** 内部维护的当前路由，避免依赖 FragmentManager 异步状态 */
     private var _currentRoute: String? = null
 
-    /** 上次导航时间戳，防连点 */
     private var lastNavigateTime = 0L
 
-    /** 系统返回键回调 */
     private val backPressedCallback = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             if (!back()) {
@@ -80,16 +79,43 @@ class BrickNav private constructor(
 
     // ── 路由注册 ──────────────────────────────────────
 
+    /**
+     * 注册路由。
+     *
+     * @param route 路由名称
+     * @param cls   Fragment 的 KClass
+     */
     fun register(route: String, cls: KClass<out Fragment>): BrickNav {
         routes[route] = cls
         return this
     }
 
+    /**
+     * 注册路由（泛型方式）。
+     *
+     * ```kotlin
+     * nav.register<HomeFragment>("home")
+     * ```
+     */
     inline fun <reified F : Fragment> register(route: String): BrickNav =
         register(route, F::class)
 
     // ── 拦截器 ──────────────────────────────────────
 
+    /**
+     * 添加导航拦截器。
+     *
+     * 拦截器按添加顺序依次调用，任一返回 false 则取消导航。
+     *
+     * ```kotlin
+     * nav.addInterceptor { from, to, _ ->
+     *     if (to == "profile" && !userManager.isLoggedIn) {
+     *         nav.navigate("login")
+     *         false
+     *     } else true
+     * }
+     * ```
+     */
     fun addInterceptor(interceptor: NavInterceptor): BrickNav {
         interceptors += interceptor
         return this
@@ -103,6 +129,7 @@ class BrickNav private constructor(
      * @param route   目标路由名称（需先 [register]）
      * @param args    传递给目标 Fragment 的 [Bundle]
      * @param builder 可选 [NavOptions] DSL
+     * @throws IllegalArgumentException 路由未注册时抛出
      */
     @MainThread
     fun navigate(
@@ -111,14 +138,14 @@ class BrickNav private constructor(
         builder: (NavOptions.() -> Unit)? = null,
     ) {
         val cls = routes[route]
-            ?: throw IllegalArgumentException("Route not registered: $route")
+            ?: throw IllegalArgumentException(
+                "Route \"$route\" is not registered. Available routes: ${routes.keys}"
+            )
 
-        // state-loss 保护：onSaveInstanceState 后跳过
         if (fragmentManager.isStateSaved) return
 
-        // 防连点：300ms 内忽略（使用单调时钟，不受系统时间调整影响）
-        val now = android.os.SystemClock.uptimeMillis()
-        if (lastNavigateTime > 0 && now - lastNavigateTime < 300) return
+        val now = SystemClock.uptimeMillis()
+        if (now - lastNavigateTime < NAV_THROTTLE_MILLIS) return
         lastNavigateTime = now
 
         val options = NavOptions().apply { builder?.invoke(this) }
@@ -136,8 +163,6 @@ class BrickNav private constructor(
             arguments = args
         }
 
-        // commit() 支持 addToBackStack，commitNow() 不支持
-        // 用 executePendingTransactions() 保证同步执行
         fragmentManager.commit {
             options.resolveAnimSet()?.let { a ->
                 setCustomAnimations(a.enter, a.exit, a.popEnter, a.popExit)
@@ -198,19 +223,16 @@ class BrickNav private constructor(
 
     // ── 内部方法 ──────────────────────────────────────
 
-    /** 从 FragmentManager 返回栈同步 currentRoute */
     private fun syncCurrentRoute() {
         val count = fragmentManager.backStackEntryCount
         _currentRoute = if (count > 0) {
             fragmentManager.getBackStackEntryAt(count - 1).name
         } else {
-            // 返回栈为空时，取容器中可见的 Fragment tag
             fragmentManager.findFragmentById(containerId)?.tag
         }
         updateBackCallbackState()
     }
 
-    /** 更新返回键回调是否启用 */
     private fun updateBackCallbackState() {
         backPressedCallback.isEnabled = fragmentManager.backStackEntryCount > 0
     }
@@ -218,7 +240,9 @@ class BrickNav private constructor(
     // ── 静态工厂 ──────────────────────────────────────
 
     companion object {
-        private val instances = mutableMapOf<Int, BrickNav>()
+        private const val NAV_THROTTLE_MILLIS = 300L
+
+        private val instances = ConcurrentHashMap<Int, BrickNav>()
 
         /**
          * 在 Activity 中初始化。应在 `onCreate` 中调用。
@@ -230,10 +254,8 @@ class BrickNav private constructor(
             val nav = BrickNav(activity, activity.supportFragmentManager, containerId)
             instances[key] = nav
 
-            // 注册系统返回键回调
             activity.onBackPressedDispatcher.addCallback(activity, nav.backPressedCallback)
 
-            // 同步 currentRoute（处理配置变更 / 进程恢复）
             nav.syncCurrentRoute()
 
             activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
@@ -244,25 +266,48 @@ class BrickNav private constructor(
             return nav
         }
 
-        /** 从 Fragment 获取所属 Activity 的 BrickNav 实例 */
+        /**
+         * 从 Fragment 获取所属 Activity 的 BrickNav 实例。
+         *
+         * @throws IllegalStateException BrickNav 未初始化时抛出
+         */
         fun from(fragment: Fragment): BrickNav {
             val key = System.identityHashCode(fragment.requireActivity())
             return instances[key]
-                ?: error("BrickNav not initialized. Call BrickNav.init() in your Activity first.")
+                ?: error("BrickNav not initialized for ${fragment.requireActivity()::class.simpleName}. Call BrickNav.init() in your Activity's onCreate() first.")
         }
 
-        /** 从 Activity 获取已初始化的 BrickNav 实例 */
+        /**
+         * 从 Activity 获取已初始化的 BrickNav 实例。
+         *
+         * @throws IllegalStateException BrickNav 未初始化时抛出
+         */
         fun from(activity: FragmentActivity): BrickNav {
             val key = System.identityHashCode(activity)
             return instances[key]
-                ?: error("BrickNav not initialized. Call BrickNav.init() in your Activity first.")
+                ?: error("BrickNav not initialized for ${activity::class.simpleName}. Call BrickNav.init() in your Activity's onCreate() first.")
         }
     }
 }
 
 // ── NavOptions ──────────────────────────────────────────
 
-/** 导航选项 */
+/**
+ * 导航选项，通过 DSL 方式配置。
+ *
+ * ```kotlin
+ * nav.navigate("profile") {
+ *     addToBackStack = true
+ *     singleTop = true
+ *     anim = NavAnim.FADE
+ *     setCustomAnim(R.anim.slide_in, R.anim.slide_out)
+ * }
+ * ```
+ *
+ * @property addToBackStack 是否加入返回栈（默认 true）
+ * @property singleTop 栈顶去重：当前路由与目标一致时跳过（默认 false）
+ * @property anim 预设转场动画（默认 [NavAnim.SLIDE_HORIZONTAL]）
+ */
 class NavOptions {
     /** 是否加入返回栈（默认 true） */
     var addToBackStack: Boolean = true
@@ -303,7 +348,16 @@ class NavOptions {
 
 // ── NavAnim ──────────────────────────────────────────
 
-/** 内置转场动画预设 */
+/**
+ * 内置转场动画预设。
+ *
+ * | 枚举值 | 效果 |
+ * |---|---|
+ * | [NONE] | 无动画 |
+ * | [FADE] | 淡入淡出 |
+ * | [SLIDE_HORIZONTAL] | 水平滑动（左右推入推出） |
+ * | [SLIDE_VERTICAL] | 垂直滑动（底部弹出 / 下拉关闭） |
+ */
 enum class NavAnim {
     /** 无动画 */
     NONE,
@@ -337,6 +391,14 @@ enum class NavAnim {
     }
 }
 
+/**
+ * 动画资源集合，包含 enter / exit / popEnter / popExit 四个动画资源 ID。
+ *
+ * @property enter    进入动画
+ * @property exit     退出动画
+ * @property popEnter 回退时进入动画
+ * @property popExit  回退时退出动画
+ */
 internal data class AnimSet(
     @AnimRes val enter: Int,
     @AnimRes val exit: Int,

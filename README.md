@@ -1,10 +1,23 @@
 # aw-arch
 
-Android architecture foundation library. Provides MVVM/MVI base classes, navigation, event bus, Flow extensions, and state management.
+Android 架构基础库，基于 Kotlin + MVVM/MVI + Hilt 封装，提供开箱即用的基类、导航管理、事件总线、Flow 扩展和状态管理。
 
-## Installation
+## 特性
 
-Add the dependency in your module-level `build.gradle.kts`:
+| 模块 | 说明 |
+|---|---|
+| **MVVM** | BaseViewModel + MvvmActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
+| **MVI** | MviViewModel + MviActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
+| **Hilt** | 内置 Hilt 支持，基类自动兼容 @AndroidEntryPoint + @HiltViewModel |
+| **BrickNav** | 纯代码 Fragment 导航，支持动画、拦截器、回退栈、防连点 |
+| **FlowEventBus** | 基于 SharedFlow 的事件总线，支持粘性事件、类型安全观察 |
+| **LoadState** | Loading/Success/Error 密封类，支持重试、map、fold 等操作符 |
+| **Flow 扩展** | throttleFirst、debounceAction、select、throttleClicks |
+| **生命周期安全** | collectOnLifecycle、observeEvent、launchOnStarted/Resumed |
+| **ViewBinding 委托** | Activity/Fragment 属性委托，自动管理生命周期 |
+| **BrickTestRule** | JUnit4 协程测试规则，自动替换 Dispatchers.Main |
+
+## 引入
 
 ```kotlin
 dependencies {
@@ -12,58 +25,553 @@ dependencies {
 }
 ```
 
-Make sure you have the JitPack repository in your root `settings.gradle.kts`:
+如果使用 Hilt 集成，还需添加 Hilt 插件和依赖：
 
 ```kotlin
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://jitpack.io")
+// 项目级 build.gradle.kts
+plugins {
+    id("com.google.dagger.hilt.android") version "2.52" apply false
+}
+
+// 模块级 build.gradle.kts
+plugins {
+    id("com.google.dagger.hilt.android")
+}
+
+dependencies {
+    implementation("com.google.dagger:hilt-android:2.52")
+    ksp("com.google.dagger:hilt-android-compiler:2.52")
+}
+```
+
+## 初始化
+
+在 `Application.onCreate()` 中初始化全局配置：
+
+```kotlin
+class MyApp : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        BrickArch.init {
+            logger = object : BrickLogger {
+                override fun d(tag: String, message: String) = Timber.tag(tag).d(message)
+                override fun w(tag: String, message: String, throwable: Throwable?) = Timber.tag(tag).w(throwable, message)
+                override fun e(tag: String, message: String, throwable: Throwable?) = Timber.tag(tag).e(throwable, message)
+            }
+        }
     }
 }
 ```
 
-## Features
+## MVVM 模式
 
-- MVVM: BaseViewModel + MvvmActivity/Fragment/DialogFragment/BottomSheetDialogFragment
-- MVI: MviViewModel + MviActivity/Fragment/DialogFragment/BottomSheetDialogFragment
-- BrickNav: Pure-code Fragment navigation with animations, interceptors, and back stack
-- FlowEventBus: SharedFlow-based event bus with sticky support
-- Flow extensions: throttleFirst, debounceAction, select
-- LoadState: Loading/Success/Error sealed class with retry support
-- Lifecycle-aware collection helpers
-- ViewBinding delegate for Activity/Fragment
-- BrickTestRule: JUnit4 rule for coroutine testing
-
-## Usage
+### ViewModel
 
 ```kotlin
-// MVVM
-class MainViewModel : BaseViewModel() {
-    fun loadData() = launchIO { /* ... */ }
-}
-class MainActivity : MvvmActivity<ActivityMainBinding, MainViewModel>() {
-    override fun render(uiEvent: BaseViewModel.UIEvent) { /* handle events */ }
-}
+class HomeViewModel(
+    private val repository: HomeRepository
+) : BaseViewModel() {
 
-// MVI
-sealed class MainIntent : UiIntent { data object Load : MainIntent() }
-class MainViewModel : MviViewModel<MainState, MainEvent, MainIntent>(MainState()) {
-    override fun handleIntent(intent: MainIntent) { /* reduce state */ }
+    private val _data = MutableStateFlow<List<Item>>(emptyList())
+    val data: StateFlow<List<Item>> = _data.asStateFlow()
+
+    fun loadData() = launchIO {
+        val result = repository.fetchItems()
+        _data.value = result
+        showToast("加载完成")
+    }
+
+    fun deleteItem(id: String) = launchIO {
+        repository.delete(id)
+        showToast("已删除")
+    }
 }
-
-// Navigation
-val nav = BrickNav.init(activity, R.id.container)
-    .register<HomeFragment>("home")
-    .register<ProfileFragment>("profile")
-nav.navigate("profile")
-
-// Event Bus
-FlowEventBus.post(DemoEvent("hello"))
-FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { /* handle */ }
 ```
 
-## License
+### Activity
 
-Apache License 2.0. See [LICENSE](LICENSE) for details.
+```kotlin
+class HomeActivity : MvvmActivity<ActivityHomeBinding, HomeViewModel>() {
+    override fun viewModelClass() = HomeViewModel::class.java
+
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityHomeBinding.inflate(inflater)
+
+    override fun initView(savedInstanceState: Bundle?) {
+        binding.btnLoad.setOnClickListener { viewModel.loadData() }
+    }
+
+    override fun initObservers() {
+        viewModel.data.collectOnLifecycle(this) { items ->
+            adapter.submitList(items)
+        }
+    }
+
+    override fun onLoading(show: Boolean) {
+        binding.progressBar.isVisible = show
+    }
+}
+```
+
+### Fragment
+
+```kotlin
+class HomeFragment : MvvmFragment<FragmentHomeBinding, HomeViewModel>() {
+    override fun viewModelClass() = HomeViewModel::class.java
+    override val shareViewModelWithActivity = true  // 与 Activity 共享 ViewModel
+
+    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?) =
+        FragmentHomeBinding.inflate(inflater, container, false)
+
+    override fun initView(savedInstanceState: Bundle?) { /* ... */ }
+}
+```
+
+## MVI 模式
+
+### 定义 State / Event / Intent
+
+```kotlin
+data class CounterState(
+    val count: Int = 0,
+    val isLoading: Boolean = false
+) : UiState
+
+sealed class CounterEvent : UiEvent {
+    data class ShowSnackbar(val message: String) : CounterEvent()
+}
+
+sealed class CounterIntent : UiIntent {
+    data object Increment : CounterIntent()
+    data object Decrement : CounterIntent()
+    data object LoadData : CounterIntent()
+}
+```
+
+### ViewModel
+
+```kotlin
+class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>(CounterState()) {
+
+    override fun handleIntent(intent: CounterIntent) {
+        when (intent) {
+            CounterIntent.Increment -> updateState { copy(count = count + 1) }
+            CounterIntent.Decrement -> updateState { copy(count = count - 1) }
+            CounterIntent.LoadData -> loadData()
+        }
+    }
+
+    private fun loadData() = launchIO {
+        updateState { copy(isLoading = true) }
+        val data = repository.fetch()
+        updateState { copy(isLoading = false, count = data.count) }
+        sendMviEvent(CounterEvent.ShowSnackbar("加载完成"))
+    }
+}
+```
+
+### Activity
+
+```kotlin
+class CounterActivity : MviActivity<
+    ActivityCounterBinding, CounterState, CounterEvent, CounterIntent, CounterViewModel
+>() {
+    override fun viewModelClass() = CounterViewModel::class.java
+
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityCounterBinding.inflate(inflater)
+
+    override fun initView(savedInstanceState: Bundle?) {
+        binding.btnAdd.setOnClickListener { dispatch(CounterIntent.Increment) }
+        binding.btnLoad.setOnClickListener { dispatch(CounterIntent.LoadData) }
+    }
+
+    override fun render(state: CounterState) {
+        binding.tvCount.text = state.count.toString()
+        binding.progressBar.isVisible = state.isLoading
+    }
+
+    override fun handleEvent(event: CounterEvent) {
+        when (event) {
+            is CounterEvent.ShowSnackbar ->
+                Snackbar.make(binding.root, event.message, Snackbar.LENGTH_SHORT).show()
+        }
+    }
+}
+```
+
+### 节流分发（防连点）
+
+```kotlin
+binding.btnSubmit.setOnClickListener {
+    dispatchThrottled(SubmitIntent.Click, windowMillis = 500)
+}
+```
+
+### 简化版 MVI（不需要自定义 Event）
+
+对于不需要一次性事件（如 Snackbar、导航）的简单页面，可以使用 `SimpleMviViewModel` + `SimpleMviActivity`，将 5 个泛型参数减少到 3 个：
+
+```kotlin
+// ViewModel 只需 2 个泛型参数
+class CounterViewModel : SimpleMviViewModel<CounterState, CounterIntent>(CounterState()) {
+    override fun handleIntent(intent: CounterIntent) {
+        when (intent) {
+            CounterIntent.Increment -> updateState { copy(count = count + 1) }
+            CounterIntent.Decrement -> updateState { copy(count = count - 1) }
+        }
+    }
+}
+
+// Activity 只需 3 个泛型参数（省略 Event 和 ViewModel）
+class CounterActivity : SimpleMviActivity<
+    ActivityCounterBinding, CounterState, CounterIntent
+>() {
+    override fun viewModelClass() = CounterViewModel::class.java
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityCounterBinding.inflate(inflater)
+    override fun initView(savedInstanceState: Bundle?) { /* ... */ }
+    override fun render(state: CounterState) { /* ... */ }
+}
+```
+
+## Hilt 集成
+
+所有基类（MvvmActivity/MviActivity/MvvmFragment/MviFragment 等）内置 Hilt 支持。
+只需在 Activity/Fragment 上添加 `@AndroidEntryPoint`，ViewModel 上添加 `@HiltViewModel` + `@Inject` 构造函数即可：
+
+```kotlin
+@AndroidEntryPoint
+class HomeActivity : MvvmActivity<ActivityHomeBinding, HomeViewModel>() {
+    override fun viewModelClass() = HomeViewModel::class.java
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityHomeBinding.inflate(inflater)
+    override fun initView(savedInstanceState: Bundle?) {
+        binding.btnLoad.setOnClickListener { viewModel.loadData() }
+    }
+}
+
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val repository: HomeRepository
+) : BaseViewModel() {
+    fun loadData() = launchIO { /* ... */ }
+}
+```
+
+MVI + Hilt：
+
+```kotlin
+@AndroidEntryPoint
+class CounterActivity : MviActivity<
+    ActivityCounterBinding, CounterState, CounterEvent, CounterIntent, CounterViewModel
+>() {
+    override fun viewModelClass() = CounterViewModel::class.java
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityCounterBinding.inflate(inflater)
+    override fun initView(savedInstanceState: Bundle?) { /* ... */ }
+    override fun render(state: CounterState) { /* ... */ }
+    override fun handleEvent(event: CounterEvent) { /* ... */ }
+}
+
+@HiltViewModel
+class CounterViewModel @Inject constructor(
+    private val repository: CounterRepository
+) : MviViewModel<CounterState, CounterEvent, CounterIntent>(CounterState()) {
+    override fun handleIntent(intent: CounterIntent) { /* ... */ }
+}
+```
+
+> **无需**使用单独的 Hilt 基类，标准基类自动兼容 Hilt 注入。
+
+## BrickNav 导航
+
+```kotlin
+class MainActivity : AppCompatActivity() {
+    private lateinit var nav: BrickNav
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        nav = BrickNav.init(this, R.id.container)
+            .register<HomeFragment>("home")
+            .register<ProfileFragment>("profile")
+            .register<SettingsFragment>("settings")
+            .addInterceptor { from, to, _ ->
+                if (to == "profile" && !userManager.isLoggedIn) {
+                    nav.navigate("login")
+                    false
+                } else true
+            }
+
+        if (savedInstanceState == null) {
+            nav.navigate("home") { addToBackStack = false; anim = NavAnim.NONE }
+        }
+    }
+}
+```
+
+### 导航操作
+
+```kotlin
+// 基本导航
+nav.navigate("profile")
+
+// 带参数
+nav.navigate("profile", bundleOf("id" to 123))
+
+// 自定义选项
+nav.navigate("profile") {
+    anim = NavAnim.FADE
+    singleTop = true
+    addToBackStack = true
+}
+
+// 自定义动画
+nav.navigate("profile") {
+    setCustomAnim(R.anim.slide_in, R.anim.slide_out)
+}
+
+// 返回
+nav.back()
+
+// 弹出到指定路由
+nav.backTo("home", inclusive = false)
+
+// 清空返回栈
+nav.clearStack()
+```
+
+### 从 Fragment 中导航
+
+```kotlin
+class ProfileFragment : Fragment() {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        BrickNav.from(this).navigate("settings")
+    }
+}
+```
+
+## FlowEventBus 事件总线
+
+### 发送事件
+
+```kotlin
+// 挂起函数（推荐，保证事件不丢失）
+viewModelScope.launch {
+    FlowEventBus.post(LoginSuccessEvent("user123"))
+}
+
+// 非挂起函数（缓冲区满时丢弃）
+FlowEventBus.tryPost(LoginSuccessEvent("user123"))
+
+// 粘性事件（新订阅者自动收到最近一条）
+FlowEventBus.postSticky(ThemeChangedEvent(darkMode = true))
+```
+
+### 接收事件
+
+```kotlin
+// 类型安全观察（无需手动 cast）
+FlowEventBus.observe<LoginSuccessEvent>().collectOnLifecycle(this) { event ->
+    updateUI(event.userId)
+}
+
+// 粘性事件
+FlowEventBus.observeSticky<ThemeChangedEvent>().collectOnLifecycle(this) { event ->
+    applyTheme(event.darkMode)
+}
+
+// 便捷扩展
+observeEvent<LoginSuccessEvent> { event ->
+    updateUI(event.userId)
+}
+```
+
+## LoadState 状态管理
+
+### 在 MVI State 中使用
+
+```kotlin
+data class HomeState(
+    val items: LoadState<List<String>> = LoadState.Loading
+) : UiState
+
+// ViewModel 中
+updateState { copy(items = LoadState.Loading) }
+val result = loadStateCatching { repository.fetchItems() }
+updateState { copy(items = result) }
+```
+
+### 在 UI 中渲染
+
+```kotlin
+when (val items = state.items) {
+    is LoadState.Loading -> showProgressBar()
+    is LoadState.Success -> adapter.submitList(items.data)
+    is LoadState.Error -> showError(items.message)
+}
+```
+
+### 操作符
+
+```kotlin
+val result: LoadState<List<Item>> = LoadState.Success(items)
+
+result.map { it.map { item -> item.name } }
+result.getOrNull()
+result.getOrDefault(emptyList())
+result.fold(
+    onLoading = { showLoading() },
+    onSuccess = { render(it) },
+    onError = { showError(it) }
+)
+result.onSuccess { render(it) }
+    .onError { log(it) }
+    .onLoading { showLoading() }
+```
+
+### 带重试
+
+```kotlin
+val state = retryLoadState(times = 3, initialDelayMillis = 1000) {
+    repository.fetchItems()
+}
+```
+
+## Flow 扩展
+
+```kotlin
+// 节流：500ms 内只发射第一个
+viewModel.state
+    .throttleFirst(500)
+    .collectOnLifecycle(this) { render(it) }
+
+// 防抖：300ms 内没有新元素时才发射
+searchFlow
+    .debounceAction(300)
+    .collectOnLifecycle(this) { query -> viewModel.search(query) }
+
+// 选择子字段并去重
+viewModel.state
+    .select { it.count }
+    .collectOnLifecycle(this) { count -> binding.tvCount.text = count.toString() }
+
+// View 点击防抖
+binding.btnSubmit.throttleClicks(1000)
+    .collectOnLifecycle(this) { viewModel.submit() }
+```
+
+## ViewBinding 委托
+
+```kotlin
+// Activity
+class HomeActivity : AppCompatActivity() {
+    private val binding by viewBinding(ActivityHomeBinding::inflate)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+    }
+}
+
+// Fragment
+class HomeFragment : Fragment(R.layout.fragment_home) {
+    private val binding by viewBinding(FragmentHomeBinding::bind)
+}
+```
+
+## 单元测试
+
+```kotlin
+class MyViewModelTest {
+    @get:Rule
+    val brickTestRule = BrickTestRule()
+
+    @Test
+    fun `test state update`() = runTest {
+        val vm = MyViewModel()
+        vm.dispatch(MyIntent.Load)
+        advanceUntilIdle()
+        assertEquals(expected, vm.state.value)
+    }
+}
+```
+
+## 架构图
+
+```
+┌─────────────────────────────────────────────────────┐
+│                      UI Layer                       │
+│  MvvmActivity / MviActivity / MvvmFragment / ...   │
+├─────────────────────────────────────────────────────┤
+│                    ViewModel Layer                  │
+│  BaseViewModel (MVVM)  /  MviViewModel (MVI)       │
+│  ├── launch / launchIO / launchDefault             │
+│  ├── sendEvent / showToast / showLoading           │
+│  ├── updateState / sendMviEvent                    │
+│  └── handleException                               │
+├─────────────────────────────────────────────────────┤
+│                   Infrastructure                    │
+│  BrickNav  │  FlowEventBus  │  LoadState           │
+│  FlowExt   │  ViewBinding   │  BrickTestRule       │
+└─────────────────────────────────────────────────────┘
+```
+
+## API 速览
+
+### BaseViewModel
+
+| 方法 | 说明 |
+|---|---|
+| `launch(onError?, block)` | 启动协程，自动异常处理 |
+| `launchIO(onError?, block)` | IO 线程协程 |
+| `launchDefault(onError?, block)` | Default 线程协程 |
+| `withMain(block)` | 切换到主线程 |
+| `sendEvent(event)` | 发送 UIEvent |
+| `showToast(message)` | 弹 Toast |
+| `showLoading(show)` | 显示/隐藏 Loading |
+| `navigate(route, extras)` | 触发导航 |
+| `navigateBack()` | 触发返回 |
+| `handleException(throwable)` | 异常处理（可覆写） |
+
+### MviViewModel
+
+| 方法 | 说明 |
+|---|---|
+| `dispatch(intent)` | 分发 Intent |
+| `dispatchThrottled(intent, windowMillis)` | 节流分发 |
+| `updateState { reduce }` | 更新 State |
+| `sendMviEvent(event)` | 发送一次性事件 |
+| `clearThrottleCache()` | 清除节流缓存 |
+
+### BrickNav
+
+| 方法 | 说明 |
+|---|---|
+| `init(activity, containerId)` | 初始化导航 |
+| `register<F>(route)` | 注册路由 |
+| `addInterceptor(interceptor)` | 添加拦截器 |
+| `navigate(route, args, builder)` | 导航 |
+| `back()` | 返回上一页 |
+| `backTo(route, inclusive)` | 弹出到指定路由 |
+| `clearStack()` | 清空返回栈 |
+| `from(fragment/activity)` | 获取实例 |
+
+### FlowEventBus
+
+| 方法 | 说明 |
+|---|---|
+| `post(event, key)` | 发送事件（挂起） |
+| `tryPost(event, key)` | 发送事件（非挂起） |
+| `postSticky(event, key)` | 发送粘性事件 |
+| `tryPostSticky(event, key)` | 发送粘性事件（非挂起） |
+| `observe<T>(key)` | 观察类型安全事件流 |
+| `observeSticky<T>(key)` | 观察粘性事件流 |
+| `removeSticky(key)` | 移除粘性事件 |
+| `clear()` | 清除所有通道 |
+
+## 许可证
+
+Apache License 2.0，详见 [LICENSE](LICENSE)。

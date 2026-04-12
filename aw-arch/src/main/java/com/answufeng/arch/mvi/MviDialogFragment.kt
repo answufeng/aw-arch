@@ -2,13 +2,10 @@ package com.answufeng.arch.mvi
 
 import android.os.Bundle
 import android.view.View
-import androidx.lifecycle.Lifecycle
+import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.BaseDialogFragment
-import kotlinx.coroutines.launch
 
 /**
  * MVI DialogFragment 基类。
@@ -31,47 +28,26 @@ import kotlinx.coroutines.launch
  * ```
  */
 abstract class MviDialogFragment<VB : ViewBinding, S : UiState, E : UiEvent, I : UiIntent, VM : MviViewModel<S, E, I>>
-    : BaseDialogFragment<VB>() {
+    : BaseDialogFragment<VB>(), MviView<S, E, I> {
 
     protected lateinit var viewModel: VM
         private set
 
+    override val mviViewModel: VM get() = viewModel
+
     /** 返回 ViewModel 的 Class 对象 */
     abstract fun viewModelClass(): Class<VM>
 
+    /**
+     * 创建 ViewModel 实例。子类可覆写以自定义创建方式（如 Hilt 注入）。
+     */
+    protected open fun createViewModel(): VM {
+        return ViewModelProvider(this)[viewModelClass()]
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel = ViewModelProvider(this)[viewModelClass()]
+        viewModel = createViewModel()
         super.onViewCreated(view, savedInstanceState)
-        collectState()
-        collectEvent()
+        collectStateAndEvent()
     }
-
-    private fun collectState() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { render(it) }
-            }
-        }
-    }
-
-    private fun collectEvent() {
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.event.collect { handleEvent(it) }
-            }
-        }
-    }
-
-    /** 渲染 UI 状态 */
-    abstract fun render(state: S)
-
-    /** 处理一次性事件 */
-    abstract fun handleEvent(event: E)
-
-    /** 分发 Intent */
-    protected fun dispatch(intent: I) = viewModel.dispatch(intent)
-
-    /** 带节流的 Intent 分发 */
-    protected fun dispatchThrottled(intent: I, windowMillis: Long = 300) =
-        viewModel.dispatchThrottled(intent, windowMillis)
 }

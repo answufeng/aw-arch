@@ -5,12 +5,21 @@
         android:label="aw-arch Demo"
         android:theme="@style/Theme.MaterialComponents.Light.DarkActionBar">
         <activity
-            android:name=".com.answufeng.arch.demo.MainActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".MvvmDemoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".MviDemoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".NavDemoActivity"
+            android:exported="false" />
     </application>
 </manifest>

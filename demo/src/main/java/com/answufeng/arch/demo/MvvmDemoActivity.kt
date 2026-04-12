@@ -1,0 +1,50 @@
+package com.answufeng.arch.demo
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.ProgressBar
+import com.answufeng.arch.base.BaseViewModel
+import com.answufeng.arch.demo.databinding.ActivityMvvmDemoBinding
+import com.answufeng.arch.mvvm.MvvmActivity
+import kotlinx.coroutines.delay
+
+class MvvmDemoActivity : MvvmActivity<ActivityMvvmDemoBinding, MvvmDemoViewModel>() {
+
+    override fun viewModelClass() = MvvmDemoViewModel::class.java
+
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityMvvmDemoBinding.inflate(inflater)
+
+    override fun initView(savedInstanceState: Bundle?) {
+        binding.btnLoadData.setOnClickListener { viewModel.loadData() }
+        binding.btnShowToast.setOnClickListener { viewModel.triggerToast() }
+        binding.btnNavigateBack.setOnClickListener { viewModel.goBack() }
+        binding.btnError.setOnClickListener { viewModel.triggerError() }
+    }
+
+    override fun onLoading(show: Boolean) {
+        binding.progressBar.visibility = if (show) ProgressBar.VISIBLE else ProgressBar.GONE
+    }
+}
+
+class MvvmDemoViewModel : BaseViewModel() {
+
+    fun loadData() = launchIO {
+        showLoading(true)
+        delay(1500)
+        showLoading(false)
+        showToast("Data loaded!")
+    }
+
+    fun triggerToast() {
+        showToast("Hello from MVVM!")
+    }
+
+    fun triggerError() = launch {
+        throw RuntimeException("This is a test error")
+    }
+
+    fun goBack() {
+        navigateBack()
+    }
+}

@@ -1,5 +1,6 @@
 package com.answufeng.arch.state
 
+import com.answufeng.arch.config.BrickArch
 import kotlinx.coroutines.delay
 
 /**
@@ -154,6 +155,7 @@ suspend fun <T> loadStateCatching(block: suspend () -> T): LoadState<T> {
     return try {
         LoadState.Success(block())
     } catch (e: Exception) {
+        BrickArch.logger.e("LoadState", "loadStateCatching failed", e)
         LoadState.Error(e)
     }
 }
@@ -170,27 +172,34 @@ suspend fun <T> loadStateCatching(block: suspend () -> T): LoadState<T> {
  * @param times 最大重试次数（不含首次调用）
  * @param initialDelayMillis 首次重试延迟（毫秒）
  * @param factor 延迟递增因子（指数退避）
+ * @param maxDelayMillis 最大重试延迟上限（毫秒），默认 30 秒，防止延迟无限增长
  * @param block 要执行的挂起函数
  */
 suspend fun <T> retryLoadState(
     times: Int = 3,
     initialDelayMillis: Long = 1000,
     factor: Double = 2.0,
+    maxDelayMillis: Long = 30_000L,
     block: suspend () -> T
 ): LoadState<T> {
-    var currentDelay = initialDelayMillis
-    repeat(times) {
+    var currentDelay = initialDelayMillis.coerceAtMost(maxDelayMillis)
+    repeat(times) { attempt ->
         try {
             return LoadState.Success(block())
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            BrickArch.logger.w(
+                "LoadState",
+                "retryLoadState attempt ${attempt + 1}/$times failed, retrying in ${currentDelay}ms",
+                e
+            )
             delay(currentDelay)
-            currentDelay = (currentDelay * factor).toLong()
+            currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelayMillis)
         }
     }
-    // 最后一次尝试
     return try {
         LoadState.Success(block())
     } catch (e: Exception) {
+        BrickArch.logger.e("LoadState", "retryLoadState exhausted all $times retries", e)
         LoadState.Error(e)
     }
 }
