@@ -7,9 +7,9 @@ extensions.configure<org.gradle.api.publish.PublishingExtension> {
                 from(components["release"])
             }
 
-            groupId = property("publish.groupId")?.toString() ?: "com.answufeng.arch"
-            artifactId = property("publish.artifactId")?.toString() ?: "aw-arch"
-            version = property("publish.version")?.toString() ?: "1.1.0"
+            groupId = "com.github.answufeng"
+            artifactId = "aw-arch"
+            version = property("VERSION_NAME")?.toString() ?: "1.0.0"
 
             pom {
                 name.set("aw-arch")

@@ -27,13 +27,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build library
-        run: ./gradlew :aw-arch:assembleDebug
+        run: ./gradlew :aw-arch:assembleRelease
 
       - name: Run unit tests
-        run: ./gradlew :aw-arch:testDebugUnitTest
+        run: ./gradlew :aw-arch:testReleaseUnitTest
 
       - name: Build demo
-        run: ./gradlew :demo:assembleDebug
+        run: ./gradlew :demo:assembleRelease
 
       - name: Upload test results
         if: always()
@@ -62,7 +62,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Run Android Lint
-        run: ./gradlew :aw-arch:lintDebug
+        run: ./gradlew :aw-arch:lintRelease
 
       - name: Upload lint results
         if: always()

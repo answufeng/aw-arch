@@ -1,5 +1,7 @@
 # aw-arch
 
+[![](https://jitpack.io/v/answufeng/aw-arch.svg)](https://jitpack.io/#answufeng/aw-arch)
+
 Android 架构基础库，基于 Kotlin + MVVM/MVI + Hilt 封装，提供开箱即用的基类、导航管理、事件总线、Flow 扩展和状态管理。
 
 ## 特性
