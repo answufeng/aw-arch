@@ -43,6 +43,8 @@ android {
 }
 
 dependencies {
+    api(libs.hilt.android)
+
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.activity.ktx)
@@ -54,8 +56,6 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.material)
     implementation(libs.annotation)
-
-    api(libs.hilt.android)
 
     compileOnly(libs.junit)
     compileOnly(libs.coroutines.test)
