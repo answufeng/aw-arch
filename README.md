@@ -8,16 +8,17 @@ Android 架构基础库，基于 Kotlin + MVVM/MVI + Hilt 封装，提供开箱�
 
 | 模块 | 说明 |
 |---|---|
-| **MVVM** | BaseViewModel + MvvmActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
+| **MVVM** | MvvmViewModel + MvvmActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
 | **MVI** | MviViewModel + MviActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
-| **Hilt** | 内置 Hilt 支持，基类自动兼容 @AndroidEntryPoint + @HiltViewModel |
+| **Hilt** | HiltMvvmActivity/HiltMviActivity 等 Hilt 专用基类，自动使用 defaultViewModelProviderFactory |
 | **BrickNav** | 纯代码 Fragment 导航，支持动画、拦截器、回退栈、防连点 |
 | **FlowEventBus** | 基于 SharedFlow 的事件总线，支持粘性事件、类型安全观察 |
-| **LoadState** | Loading/Success/Error 密封类，支持重试、map、fold 等操作符 |
+| **LoadState** | Loading/Success/Error 密封类，支持重试、map、fold、recover、combine 等操作符 |
 | **Flow 扩展** | throttleFirst、debounceAction、select、throttleClicks |
 | **生命周期安全** | collectOnLifecycle、observeEvent、launchOnStarted/Resumed |
 | **ViewBinding 委托** | Activity/Fragment 属性委托，自动管理生命周期 |
 | **BrickTestRule** | JUnit4 协程测试规则，自动替换 Dispatchers.Main |
+| **Compose 兼容** | UiState/UiEvent/LoadState 添加 @Immutable 注解 |
 
 ## 引入
 
@@ -80,7 +81,7 @@ class MyApp : Application() {
 ```kotlin
 class HomeViewModel(
     private val repository: HomeRepository
-) : BaseViewModel() {
+) : MvvmViewModel() {
 
     private val _data = MutableStateFlow<List<Item>>(emptyList())
     val data: StateFlow<List<Item>> = _data.asStateFlow()
@@ -97,6 +98,8 @@ class HomeViewModel(
     }
 }
 ```
+
+> **注意**：MVVM 模式的 ViewModel 应继承 `MvvmViewModel`（而非 `BaseViewModel`）。`BaseViewModel` 仅提供协程能力，`MvvmViewModel` 额外提供 `sendEvent`/`showToast`/`showLoading`/`navigate` 等 UI 事件能力。
 
 ### Activity
 
@@ -128,7 +131,7 @@ class HomeActivity : MvvmActivity<ActivityHomeBinding, HomeViewModel>() {
 ```kotlin
 class HomeFragment : MvvmFragment<FragmentHomeBinding, HomeViewModel>() {
     override fun viewModelClass() = HomeViewModel::class.java
-    override val shareViewModelWithActivity = true  // 与 Activity 共享 ViewModel
+    override val shareViewModelWithActivity = true
 
     override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?) =
         FragmentHomeBinding.inflate(inflater, container, false)
@@ -245,10 +248,13 @@ class CounterActivity : SimpleMviActivity<
 }
 ```
 
+`SimpleMvi` 同时提供 `SimpleMviFragment`、`SimpleMviDialogFragment`、`SimpleMviBottomSheetDialogFragment` 变体。
+
 ## Hilt 集成
 
-所有基类（MvvmActivity/MviActivity/MvvmFragment/MviFragment 等）内置 Hilt 支持。
-只需在 Activity/Fragment 上添加 `@AndroidEntryPoint`，ViewModel 上添加 `@HiltViewModel` + `@Inject` 构造函数即可：
+### 方式一：使用标准基类（推荐）
+
+所有标准基类（MvvmActivity/MviActivity/MvvmFragment/MviFragment 等）内置 Hilt 支持。只需在 Activity/Fragment 上添加 `@AndroidEntryPoint`，ViewModel 上添加 `@HiltViewModel` + `@Inject` 构造函数即可：
 
 ```kotlin
 @AndroidEntryPoint
@@ -264,35 +270,24 @@ class HomeActivity : MvvmActivity<ActivityHomeBinding, HomeViewModel>() {
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val repository: HomeRepository
-) : BaseViewModel() {
+) : MvvmViewModel() {
     fun loadData() = launchIO { /* ... */ }
 }
 ```
 
-MVI + Hilt：
+### 方式二：使用 Hilt 专用基类
+
+库还提供了 `HiltMvvmActivity`/`HiltMviActivity` 等 Hilt 专用基类，它们使用 `defaultViewModelProviderFactory` 创建 ViewModel，确保与 Hilt 的 `SavedStateHandle` 注入完全兼容：
 
 ```kotlin
 @AndroidEntryPoint
-class CounterActivity : MviActivity<
-    ActivityCounterBinding, CounterState, CounterEvent, CounterIntent, CounterViewModel
->() {
-    override fun viewModelClass() = CounterViewModel::class.java
+class HomeActivity : HiltMvvmActivity<ActivityHomeBinding, HomeViewModel>() {
+    override fun viewModelClass() = HomeViewModel::class.java
     override fun inflateBinding(inflater: LayoutInflater) =
-        ActivityCounterBinding.inflate(inflater)
+        ActivityHomeBinding.inflate(inflater)
     override fun initView(savedInstanceState: Bundle?) { /* ... */ }
-    override fun render(state: CounterState) { /* ... */ }
-    override fun handleEvent(event: CounterEvent) { /* ... */ }
-}
-
-@HiltViewModel
-class CounterViewModel @Inject constructor(
-    private val repository: CounterRepository
-) : MviViewModel<CounterState, CounterEvent, CounterIntent>(CounterState()) {
-    override fun handleIntent(intent: CounterIntent) { /* ... */ }
 }
 ```
-
-> **无需**使用单独的 Hilt 基类，标准基类自动兼容 Hilt 注入。
 
 ## BrickNav 导航
 
@@ -393,7 +388,7 @@ FlowEventBus.observeSticky<ThemeChangedEvent>().collectOnLifecycle(this) { event
     applyTheme(event.darkMode)
 }
 
-// 便捷扩展
+// 便捷扩展（自动检查 Lifecycle 状态）
 observeEvent<LoginSuccessEvent> { event ->
     updateUI(event.userId)
 }
@@ -440,6 +435,17 @@ result.fold(
 result.onSuccess { render(it) }
     .onError { log(it) }
     .onLoading { showLoading() }
+
+// 错误恢复
+result.recover(emptyList())
+result.recoverWith { throwable -> getCache(throwable) }
+
+// 合并多个 LoadState
+val combined = loadStateA.combine(loadStateB) { a, b -> a + b }
+
+// Flow 扩展
+someFlow.asLoadState()  // Flow<T> -> Flow<LoadState<T>>，自动处理 Loading/Error
+loadStateFlow.mapLoadState { it.name }  // Flow<LoadState<T>> -> Flow<LoadState<R>>
 ```
 
 ### 带重试
@@ -507,6 +513,21 @@ class MyViewModelTest {
         assertEquals(expected, vm.state.value)
     }
 }
+
+// 验证 Loading -> Success 状态转换
+class LoadingStateTest {
+    @get:Rule
+    val strictRule = StrictBrickTestRule()  // 使用 StandardTestDispatcher
+
+    @Test
+    fun `test loading then success`() = runTest {
+        val vm = MyViewModel()
+        vm.dispatch(MyIntent.Load)
+        assertEquals(MyState(isLoading = true), vm.state.value)
+        advanceUntilIdle()
+        assertEquals(MyState(isLoading = false, data = ...), vm.state.value)
+    }
+}
 ```
 
 ## 架构图
@@ -515,13 +536,12 @@ class MyViewModelTest {
 ┌─────────────────────────────────────────────────────┐
 │                      UI Layer                       │
 │  MvvmActivity / MviActivity / MvvmFragment / ...   │
+│  HiltMvvmActivity / HiltMviActivity / ...          │
 ├─────────────────────────────────────────────────────┤
 │                    ViewModel Layer                  │
-│  BaseViewModel (MVVM)  /  MviViewModel (MVI)       │
-│  ├── launch / launchIO / launchDefault             │
-│  ├── sendEvent / showToast / showLoading           │
-│  ├── updateState / sendMviEvent                    │
-│  └── handleException                               │
+│  BaseViewModel (协程能力)                           │
+│  ├── MvvmViewModel (MVVM: + UIEvent)               │
+│  └── MviViewModel (MVI: + State/Event/Intent)      │
 ├─────────────────────────────────────────────────────┤
 │                   Infrastructure                    │
 │  BrickNav  │  FlowEventBus  │  LoadState           │
@@ -531,7 +551,7 @@ class MyViewModelTest {
 
 ## API 速览
 
-### BaseViewModel
+### BaseViewModel（协程能力基类）
 
 | 方法 | 说明 |
 |---|---|
@@ -539,12 +559,17 @@ class MyViewModelTest {
 | `launchIO(onError?, block)` | IO 线程协程 |
 | `launchDefault(onError?, block)` | Default 线程协程 |
 | `withMain(block)` | 切换到主线程 |
+| `handleException(throwable)` | 异常处理（可覆写） |
+
+### MvvmViewModel（MVVM 事件能力）
+
+| 方法 | 说明 |
+|---|---|
 | `sendEvent(event)` | 发送 UIEvent |
 | `showToast(message)` | 弹 Toast |
 | `showLoading(show)` | 显示/隐藏 Loading |
 | `navigate(route, extras)` | 触发导航 |
 | `navigateBack()` | 触发返回 |
-| `handleException(throwable)` | 异常处理（可覆写） |
 
 ### MviViewModel
 
@@ -581,6 +606,57 @@ class MyViewModelTest {
 | `observeSticky<T>(key)` | 观察粘性事件流 |
 | `removeSticky(key)` | 移除粘性事件 |
 | `clear()` | 清除所有通道 |
+
+### LoadState
+
+| 方法 | 说明 |
+|---|---|
+| `map(transform)` | 转换 Success 数据 |
+| `getOrNull()` | 获取数据或 null |
+| `getOrDefault(default)` | 获取数据或默认值 |
+| `fold(onLoading, onSuccess, onError)` | 三分支折叠 |
+| `onSuccess/onError/onLoading` | 链式回调 |
+| `recover(default)` | 错误时恢复为默认值 |
+| `recoverWith(fn)` | 错误时通过函数计算恢复值 |
+| `combine(other, transform)` | 合并两个 LoadState |
+| `asLoadState()` | Flow\<T\> → Flow\<LoadState\<T\>\> |
+| `mapLoadState(transform)` | Flow 链式转换 |
+| `loadStateCatching { }` | 安全执行并包装为 LoadState |
+| `retryLoadState(times, delay) { }` | 带重试的 LoadState |
+
+## 迁移指南（v1.x → v2.0）
+
+### BaseViewModel → MvvmViewModel
+
+MVVM 模式的 ViewModel 需从 `BaseViewModel` 改为 `MvvmViewModel`：
+
+```kotlin
+// 之前
+class HomeViewModel : BaseViewModel() { ... }
+
+// 之后
+class HomeViewModel : MvvmViewModel() { ... }
+```
+
+`BaseViewModel` 现在仅提供协程能力（launch/launchIO/launchDefault/withMain），不再包含 UI 事件方法。`MvvmViewModel` 继承 `BaseViewModel` 并添加 `sendEvent`/`showToast`/`showLoading`/`navigate`/`navigateBack`。
+
+MVI 模式不受影响 — `MviViewModel` 仍继承 `BaseViewModel`，通过 `sendMviEvent` 发送事件。
+
+### MviView.mviViewModel → viewModel
+
+`MviView` 接口中的 `mviViewModel` 属性已统一重命名为 `viewModel`，与 MVVM 保持一致。
+
+### UIEvent 引用更新
+
+`BaseViewModel.UIEvent` 已移至 `MvvmViewModel.UIEvent`，需更新所有引用：
+
+```kotlin
+// 之前
+import com.answufeng.arch.base.BaseViewModel.UIEvent
+
+// 之后
+import com.answufeng.arch.base.MvvmViewModel.UIEvent
+```
 
 ## 许可证
 

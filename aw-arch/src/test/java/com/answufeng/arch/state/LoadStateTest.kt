@@ -1,12 +1,11 @@
 package com.answufeng.arch.state
 
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Test
 
 class LoadStateTest {
-
-    // ==================== 基本状态 ====================
 
     @Test
     fun `Loading state properties`() {
@@ -44,8 +43,6 @@ class LoadStateTest {
         assertEquals("custom msg", state.message)
     }
 
-    // ==================== map ====================
-
     @Test
     fun `map transforms Success data`() {
         val state: LoadState<Int> = LoadState.Success(42)
@@ -68,8 +65,6 @@ class LoadStateTest {
         assertTrue(mapped is LoadState.Error)
         assertEquals("err", (mapped as LoadState.Error).message)
     }
-
-    // ==================== getOrNull / getOrDefault ====================
 
     @Test
     fun `getOrNull returns data on Success`() {
@@ -101,8 +96,6 @@ class LoadStateTest {
         assertEquals("default", LoadState.Error(RuntimeException()).getOrDefault("default"))
     }
 
-    // ==================== fold ====================
-
     @Test
     fun `fold calls correct branch for Loading`() {
         val result = LoadState.Loading.fold(
@@ -132,8 +125,6 @@ class LoadStateTest {
         )
         assertEquals("error: oops", result)
     }
-
-    // ==================== onSuccess / onError / onLoading ====================
 
     @Test
     fun `onSuccess fires on Success`() {
@@ -177,8 +168,6 @@ class LoadStateTest {
         assertFalse(called)
     }
 
-    // ==================== loadStateCatching ====================
-
     @Test
     fun `loadStateCatching returns Success on normal execution`() = runTest {
         val state = loadStateCatching { 42 }
@@ -191,8 +180,6 @@ class LoadStateTest {
         assertTrue(state is LoadState.Error)
         assertEquals("boom", (state as LoadState.Error).message)
     }
-
-    // ==================== 链式调用 ====================
 
     @Test
     fun `chained callbacks work correctly`() {
@@ -209,8 +196,6 @@ class LoadStateTest {
         assertFalse(errorCalled)
         assertFalse(loadingCalled)
     }
-
-    // ==================== retryLoadState ====================
 
     @Test
     fun `retryLoadState returns Success on first try`() = runTest {
@@ -253,5 +238,64 @@ class LoadStateTest {
             throw RuntimeException("fail $attempt")
         }
         assertTrue(state is LoadState.Error)
+    }
+
+    @Test
+    fun `recover returns default on Error`() {
+        val state: LoadState<Int> = LoadState.Error(RuntimeException("fail"))
+        val recovered = state.recover(0)
+        assertEquals(LoadState.Success(0), recovered)
+    }
+
+    @Test
+    fun `recover passes through Success`() {
+        val state = LoadState.Success(42).recover(0)
+        assertEquals(LoadState.Success(42), state)
+    }
+
+    @Test
+    fun `recover passes through Loading`() {
+        val state: LoadState<Int> = LoadState.Loading
+        val recovered = state.recover(0)
+        assertTrue(recovered is LoadState.Loading)
+    }
+
+    @Test
+    fun `recoverWith returns computed value on Error`() {
+        val state: LoadState<Int> = LoadState.Error(RuntimeException("fail"))
+        val recovered = state.recoverWith { -1 }
+        assertEquals(LoadState.Success(-1), recovered)
+    }
+
+    @Test
+    fun `combine returns Success when both Success`() {
+        val a = LoadState.Success(1)
+        val b = LoadState.Success(2)
+        val result = a.combine(b) { x, y -> x + y }
+        assertEquals(LoadState.Success(3), result)
+    }
+
+    @Test
+    fun `combine returns Loading when either Loading`() {
+        val a: LoadState<Int> = LoadState.Loading
+        val b = LoadState.Success(2)
+        val result = a.combine(b) { x, y -> x + y }
+        assertTrue(result is LoadState.Loading)
+    }
+
+    @Test
+    fun `combine returns Error when either Error`() {
+        val a: LoadState<Int> = LoadState.Error(RuntimeException("fail"))
+        val b = LoadState.Success(2)
+        val result = a.combine(b) { x, y -> x + y }
+        assertTrue(result is LoadState.Error)
+    }
+
+    @Test
+    fun `asLoadState wraps flow as LoadState`() = runTest {
+        val results = mutableListOf<LoadState<String>>()
+        flowOf("hello").asLoadState().collect { results.add(it) }
+        assertTrue(results.any { it is LoadState.Loading })
+        assertTrue(results.any { it is LoadState.Success && it.data == "hello" })
     }
 }

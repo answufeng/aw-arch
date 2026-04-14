@@ -2,8 +2,7 @@ package com.answufeng.arch.demo
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.widget.ProgressBar
-import com.answufeng.arch.base.BaseViewModel
+import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.demo.databinding.ActivityMvvmDemoBinding
 import com.answufeng.arch.mvvm.MvvmActivity
 import kotlinx.coroutines.delay
@@ -23,11 +22,11 @@ class MvvmDemoActivity : MvvmActivity<ActivityMvvmDemoBinding, MvvmDemoViewModel
     }
 
     override fun onLoading(show: Boolean) {
-        binding.progressBar.visibility = if (show) ProgressBar.VISIBLE else ProgressBar.GONE
+        binding.progressBar.visibility = if (show) android.widget.ProgressBar.VISIBLE else android.widget.ProgressBar.GONE
     }
 }
 
-class MvvmDemoViewModel : BaseViewModel() {
+class MvvmDemoViewModel : MvvmViewModel() {
 
     fun loadData() = launchIO {
         showLoading(true)

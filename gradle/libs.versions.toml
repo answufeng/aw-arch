@@ -25,6 +25,9 @@ recyclerview = "1.3.2"
 constraintlayout = "2.2.0"
 annotation = "1.9.1"
 
+# Compose
+compose-runtime = "1.7.5"
+
 # Material Design
 material = "1.12.0"
 
@@ -75,6 +78,9 @@ lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-lived
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 annotation = { group = "androidx.annotation", name = "annotation", version.ref = "annotation" }
+
+# ---------- Compose ----------
+compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose-runtime" }
 
 # ---------- Material ----------
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }

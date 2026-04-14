@@ -15,8 +15,8 @@ class BaseViewModelTest {
     @get:Rule
     val brickTestRule = BrickTestRule()
 
-    class TestViewModel(savedStateHandle: androidx.lifecycle.SavedStateHandle? = null) :
-        BaseViewModel(savedStateHandle) {
+    class TestMvvmViewModel(savedStateHandle: androidx.lifecycle.SavedStateHandle? = null) :
+        MvvmViewModel(savedStateHandle) {
 
         var exceptionHandled: Throwable? = null
 
@@ -48,11 +48,9 @@ class BaseViewModelTest {
         }
     }
 
-    // ==================== launch tests ====================
-
     @Test
     fun `launch executes block`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         var executed = false
         vm.testLaunch { executed = true }
         advanceUntilIdle()
@@ -61,7 +59,7 @@ class BaseViewModelTest {
 
     @Test
     fun `launch handles exception via handleException`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testLaunch { throw RuntimeException("test") }
         advanceUntilIdle()
         assertNotNull(vm.exceptionHandled)
@@ -70,29 +68,25 @@ class BaseViewModelTest {
 
     @Test
     fun `launch with onError callback`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testLaunchWithError { throw RuntimeException("custom") }
         advanceUntilIdle()
         assertNotNull(vm.exceptionHandled)
         assertEquals("custom", vm.exceptionHandled?.message)
     }
 
-    // ==================== launchIO tests ====================
-
     @Test
     fun `launchIO handles exception`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testLaunchIO { throw RuntimeException("io error") }
         advanceUntilIdle()
         assertNotNull(vm.exceptionHandled)
         assertEquals("io error", vm.exceptionHandled?.message)
     }
 
-    // ==================== launchDefault tests ====================
-
     @Test
     fun `launchDefault handles exception`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testLaunchDefault { throw RuntimeException("default error") }
         val deadline = System.currentTimeMillis() + 3000L
         while (vm.exceptionHandled == null && System.currentTimeMillis() < deadline) {
@@ -102,101 +96,90 @@ class BaseViewModelTest {
         assertEquals("default error", vm.exceptionHandled?.message)
     }
 
-    // ==================== UIEvent tests ====================
-
     @Test
     fun `showToast sends Toast event`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testShowToast("hello")
-        advanceUntilIdle()
         val event = vm.uiEvent.first()
-        assertTrue(event is BaseViewModel.UIEvent.Toast)
-        assertEquals("hello", (event as BaseViewModel.UIEvent.Toast).message)
+        assertTrue(event is MvvmViewModel.UIEvent.Toast)
+        assertEquals("hello", (event as MvvmViewModel.UIEvent.Toast).message)
     }
 
     @Test
     fun `showLoading sends Loading event`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testShowLoading(true)
-        advanceUntilIdle()
         val event = vm.uiEvent.first()
-        assertTrue(event is BaseViewModel.UIEvent.Loading)
-        assertTrue((event as BaseViewModel.UIEvent.Loading).show)
+        assertTrue(event is MvvmViewModel.UIEvent.Loading)
+        assertTrue((event as MvvmViewModel.UIEvent.Loading).show)
     }
 
     @Test
     fun `navigate sends Navigate event`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testNavigate("/detail")
-        advanceUntilIdle()
         val event = vm.uiEvent.first()
-        assertTrue(event is BaseViewModel.UIEvent.Navigate)
-        assertEquals("/detail", (event as BaseViewModel.UIEvent.Navigate).route)
+        assertTrue(event is MvvmViewModel.UIEvent.Navigate)
+        assertEquals("/detail", (event as MvvmViewModel.UIEvent.Navigate).route)
     }
 
     @Test
     fun `navigateBack sends NavigateBack event`() = runTest {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         vm.testNavigateBack()
-        advanceUntilIdle()
         val event = vm.uiEvent.first()
-        assertTrue(event is BaseViewModel.UIEvent.NavigateBack)
+        assertTrue(event is MvvmViewModel.UIEvent.NavigateBack)
     }
 
     @Test
     fun `sendEvent sends Custom event`() = runTest {
-        val vm = TestViewModel()
-        vm.testSendEvent(BaseViewModel.UIEvent.Custom("key", "data"))
-        advanceUntilIdle()
+        val vm = TestMvvmViewModel()
+        vm.testSendEvent(MvvmViewModel.UIEvent.Custom("key", "data"))
         val event = vm.uiEvent.first()
-        assertTrue(event is BaseViewModel.UIEvent.Custom)
-        assertEquals("key", (event as BaseViewModel.UIEvent.Custom).key)
+        assertTrue(event is MvvmViewModel.UIEvent.Custom)
+        assertEquals("key", (event as MvvmViewModel.UIEvent.Custom).key)
         assertEquals("data", event.data)
     }
-
-    // ==================== SavedStateHandle tests ====================
 
     @Test
     fun `savedStateHandle get and set`() {
         val handle = androidx.lifecycle.SavedStateHandle()
-        val vm = TestViewModel(handle)
+        val vm = TestMvvmViewModel(handle)
         vm.testSetSavedState("key", "value")
         assertEquals("value", vm.testGetSavedState("key"))
     }
 
     @Test
     fun `savedStateHandle returns null for missing key`() {
-        val vm = TestViewModel()
+        val vm = TestMvvmViewModel()
         assertNull(vm.testGetSavedState("nonexistent"))
     }
 
-    // ==================== UIEvent sealed class tests ====================
-
     @Test
     fun `UIEvent Toast data equality`() {
-        val e1 = BaseViewModel.UIEvent.Toast("a")
-        val e2 = BaseViewModel.UIEvent.Toast("a")
+        val e1 = MvvmViewModel.UIEvent.Toast("a")
+        val e2 = MvvmViewModel.UIEvent.Toast("a")
         assertEquals(e1, e2)
     }
 
     @Test
     fun `UIEvent Loading data equality`() {
-        val e1 = BaseViewModel.UIEvent.Loading(true)
-        val e2 = BaseViewModel.UIEvent.Loading(true)
+        val e1 = MvvmViewModel.UIEvent.Loading(true)
+        val e2 = MvvmViewModel.UIEvent.Loading(true)
         assertEquals(e1, e2)
     }
 
     @Test
     fun `UIEvent Navigate data equality`() {
-        val e1 = BaseViewModel.UIEvent.Navigate("/home", mapOf("id" to 1))
-        val e2 = BaseViewModel.UIEvent.Navigate("/home", mapOf("id" to 1))
+        val e1 = MvvmViewModel.UIEvent.Navigate("/home", mapOf("id" to 1))
+        val e2 = MvvmViewModel.UIEvent.Navigate("/home", mapOf("id" to 1))
         assertEquals(e1, e2)
     }
 
     @Test
     fun `UIEvent NavigateBack is singleton`() {
-        val e1 = BaseViewModel.UIEvent.NavigateBack
-        val e2 = BaseViewModel.UIEvent.NavigateBack
+        val e1 = MvvmViewModel.UIEvent.NavigateBack
+        val e2 = MvvmViewModel.UIEvent.NavigateBack
         assertSame(e1, e2)
     }
 }

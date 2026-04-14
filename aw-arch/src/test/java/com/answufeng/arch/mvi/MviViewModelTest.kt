@@ -57,8 +57,6 @@ class MviViewModelTest {
         fun testClearThrottleCache() = clearThrottleCache()
     }
 
-    // ==================== State tests ====================
-
     @Test
     fun `initial state is correct`() {
         val vm = TestViewModel()
@@ -89,8 +87,6 @@ class MviViewModelTest {
         assertEquals(2, vm.state.value.count)
     }
 
-    // ==================== Event tests ====================
-
     @Test
     fun `sendEvent emits event via channel`() = runTest {
         val vm = TestViewModel()
@@ -102,8 +98,6 @@ class MviViewModelTest {
         assertEquals("hello", (event as TestEvent.ShowToast).msg)
     }
 
-    // ==================== Exception handling ====================
-
     @Test
     fun `handleException is called on coroutine error`() = runTest {
         val vm = TestViewModel()
@@ -113,8 +107,6 @@ class MviViewModelTest {
         assertNotNull(vm.lastError)
         assertEquals("test error", vm.lastError?.message)
     }
-
-    // ==================== launchIO tests ====================
 
     @Test
     fun `launchIO updates state after completion`() = runTest {
@@ -130,8 +122,6 @@ class MviViewModelTest {
         assertFalse(vm.state.value.loading)
         assertEquals(100, vm.state.value.count)
     }
-
-    // ==================== dispatchThrottled tests ====================
 
     @Test
     fun `dispatchThrottled ignores rapid duplicate intents`() {
@@ -151,8 +141,6 @@ class MviViewModelTest {
         assertEquals(0, vm.state.value.count)
     }
 
-    // ==================== clearThrottleCache tests ====================
-
     @Test
     fun `clearThrottleCache allows previously throttled intents`() {
         val vm = TestViewModel()
@@ -167,8 +155,6 @@ class MviViewModelTest {
         vm.dispatchThrottled(TestIntent.Increment, 300)
         assertEquals(2, vm.state.value.count)
     }
-
-    // ==================== updateState tests ====================
 
     @Test
     fun `updateState is atomic`() {

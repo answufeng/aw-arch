@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.coroutines.android)
     implementation(libs.material)
     implementation(libs.annotation)
+    compileOnly(libs.compose.runtime)
 
     compileOnly(libs.junit)
     compileOnly(libs.coroutines.test)

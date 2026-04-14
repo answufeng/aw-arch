@@ -19,8 +19,8 @@
 -keep class com.answufeng.arch.nav.NavOptions { *; }
 -keep class com.answufeng.arch.nav.NavAnim { *; }
 
-# BaseViewModel.UIEvent 密封类子类
--keep class * extends com.answufeng.arch.base.BaseViewModel$UIEvent { *; }
+# MvvmViewModel.UIEvent sealed class subclasses
+-keep class * extends com.answufeng.arch.base.MvvmViewModel$UIEvent { *; }
 
 # Kotlin 元数据
 -keepattributes *Annotation*
