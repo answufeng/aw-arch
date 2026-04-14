@@ -37,7 +37,7 @@ import kotlin.reflect.KClass
  * - 配置变更后可通过 [from] 重新获取实例，[currentRoute] 会自动从 FragmentManager 恢复。
  *
  * ```kotlin
- * val nav = BrickNav.init(this, R.id.container)
+ * val nav = AwNav.init(this, R.id.container)
  *     .register<HomeFragment>("home")
  *     .register<ProfileFragment>("profile")
  *
@@ -46,10 +46,10 @@ import kotlin.reflect.KClass
  * nav.back()
  *
  * // 从 Fragment 中
- * BrickNav.from(this).navigate("settings")
+ * AwNav.from(this).navigate("settings")
  * ```
  */
-class BrickNav private constructor(
+class AwNav private constructor(
     private val activity: FragmentActivity,
     private val fragmentManager: FragmentManager,
     @IdRes private val containerId: Int,
@@ -85,7 +85,7 @@ class BrickNav private constructor(
      * @param route 路由名称
      * @param cls   Fragment 的 KClass
      */
-    fun register(route: String, cls: KClass<out Fragment>): BrickNav {
+    fun register(route: String, cls: KClass<out Fragment>): AwNav {
         routes[route] = cls
         return this
     }
@@ -97,7 +97,7 @@ class BrickNav private constructor(
      * nav.register<HomeFragment>("home")
      * ```
      */
-    inline fun <reified F : Fragment> register(route: String): BrickNav =
+    inline fun <reified F : Fragment> register(route: String): AwNav =
         register(route, F::class)
 
     // ── 拦截器 ──────────────────────────────────────
@@ -116,7 +116,7 @@ class BrickNav private constructor(
      * }
      * ```
      */
-    fun addInterceptor(interceptor: NavInterceptor): BrickNav {
+    fun addInterceptor(interceptor: NavInterceptor): AwNav {
         interceptors += interceptor
         return this
     }
@@ -242,16 +242,16 @@ class BrickNav private constructor(
     companion object {
         private const val NAV_THROTTLE_MILLIS = 300L
 
-        private val instances = ConcurrentHashMap<Int, BrickNav>()
+        private val instances = ConcurrentHashMap<Int, AwNav>()
 
         /**
          * 在 Activity 中初始化。应在 `onCreate` 中调用。
          * Activity 销毁时自动清理。
          * 自动注册系统返回键处理。
          */
-        fun init(activity: FragmentActivity, @IdRes containerId: Int): BrickNav {
+        fun init(activity: FragmentActivity, @IdRes containerId: Int): AwNav {
             val key = System.identityHashCode(activity)
-            val nav = BrickNav(activity, activity.supportFragmentManager, containerId)
+            val nav = AwNav(activity, activity.supportFragmentManager, containerId)
             instances[key] = nav
 
             activity.onBackPressedDispatcher.addCallback(activity, nav.backPressedCallback)
@@ -267,25 +267,25 @@ class BrickNav private constructor(
         }
 
         /**
-         * 从 Fragment 获取所属 Activity 的 BrickNav 实例。
+         * 从 Fragment 获取所属 Activity 的 AwNav 实例。
          *
-         * @throws IllegalStateException BrickNav 未初始化时抛出
+         * @throws IllegalStateException AwNav 未初始化时抛出
          */
-        fun from(fragment: Fragment): BrickNav {
+        fun from(fragment: Fragment): AwNav {
             val key = System.identityHashCode(fragment.requireActivity())
             return instances[key]
-                ?: error("BrickNav not initialized for ${fragment.requireActivity()::class.simpleName}. Call BrickNav.init() in your Activity's onCreate() first.")
+                ?: error("AwNav not initialized for ${fragment.requireActivity()::class.simpleName}. Call AwNav.init() in your Activity's onCreate() first.")
         }
 
         /**
-         * 从 Activity 获取已初始化的 BrickNav 实例。
+         * 从 Activity 获取已初始化的 AwNav 实例。
          *
-         * @throws IllegalStateException BrickNav 未初始化时抛出
+         * @throws IllegalStateException AwNav 未初始化时抛出
          */
-        fun from(activity: FragmentActivity): BrickNav {
+        fun from(activity: FragmentActivity): AwNav {
             val key = System.identityHashCode(activity)
             return instances[key]
-                ?: error("BrickNav not initialized for ${activity::class.simpleName}. Call BrickNav.init() in your Activity's onCreate() first.")
+                ?: error("AwNav not initialized for ${activity::class.simpleName}. Call AwNav.init() in your Activity's onCreate() first.")
         }
     }
 }

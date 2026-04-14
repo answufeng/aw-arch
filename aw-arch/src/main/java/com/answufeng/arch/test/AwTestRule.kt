@@ -18,7 +18,7 @@ import org.junit.runner.Description
  * ```kotlin
  * class MyViewModelTest {
  *     @get:Rule
- *     val brickTestRule = BrickTestRule()
+ *     val awTestRule = AwTestRule()
  *
  *     @Test
  *     fun `test state update`() = runTest {
@@ -33,7 +33,7 @@ import org.junit.runner.Description
  * @param testDispatcher 测试用调度器，默认 [UnconfinedTestDispatcher]
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-class BrickTestRule(
+class AwTestRule(
     val testDispatcher: TestDispatcher = UnconfinedTestDispatcher()
 ) : TestWatcher() {
 

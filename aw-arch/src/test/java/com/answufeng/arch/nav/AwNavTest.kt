@@ -3,7 +3,7 @@ package com.answufeng.arch.nav
 import org.junit.Assert.*
 import org.junit.Test
 
-class BrickNavTest {
+class AwNavTest {
 
     @Test
     fun `NavAnim NONE resolves to null`() {
