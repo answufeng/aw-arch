@@ -7,19 +7,19 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.answufeng.arch.demo.databinding.ActivityNavDemoBinding
-import com.answufeng.arch.nav.BrickNav
+import com.answufeng.arch.nav.AwNav
 import com.answufeng.arch.nav.NavAnim
 
 class NavDemoActivity : androidx.appcompat.app.AppCompatActivity() {
 
-    private lateinit var nav: BrickNav
+    private lateinit var nav: AwNav
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val binding = ActivityNavDemoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        nav = BrickNav.init(this, binding.container.id)
+        nav = AwNav.init(this, binding.container.id)
             .register<HomeFragment>("home")
             .register<DetailFragment>("detail")
             .register<SettingsFragment>("settings")
@@ -46,7 +46,7 @@ class NavDemoActivity : androidx.appcompat.app.AppCompatActivity() {
 class HomeFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return TextView(requireContext()).apply {
-            text = "Home Fragment\nStack: ${BrickNav.from(this@HomeFragment).stackDepth}"
+            text = "Home Fragment\nStack: ${AwNav.from(this@HomeFragment).stackDepth}"
             textSize = 20f
             setPadding(32, 32, 32, 32)
         }
@@ -57,7 +57,7 @@ class DetailFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val args = arguments?.getString("key") ?: "No args"
         return TextView(requireContext()).apply {
-            text = "Detail Fragment\nArgs: $args\nStack: ${BrickNav.from(this@DetailFragment).stackDepth}"
+            text = "Detail Fragment\nArgs: $args\nStack: ${AwNav.from(this@DetailFragment).stackDepth}"
             textSize = 20f
             setPadding(32, 32, 32, 32)
         }
@@ -67,7 +67,7 @@ class DetailFragment : Fragment() {
 class SettingsFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return TextView(requireContext()).apply {
-            text = "Settings Fragment\nStack: ${BrickNav.from(this@SettingsFragment).stackDepth}"
+            text = "Settings Fragment\nStack: ${AwNav.from(this@SettingsFragment).stackDepth}"
             textSize = 20f
             setPadding(32, 32, 32, 32)
         }

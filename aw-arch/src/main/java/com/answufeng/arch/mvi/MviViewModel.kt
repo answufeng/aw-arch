@@ -3,7 +3,7 @@ package com.answufeng.arch.mvi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.answufeng.arch.base.BaseViewModel
-import com.answufeng.arch.config.BrickArch
+import com.answufeng.arch.config.AwArch
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -159,11 +159,11 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     }
 
     override fun handleException(throwable: Throwable) {
-        BrickArch.logger.e("MviViewModel", "Unhandled exception in ${this::class.simpleName}", throwable)
+        AwArch.logger.e("MviViewModel", "Unhandled exception in ${this::class.simpleName}", throwable)
     }
 
     final override fun sendEvent(event: com.answufeng.arch.base.BaseViewModel.UIEvent) {
-        BrickArch.logger.w(
+        AwArch.logger.w(
             "MviViewModel",
             "sendEvent() should not be called in MviViewModel. Use sendMviEvent() instead. " +
                 "Event $event was dropped."
@@ -171,7 +171,7 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     }
 
     final override fun showToast(message: String) {
-        BrickArch.logger.w(
+        AwArch.logger.w(
             "MviViewModel",
             "showToast() should not be called in MviViewModel. Use sendMviEvent() instead. " +
                 "Toast message '$message' was dropped."
@@ -179,14 +179,14 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     }
 
     final override fun showLoading(show: Boolean) {
-        BrickArch.logger.w(
+        AwArch.logger.w(
             "MviViewModel",
             "showLoading() should not be called in MviViewModel. Use updateState { copy(isLoading = $show) } instead."
         )
     }
 
     final override fun navigate(route: String, extras: Map<String, Any>?) {
-        BrickArch.logger.w(
+        AwArch.logger.w(
             "MviViewModel",
             "navigate() should not be called in MviViewModel. Use sendMviEvent() instead. " +
                 "Navigate to '$route' was dropped."
@@ -194,7 +194,7 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     }
 
     final override fun navigateBack() {
-        BrickArch.logger.w(
+        AwArch.logger.w(
             "MviViewModel",
             "navigateBack() should not be called in MviViewModel. Use sendMviEvent() instead."
         )

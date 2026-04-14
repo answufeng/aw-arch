@@ -46,7 +46,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
     private var isFirstLoad = true
 
     companion object {
-        private const val KEY_IS_FIRST_LOAD = "brick_base_fragment_is_first_load"
+        private const val KEY_IS_FIRST_LOAD = "aw_base_fragment_is_first_load"
     }
 
     /** 由子类实现：创建 ViewBinding 实例 */

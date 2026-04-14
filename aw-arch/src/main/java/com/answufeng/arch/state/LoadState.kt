@@ -1,6 +1,6 @@
 package com.answufeng.arch.state
 
-import com.answufeng.arch.config.BrickArch
+import com.answufeng.arch.config.AwArch
 import kotlinx.coroutines.delay
 
 /**
@@ -155,7 +155,7 @@ suspend fun <T> loadStateCatching(block: suspend () -> T): LoadState<T> {
     return try {
         LoadState.Success(block())
     } catch (e: Exception) {
-        BrickArch.logger.e("LoadState", "loadStateCatching failed", e)
+        AwArch.logger.e("LoadState", "loadStateCatching failed", e)
         LoadState.Error(e)
     }
 }
@@ -187,7 +187,7 @@ suspend fun <T> retryLoadState(
         try {
             return LoadState.Success(block())
         } catch (e: Exception) {
-            BrickArch.logger.w(
+            AwArch.logger.w(
                 "LoadState",
                 "retryLoadState attempt ${attempt + 1}/$times failed, retrying in ${currentDelay}ms",
                 e
@@ -199,7 +199,7 @@ suspend fun <T> retryLoadState(
     return try {
         LoadState.Success(block())
     } catch (e: Exception) {
-        BrickArch.logger.e("LoadState", "retryLoadState exhausted all $times retries", e)
+        AwArch.logger.e("LoadState", "retryLoadState exhausted all $times retries", e)
         LoadState.Error(e)
     }
 }

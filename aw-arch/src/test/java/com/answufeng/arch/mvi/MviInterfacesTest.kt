@@ -1,6 +1,6 @@
 package com.answufeng.arch.mvi
 
-import com.answufeng.arch.test.BrickTestRule
+import com.answufeng.arch.test.AwTestRule
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test

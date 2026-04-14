@@ -1,12 +1,12 @@
 package com.answufeng.arch.config
 
 /**
- * brick-arch 全局配置入口。
+ * aw-arch 全局配置入口。
  *
  * 在 Application.onCreate() 中初始化：
  * ```kotlin
- * BrickArch.init {
- *     logger = TimberBrickLogger()
+ * AwArch.init {
+ *     logger = TimberAwLogger()
  * }
  * ```
  */

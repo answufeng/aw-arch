@@ -3,7 +3,7 @@ package com.answufeng.arch.base
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.answufeng.arch.config.BrickArch
+import com.answufeng.arch.config.AwArch
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -171,11 +171,11 @@ abstract class BaseViewModel(
     /**
      * 默认异常处理，子类可覆写以统一错误上报/展示逻辑。
      *
-     * 默认通过 [BrickArch.logger] 记录日志并弹出 Toast。
+     * 默认通过 [AwArch.logger] 记录日志并弹出 Toast。
      * 如果在非主线程调用 showToast，内部会自动切到主线程。
      */
     protected open fun handleException(throwable: Throwable) {
-        BrickArch.logger.e("BaseViewModel", "Unhandled exception in ${this::class.simpleName}", throwable)
+        AwArch.logger.e("BaseViewModel", "Unhandled exception in ${this::class.simpleName}", throwable)
         showToast(throwable.message ?: "未知错误")
     }
 

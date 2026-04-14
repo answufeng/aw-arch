@@ -371,22 +371,22 @@ enum class NavAnim {
     internal fun resolve(): AnimSet? = when (this) {
         NONE -> null
         FADE -> AnimSet(
-            R.anim.brick_nav_fade_in,
-            R.anim.brick_nav_fade_out,
-            R.anim.brick_nav_fade_in,
-            R.anim.brick_nav_fade_out,
+            R.anim.aw_nav_fade_in,
+            R.anim.aw_nav_fade_out,
+            R.anim.aw_nav_fade_in,
+            R.anim.aw_nav_fade_out,
         )
         SLIDE_HORIZONTAL -> AnimSet(
-            R.anim.brick_nav_slide_in_right,
-            R.anim.brick_nav_slide_out_left,
-            R.anim.brick_nav_slide_in_left,
-            R.anim.brick_nav_slide_out_right,
+            R.anim.aw_nav_slide_in_right,
+            R.anim.aw_nav_slide_out_left,
+            R.anim.aw_nav_slide_in_left,
+            R.anim.aw_nav_slide_out_right,
         )
         SLIDE_VERTICAL -> AnimSet(
-            R.anim.brick_nav_slide_in_up,
-            R.anim.brick_nav_fade_out,
-            R.anim.brick_nav_fade_in,
-            R.anim.brick_nav_slide_out_down,
+            R.anim.aw_nav_slide_in_up,
+            R.anim.aw_nav_fade_out,
+            R.anim.aw_nav_fade_in,
+            R.anim.aw_nav_slide_out_down,
         )
     }
 }
