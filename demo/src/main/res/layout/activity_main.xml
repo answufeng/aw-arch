@@ -1,41 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="#FAFAFA">
 
-    <TextView
-        android:id="@+id/tvTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="aw-arch Demo"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
-        <LinearLayout
-            android:id="@+id/container"
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:text="📱 aw-arch 架构库演示"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#212121"
+            android:gravity="center"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
 
-    </ScrollView>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="LoadState 状态管理 · FlowEventBus 事件总线 · MVVM/MVI 架构模式"
+            android:textSize="13sp"
+            android:textColor="#757575"
+            android:gravity="center"
+            android:paddingBottom="16dp" />
 
-    <TextView
-        android:id="@+id/tvLog"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:textSize="12sp"
-        android:fontFamily="monospace"
-        android:background="#F5F5F5"
-        android:padding="8dp"
-        android:scrollbars="vertical" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📋 操作日志"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="#42A5F5"
+            android:padding="12dp" />
 
-</LinearLayout>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:background="#FFFFFF"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvLog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="#333333"
+                android:lineSpacingExtra="3dp" />
+        </ScrollView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🔄 状态管理"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnLoadState"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="测试 LoadState 加载状态"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnRetryLoadState"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="测试 重试机制（3次重试）"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📢 事件总线 FlowEventBus"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnPostEvent"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="发送事件 (suspend post)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnTryPostEvent"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="发送事件 (tryPost 非挂起)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnStickyEvent"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="发送粘性事件 (sticky)"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🏗️ 架构模式演示"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnMvvm"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="打开 MVVM 演示"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnMvi"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="打开 MVI 演示"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnNav"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="打开导航演示"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnWeChat"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="打开微信演示 (AwNav + BottomBar + MVI)"
+            android:layout_marginBottom="16dp" />
+
+        <Button
+            android:id="@+id/btnClearLog"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="🗑️ 清除日志"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+</ScrollView>

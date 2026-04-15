@@ -2,7 +2,7 @@ package com.answufeng.arch.demo
 
 import android.os.Bundle
 import android.widget.Button
-import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -23,82 +23,112 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        title = "aw-arch 演示"
 
         tvLog = findViewById(R.id.tvLog)
-        val container = findViewById<LinearLayout>(R.id.container)
 
-        container.addView(button("Test LoadState") {
-            lifecycleScope.launch {
-                val state: LoadState<String> = loadStateCatching {
-                    delay(500)
-                    "Data loaded successfully!"
-                }
-                when (state) {
-                    is LoadState.Loading -> log("Loading...")
-                    is LoadState.Success -> log("Success: ${state.data}")
-                    is LoadState.Error -> log("Error: ${state.message}")
-                }
-            }
-        })
-
-        container.addView(button("Test RetryLoadState") {
-            lifecycleScope.launch {
-                var attempt = 0
-                val state = retryLoadState(times = 3, initialDelayMillis = 500) {
-                    attempt++
-                    if (attempt < 3) throw RuntimeException("Attempt $attempt failed")
-                    "Recovered on attempt $attempt"
-                }
-                when (state) {
-                    is LoadState.Success -> log("Success: ${state.data}")
-                    is LoadState.Error -> log("Failed after retries: ${state.message}")
-                    is LoadState.Loading -> log("Loading...")
-                }
-            }
-        })
-
-        container.addView(button("Post Event (suspend)") {
-            lifecycleScope.launch {
-                FlowEventBus.post(DemoEvent("Hello from FlowEventBus!"))
-                log("Event posted (suspend)")
-            }
-        })
-
-        container.addView(button("Post Event (tryPost)") {
-            val success = FlowEventBus.tryPost(DemoEvent("Hello from tryPost!"))
-            log("tryPost result: $success")
-        })
-
-        container.addView(button("Post Sticky Event") {
-            lifecycleScope.launch {
-                FlowEventBus.postSticky(DemoEvent("Sticky event!"))
-                log("Sticky event posted")
-            }
-        })
-
-        container.addView(button("Open MVVM Demo") {
-            startActivity(android.content.Intent(this, MvvmDemoActivity::class.java))
-        })
-
-        container.addView(button("Open MVI Demo") {
-            startActivity(android.content.Intent(this, MviDemoActivity::class.java))
-        })
-
-        container.addView(button("Open Nav Demo") {
-            startActivity(android.content.Intent(this, NavDemoActivity::class.java))
-        })
+        findViewById<Button>(R.id.btnLoadState).setOnClickListener { testLoadState() }
+        findViewById<Button>(R.id.btnRetryLoadState).setOnClickListener { testRetryLoadState() }
+        findViewById<Button>(R.id.btnPostEvent).setOnClickListener { postEvent() }
+        findViewById<Button>(R.id.btnTryPostEvent).setOnClickListener { tryPostEvent() }
+        findViewById<Button>(R.id.btnStickyEvent).setOnClickListener { postStickyEvent() }
+        findViewById<Button>(R.id.btnMvvm).setOnClickListener { openMvvmDemo() }
+        findViewById<Button>(R.id.btnMvi).setOnClickListener { openMviDemo() }
+        findViewById<Button>(R.id.btnNav).setOnClickListener { openNavDemo() }
+        findViewById<Button>(R.id.btnWeChat).setOnClickListener { openWeChatDemo() }
+        findViewById<Button>(R.id.btnClearLog).setOnClickListener { clearLog() }
 
         FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { event ->
-            log("Received event: ${event.message}")
+            log("✅ 收到事件: ${event.message}")
         }
-    }
-
-    private fun button(text: String, onClick: () -> Unit): Button {
-        return Button(this).apply { this.text = text; setOnClickListener { onClick() } }
     }
 
     private fun log(msg: String) {
         tvLog.append("$msg\n")
-        android.util.Log.d("Demo", msg)
+        val scrollView = tvLog.parent as? ScrollView
+        scrollView?.post { scrollView.fullScroll(ScrollView.FOCUS_DOWN) }
+    }
+
+    private fun clearLog() {
+        tvLog.text = ""
+        log("📝 日志已清除")
+    }
+
+    private fun testLoadState() {
+        lifecycleScope.launch {
+            log("🔄 开始测试 LoadState...")
+            val state: LoadState<String> = loadStateCatching {
+                delay(1000)
+                "数据加载成功！"
+            }
+            when (state) {
+                is LoadState.Loading -> log("⏳ 加载中...")
+                is LoadState.Success -> log("✅ 成功: ${state.data}")
+                is LoadState.Error -> log("❌ 错误: ${state.message}")
+            }
+        }
+    }
+
+    private fun testRetryLoadState() {
+        lifecycleScope.launch {
+            log("🔄 开始测试重试机制（3次重试）...")
+            var attempt = 0
+            val state = retryLoadState(times = 3, initialDelayMillis = 500) {
+                attempt++
+                if (attempt < 3) {
+                    log("⏳ 第${attempt}次尝试失败")
+                    throw RuntimeException("第${attempt}次尝试失败")
+                }
+                log("✅ 第${attempt}次尝试成功")
+                "在第${attempt}次尝试时恢复"
+            }
+            when (state) {
+                is LoadState.Success -> log("✅ 最终成功: ${state.data}")
+                is LoadState.Error -> log("❌ 最终失败: ${state.message}")
+                is LoadState.Loading -> log("⏳ 加载中...")
+            }
+        }
+    }
+
+    private fun postEvent() {
+        lifecycleScope.launch {
+            val event = DemoEvent("Hello from FlowEventBus!")
+            FlowEventBus.post(event)
+            log("📢 发送事件(suspend): ${event.message}")
+        }
+    }
+
+    private fun tryPostEvent() {
+        val event = DemoEvent("Hello from tryPost!")
+        val success = FlowEventBus.tryPost(event)
+        log("📢 发送事件(tryPost): ${event.message}, 结果: $success")
+    }
+
+    private fun postStickyEvent() {
+        lifecycleScope.launch {
+            val event = DemoEvent("Sticky event!")
+            FlowEventBus.postSticky(event)
+            log("📢 发送粘性事件: ${event.message}")
+        }
+    }
+
+    private fun openMvvmDemo() {
+        log("🚀 打开 MVVM 演示")
+        startActivity(android.content.Intent(this, MvvmDemoActivity::class.java))
+    }
+
+    private fun openMviDemo() {
+        log("🚀 打开 MVI 演示")
+        startActivity(android.content.Intent(this, MviDemoActivity::class.java))
+    }
+
+    private fun openNavDemo() {
+        log("🚀 打开导航演示")
+        startActivity(android.content.Intent(this, NavDemoActivity::class.java))
+    }
+
+    private fun openWeChatDemo() {
+        log("🚀 打开微信演示")
+        startActivity(android.content.Intent(this, com.answufeng.arch.demo.wechat.WeChatActivity::class.java))
     }
 }
