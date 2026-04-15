@@ -1,40 +1,40 @@
 package com.answufeng.arch.config
 
 /**
- * brick-arch 全局配置入口。
+ * aw-arch 全局配置入口。
  *
  * 在 Application.onCreate() 中初始化：
  * ```kotlin
- * BrickArch.init {
- *     logger = TimberBrickLogger()
+ * AwArch.init {
+ *     logger = TimberAwLogger()
  * }
  * ```
  */
-object BrickArch {
+object AwArch {
 
     /** 全局日志实现，默认使用 Android Log（测试环境自动降级为 println） */
-    var logger: BrickLogger = DefaultBrickLogger()
+    var logger: AwLogger = DefaultAwLogger()
 
     /**
      * DSL 方式初始化配置。
      */
-    fun init(block: BrickArch.() -> Unit) {
+    fun init(block: AwArch.() -> Unit) {
         block()
     }
 }
 
 /**
- * brick-arch 日志接口，可自定义实现（如 Timber）。
+ * aw-arch 日志接口，可自定义实现（如 Timber）。
  *
  * ```kotlin
- * class TimberBrickLogger : BrickLogger {
+ * class TimberAwLogger : AwLogger {
  *     override fun d(tag: String, message: String) = Timber.tag(tag).d(message)
  *     override fun w(tag: String, message: String, throwable: Throwable?) = Timber.tag(tag).w(throwable, message)
  *     override fun e(tag: String, message: String, throwable: Throwable?) = Timber.tag(tag).e(throwable, message)
  * }
  * ```
  */
-interface BrickLogger {
+interface AwLogger {
     fun d(tag: String, message: String)
     fun w(tag: String, message: String, throwable: Throwable? = null)
     fun e(tag: String, message: String, throwable: Throwable? = null)
@@ -50,11 +50,11 @@ interface BrickLogger {
  * 因为 Android 单元测试中 android.jar 的方法默认抛出 RuntimeException，
  * 而 Robolectric 环境下可以正常调用。
  */
-internal class DefaultBrickLogger : BrickLogger {
+internal class DefaultAwLogger : AwLogger {
 
     private val isAndroid: Boolean by lazy {
         try {
-            android.util.Log.isLoggable("BrickArch", android.util.Log.VERBOSE)
+            android.util.Log.isLoggable("AwArch", android.util.Log.VERBOSE)
             true
         } catch (_: Throwable) {
             false

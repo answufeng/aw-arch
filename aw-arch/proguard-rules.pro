@@ -1,2 +1,2 @@
-# brick-arch ProGuard rules (release build)
+# aw-arch ProGuard rules (release build)
 # Consumer-facing rules are in consumer-rules.pro

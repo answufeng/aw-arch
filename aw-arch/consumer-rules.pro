@@ -1,4 +1,4 @@
-# brick-arch consumer ProGuard rules
+# aw-arch consumer ProGuard rules
 
 # BaseViewModel 及其子类通过反射创建
 -keep class * extends androidx.lifecycle.ViewModel { <init>(...); }
@@ -14,8 +14,8 @@
 -keep class * implements com.answufeng.arch.mvi.UiEvent { *; }
 -keep class * implements com.answufeng.arch.mvi.UiIntent { *; }
 
-# BrickNav 路由注册使用 KClass
--keepclassmembers class com.answufeng.arch.nav.BrickNav { *; }
+# AwNav 路由注册使用 KClass
+-keepclassmembers class com.answufeng.arch.nav.AwNav { *; }
 -keep class com.answufeng.arch.nav.NavOptions { *; }
 -keep class com.answufeng.arch.nav.NavAnim { *; }
 

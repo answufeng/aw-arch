@@ -1,6 +1,6 @@
 package com.answufeng.arch.mvi
 
-import com.answufeng.arch.test.BrickTestRule
+import com.answufeng.arch.test.AwTestRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -13,7 +13,7 @@ import org.junit.Test
 class MviViewModelTest {
 
     @get:Rule
-    val brickTestRule = BrickTestRule()
+    val awTestRule = AwTestRule()
 
     data class TestState(
         val count: Int = 0,
