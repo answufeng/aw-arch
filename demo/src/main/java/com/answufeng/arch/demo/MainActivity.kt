@@ -2,6 +2,7 @@ package com.answufeng.arch.demo
 
 import android.os.Bundle
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +12,7 @@ import com.answufeng.arch.ext.collectOnLifecycle
 import com.answufeng.arch.state.LoadState
 import com.answufeng.arch.state.loadStateCatching
 import com.answufeng.arch.state.retryLoadState
+import com.google.android.material.card.MaterialCardView
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -23,23 +25,102 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        title = "aw-arch 演示"
 
-        tvLog = findViewById(R.id.tvLog)
+        // 主布局
+        val mainLayout = findViewById<LinearLayout>(R.id.mainLayout)
 
-        findViewById<Button>(R.id.btnLoadState).setOnClickListener { testLoadState() }
-        findViewById<Button>(R.id.btnRetryLoadState).setOnClickListener { testRetryLoadState() }
-        findViewById<Button>(R.id.btnPostEvent).setOnClickListener { postEvent() }
-        findViewById<Button>(R.id.btnTryPostEvent).setOnClickListener { tryPostEvent() }
-        findViewById<Button>(R.id.btnStickyEvent).setOnClickListener { postStickyEvent() }
-        findViewById<Button>(R.id.btnMvvm).setOnClickListener { openMvvmDemo() }
-        findViewById<Button>(R.id.btnMvi).setOnClickListener { openMviDemo() }
-        findViewById<Button>(R.id.btnNav).setOnClickListener { openNavDemo() }
-        findViewById<Button>(R.id.btnWeChat).setOnClickListener { openWeChatDemo() }
-        findViewById<Button>(R.id.btnClearLog).setOnClickListener { clearLog() }
+        // 标题
+        mainLayout.addView(TextView(this).apply {
+            text = "🏗️ aw-arch 功能演示"
+            textSize = 20f
+            setPadding(0, 0, 0, 20)
+        })
 
+        // 核心功能卡片
+        val coreCard = createCard("核心功能")
+        val coreLayout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        coreLayout.addView(createButton("⏳ LoadState 测试", ::testLoadState))
+        coreLayout.addView(createButton("🔄 重试机制测试", ::testRetryLoadState))
+        coreLayout.addView(createButton("📢 发送事件", ::postEvent))
+        coreLayout.addView(createButton("📢 发送粘性事件", ::postStickyEvent))
+        coreCard.addView(coreLayout)
+        mainLayout.addView(coreCard)
+
+        // 架构模式卡片
+        val archCard = createCard("架构模式")
+        val archLayout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        archLayout.addView(createButton("🔷 MVVM 演示", ::openMvvmDemo))
+        archLayout.addView(createButton("🔶 MVI 演示", ::openMviDemo))
+        archCard.addView(archLayout)
+        mainLayout.addView(archCard)
+
+        // 导航功能卡片
+        val navCard = createCard("导航功能")
+        val navLayout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        navLayout.addView(createButton("🧭 基础导航", ::openNavDemo))
+        navLayout.addView(createButton("💬 微信风格导航", ::openWeChatDemo))
+        navCard.addView(navLayout)
+        mainLayout.addView(navCard)
+
+        // 管理功能卡片
+        val manageCard = createCard("管理功能")
+        val manageLayout = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        manageLayout.addView(createButton("🗑️ 清除日志", ::clearLog))
+        manageCard.addView(manageLayout)
+        mainLayout.addView(manageCard)
+
+        // 日志区域
+        mainLayout.addView(TextView(this).apply {
+            text = "操作日志："
+            textSize = 16f
+            setPadding(0, 20, 0, 10)
+        })
+
+        val logScrollView = ScrollView(this)
+        tvLog = TextView(this).apply {
+            text = "操作日志将显示在这里..."
+            setPadding(10, 10, 10, 10)
+        }
+        logScrollView.addView(tvLog)
+        mainLayout.addView(logScrollView)
+
+        // 监听事件
         FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { event ->
             log("✅ 收到事件: ${event.message}")
+        }
+
+        log("✅ aw-arch 初始化完成")
+        log("📊 点击按钮测试各项功能")
+    }
+
+    private fun createCard(title: String): MaterialCardView {
+        return MaterialCardView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 0, 0, 16)
+            }
+            setPadding(20, 20, 20, 20)
+
+            addView(TextView(this@MainActivity).apply {
+                text = title
+                textSize = 16f
+                setPadding(0, 0, 0, 12)
+            })
+        }
+    }
+
+    private fun createButton(text: String, onClick: () -> Unit): Button {
+        return Button(this).apply {
+            this.text = text
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 4, 0, 4)
+            }
+            setOnClickListener { onClick() }
         }
     }
 
@@ -50,8 +131,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun clearLog() {
-        tvLog.text = ""
-        log("📝 日志已清除")
+        tvLog.text = "日志已清除\n"
     }
 
     private fun testLoadState() {
@@ -96,12 +176,6 @@ class MainActivity : AppCompatActivity() {
             FlowEventBus.post(event)
             log("📢 发送事件(suspend): ${event.message}")
         }
-    }
-
-    private fun tryPostEvent() {
-        val event = DemoEvent("Hello from tryPost!")
-        val success = FlowEventBus.tryPost(event)
-        log("📢 发送事件(tryPost): ${event.message}, 结果: $success")
     }
 
     private fun postStickyEvent() {
