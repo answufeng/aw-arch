@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity() {
 
         log("✅ aw-arch 初始化完成")
         log("📊 点击按钮测试各项功能")
+        log("✨ 已更新 UI 现代化和功能全面性")
     }
 
     private fun createCard(title: String): MaterialCardView {
