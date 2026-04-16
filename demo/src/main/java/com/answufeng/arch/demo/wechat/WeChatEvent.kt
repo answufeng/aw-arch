@@ -2,4 +2,6 @@ package com.answufeng.arch.demo.wechat
 
 import com.answufeng.arch.mvi.UiEvent
 
-data class TabChangedEvent(val tabIndex: Int) : UiEvent
+sealed class WeChatEvent : UiEvent {
+    data class TabChanged(val tabIndex: Int) : WeChatEvent()
+}

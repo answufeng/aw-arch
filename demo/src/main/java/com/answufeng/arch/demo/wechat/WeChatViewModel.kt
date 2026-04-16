@@ -6,9 +6,9 @@ class WeChatViewModel : MviViewModel<WeChatState, WeChatEvent, WeChatIntent>(WeC
 
     override fun handleIntent(intent: WeChatIntent) {
         when (intent) {
-            is SwitchTabIntent -> {
+            is WeChatIntent.SwitchTab -> {
                 updateState { copy(currentTab = intent.tabIndex) }
-                sendMviEvent(TabChangedEvent(intent.tabIndex))
+                sendMviEvent(WeChatEvent.TabChanged(intent.tabIndex))
             }
         }
     }
