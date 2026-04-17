@@ -2,6 +2,7 @@ package com.answufeng.arch.state
 
 import com.answufeng.arch.config.AwArch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 
 /**
  * 通用加载状态密封类，适用于任何异步数据加载场景。
@@ -202,4 +203,37 @@ suspend fun <T> retryLoadState(
         AwArch.logger.e("LoadState", "retryLoadState exhausted all $times retries", e)
         LoadState.Error(e)
     }
+}
+
+fun <T> LoadState<T>.recover(defaultValue: T): LoadState<T> = when (this) {
+    is LoadState.Error -> LoadState.Success(defaultValue)
+    else -> this
+}
+
+fun <T> LoadState<T>.recoverWith(fn: (Throwable) -> T): LoadState<T> = when (this) {
+    is LoadState.Error -> LoadState.Success(fn(exception))
+    else -> this
+}
+
+fun <T, R> LoadState<T>.combine(other: LoadState<R>): LoadState<Pair<T, R>> = when {
+    this is LoadState.Loading || other is LoadState.Loading -> LoadState.Loading
+    this is LoadState.Error -> this as LoadState<Pair<T, R>>
+    other is LoadState.Error -> other as LoadState<Pair<T, R>>
+    this is LoadState.Success && other is LoadState.Success -> LoadState.Success(this.data to other.data)
+    else -> LoadState.Loading
+}
+
+fun <T> Flow<T>.asLoadState(): Flow<LoadState<T>> {
+    return kotlinx.coroutines.flow.flow {
+        emit(LoadState.Loading)
+        try {
+            emit(LoadState.Success(collect()))
+        } catch (e: Exception) {
+            emit(LoadState.Error(e))
+        }
+    }
+}
+
+fun <T, R> Flow<LoadState<T>>.mapLoadState(transform: (T) -> R): Flow<LoadState<R>> {
+    return kotlinx.coroutines.flow.map { it.map(transform) }
 }

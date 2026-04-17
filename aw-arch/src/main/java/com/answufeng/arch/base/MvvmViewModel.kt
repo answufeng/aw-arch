@@ -1,29 +1,38 @@
 package com.answufeng.arch.base
 
-/**
- * MVVM 模式的 ViewModel 基类。
- *
- * 提供：
- * - 协程快捷启动：launch / launchIO / launchDefault
- * - 通用 UI 事件：showToast / showLoading / navigate / navigateBack
- * - SavedStateHandle 便捷方法
- * - 线程切换 withMain
- *
- * ### 子类示例
- * ```kotlin
- * class HomeViewModel(
- *     private val repository: HomeRepository,
- *     savedStateHandle: SavedStateHandle
- * ) : MvvmViewModel(savedStateHandle) {
- *     fun loadData() = launchIO {
- *         showLoading(true)
- *         val data = repository.fetchItems()
- *         showLoading(false)
- *         showToast("Data loaded!")
- *     }
- * }
- * ```
- */
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+
 open class MvvmViewModel(
-    savedStateHandle: androidx.lifecycle.SavedStateHandle? = null
-) : BaseViewModel(savedStateHandle)
+    savedStateHandle: SavedStateHandle? = null
+) : BaseViewModel(savedStateHandle) {
+
+    private val _uiEvent = Channel<UIEvent>(Channel.UNLIMITED)
+
+    val uiEvent: Flow<UIEvent> = _uiEvent.receiveAsFlow()
+
+    protected open fun sendEvent(event: UIEvent) {
+        _uiEvent.trySend(event)
+    }
+
+    protected open fun showToast(message: String) = sendEvent(UIEvent.Toast(message))
+
+    protected open fun showLoading(show: Boolean = true) = sendEvent(UIEvent.Loading(show))
+
+    protected open fun navigate(route: String, extras: Map<String, Any>? = null) =
+        sendEvent(UIEvent.Navigate(route, extras))
+
+    protected open fun navigateBack() = sendEvent(UIEvent.NavigateBack)
+
+    sealed class UIEvent {
+        data class Toast(val message: String) : UIEvent()
+        data class Loading(val show: Boolean) : UIEvent()
+        data class Navigate(val route: String, val extras: Map<String, Any>? = null) : UIEvent()
+        data object NavigateBack : UIEvent()
+        data class Custom(val key: String, val data: Any? = null) : UIEvent()
+    }
+}

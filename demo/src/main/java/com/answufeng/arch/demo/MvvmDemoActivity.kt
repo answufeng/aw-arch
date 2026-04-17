@@ -22,7 +22,7 @@ class MvvmDemoActivity : MvvmActivity<ActivityMvvmDemoBinding, MvvmDemoViewModel
     }
 
     override fun onLoading(show: Boolean) {
-        binding.progressBar.visibility = if (show) android.widget.ProgressBar.VISIBLE else android.widget.ProgressBar.GONE
+        binding.progressBar.visibility = if (show) android.view.ProgressBar.VISIBLE else android.view.ProgressBar.GONE
     }
 }
 

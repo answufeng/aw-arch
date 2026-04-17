@@ -1,19 +1,19 @@
 package com.answufeng.arch.ext
 
+import android.os.SystemClock
+import android.view.View
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
-/**
- * 在指定生命周期内收集 Flow。
- *
- * @param lifecycleOwner 生命周期所有者
- * @param state 收集时的生命周期状态
- * @param action 收集动作
- */
 fun <T : Any> Flow<T>.collectOnLifecycle(
     lifecycleOwner: LifecycleOwner,
     state: Lifecycle.State = Lifecycle.State.STARTED,
@@ -24,4 +24,44 @@ fun <T : Any> Flow<T>.collectOnLifecycle(
             collect { action(it) }
         }
     }
+}
+
+fun <T> Flow<T>.throttleFirst(windowMillis: Long): Flow<T> {
+    return ThrottleFirstFlow(this, windowMillis)
+}
+
+internal class ThrottleFirstFlow<T>(
+    private val source: Flow<T>,
+    private val windowMillis: Long
+) : Flow<T> by source {
+    override suspend fun collect(collector: kotlinx.coroutines.flow.FlowCollector<T>) {
+        var lastTime = 0L
+        source.collect { value ->
+            val now = SystemClock.elapsedRealtime()
+            if (now - lastTime >= windowMillis) {
+                lastTime = now
+                collector.emit(value)
+            }
+        }
+    }
+}
+
+fun <T> Flow<T>.debounceAction(timeoutMillis: Long): Flow<T> {
+    return kotlinx.coroutines.flow.debounce(timeoutMillis)
+}
+
+fun <T, R> StateFlow<T>.select(selector: (T) -> R): Flow<R> {
+    return map(selector).distinctUntilChanged()
+}
+
+fun <T, R> Flow<T>.select(selector: (T) -> R): Flow<R> {
+    return map(selector).distinctUntilChanged()
+}
+
+fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> {
+    val channel = Channel<Unit>(Channel.CONFLATED)
+    setOnClickListener {
+        channel.trySend(Unit)
+    }
+    return channel.receiveAsFlow()
 }

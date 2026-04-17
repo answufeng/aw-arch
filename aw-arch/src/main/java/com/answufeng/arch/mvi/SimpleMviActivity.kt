@@ -7,44 +7,34 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : AppCompatActivity() {
+abstract class SimpleMviActivity<VB : ViewBinding, STATE : UiState, INTENT : UiIntent> : AppCompatActivity() {
 
-    protected lateinit var viewModel: VM
+    protected lateinit var viewModel: SimpleMviViewModel<STATE, INTENT>
     protected lateinit var binding: VB
 
-    abstract fun viewModelClass(): Class<VM>
-
+    abstract fun viewModelClass(): Class<out SimpleMviViewModel<STATE, INTENT>>
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
-        viewModel = createViewModel()
+        viewModel = ViewModelProvider(this)[viewModelClass()]
         initView(savedInstanceState)
         initObservers()
     }
 
     abstract fun initView(savedInstanceState: Bundle?)
-
     abstract fun render(state: STATE)
-
-    open fun handleEvent(event: EVENT) {}
 
     protected open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                launch { viewModel.state.collect { render(it) } }
-                launch { viewModel.event.collect { handleEvent(it) } }
+                viewModel.state.collect { render(it) }
             }
         }
-    }
-
-    protected open fun createViewModel(): VM {
-        return ViewModelProvider(this)[viewModelClass()]
     }
 
     protected fun dispatch(intent: INTENT) {

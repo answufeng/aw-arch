@@ -2,29 +2,37 @@ package com.answufeng.arch.mvvm
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
+import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
-abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity() {
+abstract class MvvmBottomSheetDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : BottomSheetDialogFragment() {
+
+    private var _binding: VB? = null
+
+    protected val binding: VB
+        get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
     protected lateinit var viewModel: VM
-    protected lateinit var binding: VB
 
     abstract fun viewModelClass(): Class<VM>
+    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
-    abstract fun inflateBinding(inflater: LayoutInflater): VB
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = inflateBinding(inflater, container)
+        return binding.root
+    }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = inflateBinding(layoutInflater)
-        setContentView(binding.root)
-        viewModel = createViewModel()
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        viewModel = ViewModelProvider(this)[viewModelClass()]
         initView(savedInstanceState)
         initObservers()
     }
@@ -51,19 +59,20 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
 
     open fun onLoading(show: Boolean) {}
 
-    protected open fun createViewModel(): VM {
-        return ViewModelProvider(this)[viewModelClass()]
-    }
-
     protected open fun showToast(message: String) {
-        android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     protected open fun navigateTo(route: String, extras: Map<String, Any>? = null) {}
 
     protected open fun navigateBack() {
-        finish()
+        dismiss()
     }
 
     protected open fun handleCustomEvent(key: String, data: Any?) {}
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

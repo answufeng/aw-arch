@@ -97,11 +97,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun tryPostEvent() {
-        lifecycleScope.launch {
-            val event = DemoEvent("Hello from post!")
-            FlowEventBus.post(event)
-            log("📢 发送事件(post): ${event.message}")
-        }
+        val event = DemoEvent("Hello from tryPost!")
+        val result = FlowEventBus.tryPost(event)
+        log("📢 发送事件(tryPost): ${event.message}, 结果: $result")
     }
 
     private fun postStickyEvent() {

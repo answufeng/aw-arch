@@ -1,9 +1,8 @@
-package com.answufeng.arch.mvvm
+package com.answufeng.arch.hilt
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
@@ -11,12 +10,9 @@ import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
 import kotlinx.coroutines.launch
 
-abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity() {
+abstract class HiltMvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity() {
 
-    protected lateinit var viewModel: VM
     protected lateinit var binding: VB
-
-    abstract fun viewModelClass(): Class<VM>
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
@@ -24,7 +20,6 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
         super.onCreate(savedInstanceState)
         binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
-        viewModel = createViewModel()
         initView(savedInstanceState)
         initObservers()
     }
@@ -39,6 +34,8 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
         }
     }
 
+    abstract val viewModel: VM
+
     open fun onUIEvent(event: UIEvent) {
         when (event) {
             is UIEvent.Toast -> showToast(event.message)
@@ -50,10 +47,6 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
     }
 
     open fun onLoading(show: Boolean) {}
-
-    protected open fun createViewModel(): VM {
-        return ViewModelProvider(this)[viewModelClass()]
-    }
 
     protected open fun showToast(message: String) {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()

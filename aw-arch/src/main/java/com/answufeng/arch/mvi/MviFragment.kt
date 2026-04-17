@@ -2,27 +2,36 @@ package com.answufeng.arch.mvi
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import androidx.appcompat.app.AppCompatActivity
+import android.view.View
+import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : AppCompatActivity() {
+abstract class MviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : Fragment() {
+
+    private var _binding: VB? = null
+
+    protected val binding: VB
+        get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
     protected lateinit var viewModel: VM
-    protected lateinit var binding: VB
 
     abstract fun viewModelClass(): Class<VM>
+    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
-    abstract fun inflateBinding(inflater: LayoutInflater): VB
+    open val shareViewModelWithActivity: Boolean = false
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = inflateBinding(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = inflateBinding(inflater, container)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         viewModel = createViewModel()
         initView(savedInstanceState)
         initObservers()
@@ -44,7 +53,12 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
     }
 
     protected open fun createViewModel(): VM {
-        return ViewModelProvider(this)[viewModelClass()]
+        val factory = if (shareViewModelWithActivity) {
+            ViewModelProvider(requireActivity())
+        } else {
+            ViewModelProvider(this)
+        }
+        return factory[viewModelClass()]
     }
 
     protected fun dispatch(intent: INTENT) {
@@ -53,5 +67,10 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
 
     protected fun dispatchThrottled(intent: INTENT, windowMillis: Long = 300) {
         viewModel.dispatchThrottled(intent, windowMillis)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

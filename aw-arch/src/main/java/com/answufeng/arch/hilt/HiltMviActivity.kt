@@ -1,21 +1,19 @@
-package com.answufeng.arch.mvi
+package com.answufeng.arch.hilt
 
 import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
-import kotlinx.coroutines.flow.Flow
+import com.answufeng.arch.mvi.MviViewModel
+import com.answufeng.arch.mvi.UiEvent
+import com.answufeng.arch.mvi.UiState
 import kotlinx.coroutines.launch
 
-abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : AppCompatActivity() {
+abstract class HiltMviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : com.answufeng.arch.mvi.UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : AppCompatActivity() {
 
-    protected lateinit var viewModel: VM
     protected lateinit var binding: VB
-
-    abstract fun viewModelClass(): Class<VM>
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
@@ -23,7 +21,6 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
         super.onCreate(savedInstanceState)
         binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
-        viewModel = createViewModel()
         initView(savedInstanceState)
         initObservers()
     }
@@ -34,6 +31,8 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
 
     open fun handleEvent(event: EVENT) {}
 
+    abstract val viewModel: VM
+
     protected open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
@@ -41,10 +40,6 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
                 launch { viewModel.event.collect { handleEvent(it) } }
             }
         }
-    }
-
-    protected open fun createViewModel(): VM {
-        return ViewModelProvider(this)[viewModelClass()]
     }
 
     protected fun dispatch(intent: INTENT) {

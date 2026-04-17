@@ -2,17 +2,18 @@ package com.answufeng.arch.demo.wechat
 
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import com.answufeng.arch.demo.R
+import com.answufeng.arch.base.BaseFragment
+import com.answufeng.arch.demo.databinding.FragmentProfileBinding
 
-class ProfileFragment : Fragment() {
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+class ProfileFragment : BaseFragment<FragmentProfileBinding>() {
+
+    override fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?) =
+        FragmentProfileBinding.inflate(inflater, container, false)
+
+    override fun initView(savedInstanceState: Bundle?) {
+    }
+
+    override fun onLazyLoad() {
     }
 }
