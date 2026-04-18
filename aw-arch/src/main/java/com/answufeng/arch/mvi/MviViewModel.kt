@@ -1,5 +1,6 @@
 package com.answufeng.arch.mvi
 
+import android.os.Looper
 import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import com.answufeng.arch.base.BaseViewModel
@@ -60,7 +61,7 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     /** 一次性事件流（如 Toast、导航），消费后不会重放 */
     val event: Flow<E> = _event.receiveAsFlow()
 
-    private val intentThrottleMap = HashMap<String, Long>()
+    private val intentThrottleMap = java.util.concurrent.ConcurrentHashMap<String, Long>()
 
     /** 可替换的时间源，用于节流计算。测试中可覆写以控制时间 */
     protected open fun currentTimeMillis(): Long = SystemClock.elapsedRealtime()
@@ -68,8 +69,11 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     /** 处理用户意图，子类必须实现 */
     abstract fun handleIntent(intent: I)
 
-    /** 分发意图，直接调用 [handleIntent] */
+    /** 分发意图，直接调用 [handleIntent]。必须在主线程调用 */
     fun dispatch(intent: I) {
+        check(Looper.myLooper() == Looper.getMainLooper()) {
+            "dispatch() must be called on the main thread"
+        }
         handleIntent(intent)
     }
 

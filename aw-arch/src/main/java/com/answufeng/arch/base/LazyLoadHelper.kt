@@ -17,12 +17,6 @@ class LazyLoadHelper(private val fragment: Fragment) {
         }
     }
 
-    fun onResume() {
-        if (isFirstLoad) {
-            isFirstLoad = false
-        }
-    }
-
     fun shouldLazyLoad(): Boolean {
         if (isFirstLoad) {
             isFirstLoad = false
