@@ -1,5 +1,8 @@
 package com.answufeng.arch.config
 
+@DslMarker
+annotation class AwArchDsl
+
 /**
  * aw-arch 全局配置入口。
  *
@@ -10,6 +13,7 @@ package com.answufeng.arch.config
  * }
  * ```
  */
+@AwArchDsl
 object AwArch {
 
     /** 全局日志实现，默认使用 Android Log（测试环境自动降级为 println） */

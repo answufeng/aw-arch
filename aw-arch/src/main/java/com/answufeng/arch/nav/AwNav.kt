@@ -15,6 +15,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.answufeng.arch.R
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
+import com.answufeng.arch.config.AwArchDsl
 import kotlin.reflect.KClass
 
 /**
@@ -219,6 +220,7 @@ class AwNav private constructor(
     }
 }
 
+@AwArchDsl
 class NavOptions {
     var addToBackStack: Boolean = true
     var singleTop: Boolean = false
@@ -291,6 +293,7 @@ fun interface NavInterceptor {
     fun onNavigate(from: String?, to: String, args: Bundle?): Boolean
 }
 
+@AwArchDsl
 class NavRouteBuilder internal constructor(
     private val routes: MutableMap<String, KClass<out Fragment>>
 ) {
