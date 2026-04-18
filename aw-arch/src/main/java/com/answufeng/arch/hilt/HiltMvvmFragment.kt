@@ -10,9 +10,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
+import com.answufeng.arch.mvvm.MvvmView
 import kotlinx.coroutines.launch
 
-abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment() {
+abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment(), MvvmView {
 
     private var _binding: VB? = null
 
@@ -44,29 +45,13 @@ abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment
         }
     }
 
-    open fun onUIEvent(event: UIEvent) {
-        when (event) {
-            is UIEvent.Toast -> showToast(event.message)
-            is UIEvent.Loading -> onLoading(event.show)
-            is UIEvent.Navigate -> navigateTo(event.route, event.extras)
-            is UIEvent.NavigateBack -> navigateBack()
-            is UIEvent.Custom -> handleCustomEvent(event.key, event.data)
-        }
-    }
-
-    open fun onLoading(show: Boolean) {}
-
-    protected open fun showToast(message: String) {
+    override fun showToast(message: String) {
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    protected open fun navigateTo(route: String, extras: Map<String, Any>? = null) {}
-
-    protected open fun navigateBack() {
+    override fun navigateBack() {
         requireActivity().onBackPressedDispatcher.onBackPressed()
     }
-
-    protected open fun handleCustomEvent(key: String, data: Any?) {}
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -9,11 +9,12 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
+import com.answufeng.arch.base.LazyLoadHelper
 import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
 import kotlinx.coroutines.launch
 
-abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment() {
+abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment(), MvvmView {
 
     private var _binding: VB? = null
 
@@ -22,10 +23,16 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment() {
 
     protected lateinit var viewModel: VM
 
-    abstract fun viewModelClass(): Class<VM>
+    private val lazyLoadHelper = LazyLoadHelper(this)
+
     abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
     open val shareViewModelWithActivity: Boolean = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lazyLoadHelper.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = inflateBinding(inflater, container)
@@ -39,7 +46,21 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment() {
         initObservers()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (lazyLoadHelper.shouldLazyLoad()) {
+            onLazyLoad()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        lazyLoadHelper.onSaveInstanceState(outState)
+    }
+
     abstract fun initView(savedInstanceState: Bundle?)
+
+    open fun onLazyLoad() {}
 
     open fun initObservers() {
         lifecycleScope.launch {
@@ -49,38 +70,38 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment() {
         }
     }
 
-    open fun onUIEvent(event: UIEvent) {
-        when (event) {
-            is UIEvent.Toast -> showToast(event.message)
-            is UIEvent.Loading -> onLoading(event.show)
-            is UIEvent.Navigate -> navigateTo(event.route, event.extras)
-            is UIEvent.NavigateBack -> navigateBack()
-            is UIEvent.Custom -> handleCustomEvent(event.key, event.data)
-        }
-    }
-
-    open fun onLoading(show: Boolean) {}
-
+    @Suppress("UNCHECKED_CAST")
     protected open fun createViewModel(): VM {
+        val vmClass = inferViewModelClass()
         val factory = if (shareViewModelWithActivity) {
             ViewModelProvider(requireActivity())
         } else {
             ViewModelProvider(this)
         }
-        return factory[viewModelClass()]
+        return factory[vmClass]
     }
 
-    protected open fun showToast(message: String) {
+    @Suppress("UNCHECKED_CAST")
+    private fun inferViewModelClass(): Class<VM> {
+        val superclass = javaClass.genericSuperclass
+        if (superclass is java.lang.reflect.ParameterizedType) {
+            val types = superclass.actualTypeArguments
+            for (type in types) {
+                if (type is Class<*> && MvvmViewModel::class.java.isAssignableFrom(type)) {
+                    return type as Class<VM>
+                }
+            }
+        }
+        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
+    }
+
+    override fun showToast(message: String) {
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    protected open fun navigateTo(route: String, extras: Map<String, Any>? = null) {}
-
-    protected open fun navigateBack() {
+    override fun navigateBack() {
         requireActivity().onBackPressedDispatcher.onBackPressed()
     }
-
-    protected open fun handleCustomEvent(key: String, data: Any?) {}
 
     override fun onDestroyView() {
         super.onDestroyView()

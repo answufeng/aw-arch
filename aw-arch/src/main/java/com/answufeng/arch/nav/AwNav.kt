@@ -17,6 +17,27 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
 
+/**
+ * 轻量级 Fragment 导航控制器，替代 Navigation Component 的简化方案。
+ *
+ * 功能：
+ * - 路由注册与 Fragment 实例化
+ * - 拦截器（如登录拦截）
+ * - 返回栈管理
+ * - DSL 批量注册
+ *
+ * ```kotlin
+ * val nav = AwNav.of(this, R.id.container) {
+ *     register {
+ *         route<HomeFragment>("home")
+ *         route<DetailFragment>("detail")
+ *     }
+ *     interceptor(LoginInterceptor())
+ * }
+ *
+ * nav.navigate("detail", Bundle().apply { putInt("id", 42) })
+ * ```
+ */
 class AwNav private constructor(
     private val activityRef: WeakReference<FragmentActivity>,
     private val fragmentManager: FragmentManager,
@@ -56,6 +77,11 @@ class AwNav private constructor(
 
     inline fun <reified F : Fragment> register(route: String): AwNav =
         register(route, F::class)
+
+    fun register(block: NavRouteBuilder.() -> Unit): AwNav {
+        NavRouteBuilder(routes).apply(block)
+        return this
+    }
 
     fun addInterceptor(interceptor: NavInterceptor): AwNav {
         interceptors += interceptor
@@ -263,4 +289,17 @@ internal data class AnimSet(
 
 fun interface NavInterceptor {
     fun onNavigate(from: String?, to: String, args: Bundle?): Boolean
+}
+
+class NavRouteBuilder internal constructor(
+    private val routes: MutableMap<String, KClass<out Fragment>>
+) {
+    inline fun <reified F : Fragment> route(name: String) {
+        addRoute(name, F::class)
+    }
+
+    @PublishedApi
+    internal fun addRoute(name: String, cls: KClass<out Fragment>) {
+        routes[name] = cls
+    }
 }

@@ -4,17 +4,16 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
-import com.answufeng.arch.ext.observeMvi
-import com.answufeng.arch.mvi.MviDispatcher
-import com.answufeng.arch.mvi.MviViewModel
-import com.answufeng.arch.mvi.UiEvent
-import com.answufeng.arch.mvi.UiIntent
-import com.answufeng.arch.mvi.UiState
+import com.answufeng.arch.base.MvvmViewModel
+import com.answufeng.arch.base.MvvmViewModel.UIEvent
+import com.answufeng.arch.mvvm.MvvmView
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.launch
 
-abstract class HiltMviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
-    Fragment(), MviDispatcher<INTENT> {
+abstract class HiltMvvmBottomSheetDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : BottomSheetDialogFragment(), MvvmView {
 
     private var _binding: VB? = null
 
@@ -38,20 +37,20 @@ abstract class HiltMviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEven
 
     abstract fun initView(savedInstanceState: Bundle?)
 
-    abstract fun render(state: STATE)
-
-    open fun handleEvent(event: EVENT) {}
-
-    protected open fun initObservers() {
-        observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
+    open fun initObservers() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                viewModel.uiEvent.collect { onUIEvent(it) }
+            }
+        }
     }
 
-    override fun dispatch(intent: INTENT) {
-        viewModel.dispatch(intent)
+    override fun showToast(message: String) {
+        android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    override fun dispatchThrottled(intent: INTENT, windowMillis: Long, keySelector: (INTENT) -> String) {
-        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
+    override fun navigateBack() {
+        dismiss()
     }
 
     override fun onDestroyView() {

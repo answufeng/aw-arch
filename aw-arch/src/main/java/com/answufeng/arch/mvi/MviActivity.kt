@@ -4,18 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.launch
+import com.answufeng.arch.ext.observeMvi
 
-abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : AppCompatActivity() {
+abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
+    AppCompatActivity(), MviDispatcher<INTENT> {
 
     protected lateinit var viewModel: VM
     protected lateinit var binding: VB
-
-    abstract fun viewModelClass(): Class<VM>
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
@@ -35,23 +31,34 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
     open fun handleEvent(event: EVENT) {}
 
     protected open fun initObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                launch { viewModel.state.collect { render(it) } }
-                launch { viewModel.event.collect { handleEvent(it) } }
+        observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    protected open fun createViewModel(): VM {
+        val vmClass = inferViewModelClass()
+        return ViewModelProvider(this)[vmClass]
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun inferViewModelClass(): Class<VM> {
+        val superclass = javaClass.genericSuperclass
+        if (superclass is java.lang.reflect.ParameterizedType) {
+            val types = superclass.actualTypeArguments
+            for (type in types) {
+                if (type is Class<*> && MviViewModel::class.java.isAssignableFrom(type)) {
+                    return type as Class<VM>
+                }
             }
         }
+        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
     }
 
-    protected open fun createViewModel(): VM {
-        return ViewModelProvider(this)[viewModelClass()]
-    }
-
-    protected fun dispatch(intent: INTENT) {
+    override fun dispatch(intent: INTENT) {
         viewModel.dispatch(intent)
     }
 
-    protected fun dispatchThrottled(intent: INTENT, windowMillis: Long = 300) {
-        viewModel.dispatchThrottled(intent, windowMillis)
+    override fun dispatchThrottled(intent: INTENT, windowMillis: Long, keySelector: (INTENT) -> String) {
+        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
     }
 }

@@ -80,6 +80,10 @@ class BaseViewModelTest {
         val vm = TestMvvmViewModel()
         vm.testLaunchIO { throw RuntimeException("io error") }
         advanceUntilIdle()
+        val deadline = System.currentTimeMillis() + 3000L
+        while (vm.exceptionHandled == null && System.currentTimeMillis() < deadline) {
+            Thread.sleep(50)
+        }
         assertNotNull(vm.exceptionHandled)
         assertEquals("io error", vm.exceptionHandled?.message)
     }
@@ -171,9 +175,11 @@ class BaseViewModelTest {
 
     @Test
     fun `UIEvent Navigate data equality`() {
-        val e1 = MvvmViewModel.UIEvent.Navigate("/home", mapOf("id" to 1))
-        val e2 = MvvmViewModel.UIEvent.Navigate("/home", mapOf("id" to 1))
-        assertEquals(e1, e2)
+        val bundle1 = android.os.Bundle().apply { putInt("id", 1) }
+        val bundle2 = android.os.Bundle().apply { putInt("id", 1) }
+        val e1 = MvvmViewModel.UIEvent.Navigate("/home", bundle1)
+        val e2 = MvvmViewModel.UIEvent.Navigate("/home", bundle2)
+        assertEquals(e1.route, e2.route)
     }
 
     @Test

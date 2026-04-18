@@ -6,12 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
-import kotlinx.coroutines.launch
+import com.answufeng.arch.ext.observeMvi
 
-abstract class MviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : DialogFragment() {
+abstract class MviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
+    DialogFragment(), MviDispatcher<INTENT> {
 
     private var _binding: VB? = null
 
@@ -20,7 +19,6 @@ abstract class MviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEv
 
     protected lateinit var viewModel: VM
 
-    abstract fun viewModelClass(): Class<VM>
     abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -30,7 +28,7 @@ abstract class MviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEv
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[viewModelClass()]
+        viewModel = createViewModel()
         initView(savedInstanceState)
         initObservers()
     }
@@ -42,20 +40,35 @@ abstract class MviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEv
     open fun handleEvent(event: EVENT) {}
 
     protected open fun initObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                launch { viewModel.state.collect { render(it) } }
-                launch { viewModel.event.collect { handleEvent(it) } }
-            }
-        }
+        observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
 
-    protected fun dispatch(intent: INTENT) {
+    @Suppress("UNCHECKED_CAST")
+    protected open fun createViewModel(): VM {
+        val vmClass = inferViewModelClass()
+        return ViewModelProvider(this)[vmClass]
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun inferViewModelClass(): Class<VM> {
+        val superclass = javaClass.genericSuperclass
+        if (superclass is java.lang.reflect.ParameterizedType) {
+            val types = superclass.actualTypeArguments
+            for (type in types) {
+                if (type is Class<*> && MviViewModel::class.java.isAssignableFrom(type)) {
+                    return type as Class<VM>
+                }
+            }
+        }
+        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
+    }
+
+    override fun dispatch(intent: INTENT) {
         viewModel.dispatch(intent)
     }
 
-    protected fun dispatchThrottled(intent: INTENT, windowMillis: Long = 300) {
-        viewModel.dispatchThrottled(intent, windowMillis)
+    override fun dispatchThrottled(intent: INTENT, windowMillis: Long, keySelector: (INTENT) -> String) {
+        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
     }
 
     override fun onDestroyView() {

@@ -3,6 +3,9 @@ package com.answufeng.arch.state
 import com.answufeng.arch.config.AwArch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 /**
  * 通用加载状态密封类，适用于任何异步数据加载场景。
@@ -146,6 +149,14 @@ inline fun <T> LoadState<T>.onLoading(action: () -> Unit): LoadState<T> {
 }
 
 /**
+ * 对任意状态执行回调，适合统一处理（如日志、埋点）。
+ */
+inline fun <T> LoadState<T>.onEach(action: (LoadState<T>) -> Unit): LoadState<T> {
+    action(this)
+    return this
+}
+
+/**
  * 在协程中安全执行并包装为 [LoadState]。
  *
  * ```kotlin
@@ -217,23 +228,19 @@ fun <T> LoadState<T>.recoverWith(fn: (Throwable) -> T): LoadState<T> = when (thi
 
 fun <T, R> LoadState<T>.combine(other: LoadState<R>): LoadState<Pair<T, R>> = when {
     this is LoadState.Loading || other is LoadState.Loading -> LoadState.Loading
-    this is LoadState.Error -> this as LoadState<Pair<T, R>>
-    other is LoadState.Error -> other as LoadState<Pair<T, R>>
+    this is LoadState.Error -> LoadState.Error(this.exception, this.message)
+    other is LoadState.Error -> LoadState.Error(other.exception, other.message)
     this is LoadState.Success && other is LoadState.Success -> LoadState.Success(this.data to other.data)
     else -> LoadState.Loading
 }
 
 fun <T> Flow<T>.asLoadState(): Flow<LoadState<T>> {
-    return kotlinx.coroutines.flow.flow {
-        emit(LoadState.Loading)
-        try {
-            emit(LoadState.Success(collect()))
-        } catch (e: Exception) {
-            emit(LoadState.Error(e))
-        }
-    }
+    return this
+        .map<T, LoadState<T>> { LoadState.Success(it) }
+        .onStart { emit(LoadState.Loading) }
+        .catch { emit(LoadState.Error(it)) }
 }
 
 fun <T, R> Flow<LoadState<T>>.mapLoadState(transform: (T) -> R): Flow<LoadState<R>> {
-    return kotlinx.coroutines.flow.map { it.map(transform) }
+    return map { it.map(transform) }
 }

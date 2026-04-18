@@ -34,6 +34,13 @@ class MviViewModelTest {
 
     class TestViewModel : MviViewModel<TestState, TestEvent, TestIntent>(TestState()) {
         var lastError: Throwable? = null
+        private var fakeTime = 0L
+
+        override fun currentTimeMillis(): Long = fakeTime
+
+        fun advanceTime(millis: Long) {
+            fakeTime += millis
+        }
 
         override fun handleIntent(intent: TestIntent) {
             when (intent) {
@@ -126,11 +133,16 @@ class MviViewModelTest {
     @Test
     fun `dispatchThrottled ignores rapid duplicate intents`() {
         val vm = TestViewModel()
+        vm.advanceTime(100)
         vm.dispatchThrottled(TestIntent.Increment, 300)
         assertEquals(1, vm.state.value.count)
 
         vm.dispatchThrottled(TestIntent.Increment, 300)
         assertEquals(1, vm.state.value.count)
+
+        vm.advanceTime(301)
+        vm.dispatchThrottled(TestIntent.Increment, 300)
+        assertEquals(2, vm.state.value.count)
     }
 
     @Test
@@ -144,6 +156,7 @@ class MviViewModelTest {
     @Test
     fun `clearThrottleCache allows previously throttled intents`() {
         val vm = TestViewModel()
+        vm.advanceTime(100)
         vm.dispatchThrottled(TestIntent.Increment, 300)
         assertEquals(1, vm.state.value.count)
 

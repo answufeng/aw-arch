@@ -6,9 +6,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.answufeng.arch.mvi.UiEvent
+import com.answufeng.arch.mvi.UiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -47,7 +50,7 @@ internal class ThrottleFirstFlow<T>(
 }
 
 fun <T> Flow<T>.debounceAction(timeoutMillis: Long): Flow<T> {
-    return kotlinx.coroutines.flow.debounce(timeoutMillis)
+    return debounce(timeoutMillis)
 }
 
 fun <T, R> StateFlow<T>.select(selector: (T) -> R): Flow<R> {
@@ -64,4 +67,19 @@ fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> {
         channel.trySend(Unit)
     }
     return channel.receiveAsFlow()
+}
+
+fun <S : UiState, E : UiEvent> LifecycleOwner.observeMvi(
+    stateFlow: StateFlow<S>,
+    eventFlow: Flow<E>,
+    state: Lifecycle.State = Lifecycle.State.STARTED,
+    render: (S) -> Unit,
+    handleEvent: (E) -> Unit = {}
+) {
+    lifecycleScope.launch {
+        repeatOnLifecycle(state) {
+            launch { stateFlow.collect { render(it) } }
+            launch { eventFlow.collect { handleEvent(it) } }
+        }
+    }
 }

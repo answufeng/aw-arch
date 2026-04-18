@@ -13,7 +13,7 @@ import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
 import kotlinx.coroutines.launch
 
-abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : DialogFragment() {
+abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : DialogFragment(), MvvmView {
 
     private var _binding: VB? = null
 
@@ -22,7 +22,6 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
 
     protected lateinit var viewModel: VM
 
-    abstract fun viewModelClass(): Class<VM>
     abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -32,7 +31,7 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[viewModelClass()]
+        viewModel = createViewModel()
         initView(savedInstanceState)
         initObservers()
     }
@@ -47,29 +46,33 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
         }
     }
 
-    open fun onUIEvent(event: UIEvent) {
-        when (event) {
-            is UIEvent.Toast -> showToast(event.message)
-            is UIEvent.Loading -> onLoading(event.show)
-            is UIEvent.Navigate -> navigateTo(event.route, event.extras)
-            is UIEvent.NavigateBack -> navigateBack()
-            is UIEvent.Custom -> handleCustomEvent(event.key, event.data)
-        }
+    @Suppress("UNCHECKED_CAST")
+    protected open fun createViewModel(): VM {
+        val vmClass = inferViewModelClass()
+        return ViewModelProvider(this)[vmClass]
     }
 
-    open fun onLoading(show: Boolean) {}
+    @Suppress("UNCHECKED_CAST")
+    private fun inferViewModelClass(): Class<VM> {
+        val superclass = javaClass.genericSuperclass
+        if (superclass is java.lang.reflect.ParameterizedType) {
+            val types = superclass.actualTypeArguments
+            for (type in types) {
+                if (type is Class<*> && MvvmViewModel::class.java.isAssignableFrom(type)) {
+                    return type as Class<VM>
+                }
+            }
+        }
+        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
+    }
 
-    protected open fun showToast(message: String) {
+    override fun showToast(message: String) {
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    protected open fun navigateTo(route: String, extras: Map<String, Any>? = null) {}
-
-    protected open fun navigateBack() {
+    override fun navigateBack() {
         dismiss()
     }
-
-    protected open fun handleCustomEvent(key: String, data: Any?) {}
 
     override fun onDestroyView() {
         super.onDestroyView()

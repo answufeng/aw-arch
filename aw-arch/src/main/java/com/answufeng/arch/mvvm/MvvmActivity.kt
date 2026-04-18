@@ -11,12 +11,10 @@ import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
 import kotlinx.coroutines.launch
 
-abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity() {
+abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity(), MvvmView {
 
     protected lateinit var viewModel: VM
     protected lateinit var binding: VB
-
-    abstract fun viewModelClass(): Class<VM>
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
@@ -39,31 +37,31 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
         }
     }
 
-    open fun onUIEvent(event: UIEvent) {
-        when (event) {
-            is UIEvent.Toast -> showToast(event.message)
-            is UIEvent.Loading -> onLoading(event.show)
-            is UIEvent.Navigate -> navigateTo(event.route, event.extras)
-            is UIEvent.NavigateBack -> navigateBack()
-            is UIEvent.Custom -> handleCustomEvent(event.key, event.data)
-        }
-    }
-
-    open fun onLoading(show: Boolean) {}
-
+    @Suppress("UNCHECKED_CAST")
     protected open fun createViewModel(): VM {
-        return ViewModelProvider(this)[viewModelClass()]
+        val vmClass = inferViewModelClass()
+        return ViewModelProvider(this)[vmClass]
     }
 
-    protected open fun showToast(message: String) {
+    @Suppress("UNCHECKED_CAST")
+    private fun inferViewModelClass(): Class<VM> {
+        val superclass = javaClass.genericSuperclass
+        if (superclass is java.lang.reflect.ParameterizedType) {
+            val types = superclass.actualTypeArguments
+            for (type in types) {
+                if (type is Class<*> && MvvmViewModel::class.java.isAssignableFrom(type)) {
+                    return type as Class<VM>
+                }
+            }
+        }
+        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
+    }
+
+    override fun showToast(message: String) {
         android.widget.Toast.makeText(this, message, android.widget.Toast.LENGTH_SHORT).show()
     }
 
-    protected open fun navigateTo(route: String, extras: Map<String, Any>? = null) {}
-
-    protected open fun navigateBack() {
+    override fun navigateBack() {
         finish()
     }
-
-    protected open fun handleCustomEvent(key: String, data: Any?) {}
 }

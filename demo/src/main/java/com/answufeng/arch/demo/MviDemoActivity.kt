@@ -49,8 +49,6 @@ class MviDemoActivity : MviActivity<
     ActivityMviDemoBinding, CounterState, CounterEvent, CounterIntent, CounterViewModel
 >() {
 
-    override fun viewModelClass() = CounterViewModel::class.java
-
     override fun inflateBinding(inflater: LayoutInflater) =
         ActivityMviDemoBinding.inflate(inflater)
 

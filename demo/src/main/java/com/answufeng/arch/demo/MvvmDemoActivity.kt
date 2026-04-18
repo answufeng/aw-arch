@@ -9,8 +9,6 @@ import kotlinx.coroutines.delay
 
 class MvvmDemoActivity : MvvmActivity<ActivityMvvmDemoBinding, MvvmDemoViewModel>() {
 
-    override fun viewModelClass() = MvvmDemoViewModel::class.java
-
     override fun inflateBinding(inflater: LayoutInflater) =
         ActivityMvvmDemoBinding.inflate(inflater)
 
@@ -22,7 +20,7 @@ class MvvmDemoActivity : MvvmActivity<ActivityMvvmDemoBinding, MvvmDemoViewModel
     }
 
     override fun onLoading(show: Boolean) {
-        binding.progressBar.visibility = if (show) android.view.ProgressBar.VISIBLE else android.view.ProgressBar.GONE
+        binding.progressBar.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
     }
 }
 

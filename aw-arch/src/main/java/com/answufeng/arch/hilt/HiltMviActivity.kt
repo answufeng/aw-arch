@@ -3,15 +3,16 @@ package com.answufeng.arch.hilt
 import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
+import com.answufeng.arch.ext.observeMvi
+import com.answufeng.arch.mvi.MviDispatcher
 import com.answufeng.arch.mvi.MviViewModel
 import com.answufeng.arch.mvi.UiEvent
+import com.answufeng.arch.mvi.UiIntent
 import com.answufeng.arch.mvi.UiState
-import kotlinx.coroutines.launch
 
-abstract class HiltMviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : com.answufeng.arch.mvi.UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> : AppCompatActivity() {
+abstract class HiltMviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
+    AppCompatActivity(), MviDispatcher<INTENT> {
 
     protected lateinit var binding: VB
 
@@ -34,19 +35,14 @@ abstract class HiltMviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEven
     abstract val viewModel: VM
 
     protected open fun initObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                launch { viewModel.state.collect { render(it) } }
-                launch { viewModel.event.collect { handleEvent(it) } }
-            }
-        }
+        observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
 
-    protected fun dispatch(intent: INTENT) {
+    override fun dispatch(intent: INTENT) {
         viewModel.dispatch(intent)
     }
 
-    protected fun dispatchThrottled(intent: INTENT, windowMillis: Long = 300) {
-        viewModel.dispatchThrottled(intent, windowMillis)
+    override fun dispatchThrottled(intent: INTENT, windowMillis: Long, keySelector: (INTENT) -> String) {
+        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
     }
 }

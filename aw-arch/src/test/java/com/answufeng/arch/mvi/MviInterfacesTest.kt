@@ -35,6 +35,7 @@ class MviInterfacesTest {
     @Test
     fun `SimpleMviViewModel dispatchThrottled works`() {
         val vm = TestSimpleMviVM()
+        vm.advanceTime(100)
         vm.dispatchThrottled(TestMviIntent.Increment, 300)
         assertEquals(1, vm.state.value.count)
         vm.dispatchThrottled(TestMviIntent.Increment, 300)
@@ -55,6 +56,14 @@ sealed class TestMviIntent : UiIntent {
 }
 
 class TestSimpleMviVM : SimpleMviViewModel<TestMviState, TestMviIntent>(TestMviState()) {
+    private var fakeTime = 0L
+
+    override fun currentTimeMillis(): Long = fakeTime
+
+    fun advanceTime(millis: Long) {
+        fakeTime += millis
+    }
+
     override fun handleIntent(intent: TestMviIntent) {
         when (intent) {
             TestMviIntent.Increment -> updateState { copy(count = count + 1) }
