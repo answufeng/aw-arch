@@ -42,7 +42,7 @@ abstract class HiltMviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEven
         viewModel.dispatch(intent)
     }
 
-    override fun dispatchThrottled(intent: INTENT, windowMillis: Long, keySelector: (INTENT) -> String) {
-        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
+    override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
+        viewModel.dispatchThrottled(intent, windowMillis)
     }
 }

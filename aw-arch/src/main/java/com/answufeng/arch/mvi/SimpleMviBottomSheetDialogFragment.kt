@@ -65,8 +65,8 @@ abstract class SimpleMviBottomSheetDialogFragment<VB : ViewBinding, STATE : UiSt
         viewModel.dispatch(intent)
     }
 
-    override fun dispatchThrottled(intent: INTENT, windowMillis: Long, keySelector: (INTENT) -> String) {
-        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
+    override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
+        viewModel.dispatchThrottled(intent, windowMillis)
     }
 
     override fun onDestroyView() {
