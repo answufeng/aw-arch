@@ -9,8 +9,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.answufeng.arch.mvi.UiEvent
 import com.answufeng.arch.mvi.UiState
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -97,13 +99,11 @@ fun <T, R> Flow<T>.select(selector: (T) -> R): Flow<R> {
  *
  * @param windowMillis 时间窗口（毫秒），默认 300
  */
-fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> {
-    val channel = Channel<Unit>(Channel.CONFLATED)
-    setOnClickListener {
-        channel.trySend(Unit)
-    }
-    return channel.receiveAsFlow()
-}
+fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> = callbackFlow {
+    val listener = View.OnClickListener { trySend(Unit) }
+    setOnClickListener(listener)
+    awaitClose { setOnClickListener(null) }
+}.throttleFirst(windowMillis)
 
 /**
  * 观察 MVI 架构的 StateFlow 和事件 Flow，在指定生命周期状态下自动收集。

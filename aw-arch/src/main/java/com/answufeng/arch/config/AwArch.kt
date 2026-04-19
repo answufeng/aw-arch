@@ -17,6 +17,7 @@ annotation class AwArchDsl
 object AwArch {
 
     /** 全局日志实现，默认使用 Android Log（测试环境自动降级为 println） */
+    @Volatile
     var logger: AwLogger = DefaultAwLogger()
 
     /**

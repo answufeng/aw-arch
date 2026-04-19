@@ -14,13 +14,49 @@
 -keep class * implements com.answufeng.arch.mvi.UiEvent { *; }
 -keep class * implements com.answufeng.arch.mvi.UiIntent { *; }
 
-# AwNav 路由注册使用 KClass
+# MviViewModel
+-keep class com.answufeng.arch.mvi.MviViewModel { *; }
+-keep class com.answufeng.arch.mvi.SimpleMviViewModel { *; }
+-keep class com.answufeng.arch.mvi.NoEvent { *; }
+-keep interface com.answufeng.arch.mvi.MviDispatcher { *; }
+
+# MVVM
+-keep class com.answufeng.arch.base.MvvmViewModel { *; }
+-keep class com.answufeng.arch.base.MvvmViewModel$UIEvent { *; }
+-keep class * extends com.answufeng.arch.base.MvvmViewModel$UIEvent { *; }
+-keep interface com.answufeng.arch.mvvm.MvvmView { *; }
+
+# BaseViewModel
+-keep class com.answufeng.arch.base.BaseViewModel { *; }
+
+# BaseActivity / BaseFragment
+-keep class com.answufeng.arch.base.BaseActivity { *; }
+-keep class com.answufeng.arch.base.BaseFragment { *; }
+
+# LoadState sealed class
+-keep class com.answufeng.arch.state.LoadState { *; }
+-keep class * extends com.answufeng.arch.state.LoadState { *; }
+
+# AwArch config
+-keep class com.answufeng.arch.config.AwArch { *; }
+-keep interface com.answufeng.arch.config.AwLogger { *; }
+
+# AwNav
 -keepclassmembers class com.answufeng.arch.nav.AwNav { *; }
 -keep class com.answufeng.arch.nav.NavOptions { *; }
 -keep class com.answufeng.arch.nav.NavAnim { *; }
+-keep interface com.answufeng.arch.nav.NavInterceptor { *; }
+-keep class com.answufeng.arch.nav.NavRouteBuilder { *; }
 
-# MvvmViewModel.UIEvent sealed class subclasses
--keep class * extends com.answufeng.arch.base.MvvmViewModel$UIEvent { *; }
+# Extension functions
+-keepclassmembers class com.answufeng.arch.ext.FlowExtKt { *; }
+-keepclassmembers class com.answufeng.arch.ext.LifecycleExtKt { *; }
+-keepclassmembers class com.answufeng.arch.ext.ViewModelExtKt { *; }
+-keepclassmembers class com.answufeng.arch.state.LoadStateKt { *; }
+
+# Kotlin coroutines
+-keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
+-keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 
 # Kotlin 元数据
 -keepattributes *Annotation*
