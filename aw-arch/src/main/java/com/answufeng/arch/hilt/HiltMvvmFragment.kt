@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
+import com.answufeng.arch.base.LazyLoadHelper
 import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
 import com.answufeng.arch.mvvm.MvvmView
@@ -24,6 +25,13 @@ abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment
 
     abstract val viewModel: VM
 
+    private val lazyLoadHelper = LazyLoadHelper(this)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lazyLoadHelper.onCreate(savedInstanceState)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = inflateBinding(inflater, container)
         return binding.root
@@ -35,7 +43,21 @@ abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment
         initObservers()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (lazyLoadHelper.shouldLazyLoad()) {
+            onLazyLoad()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        lazyLoadHelper.onSaveInstanceState(outState)
+    }
+
     abstract fun initView(savedInstanceState: Bundle?)
+
+    open fun onLazyLoad() {}
 
     open fun initObservers() {
         lifecycleScope.launch {

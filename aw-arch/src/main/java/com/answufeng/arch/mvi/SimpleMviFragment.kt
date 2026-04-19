@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
+import com.answufeng.arch.base.LazyLoadHelper
 import com.answufeng.arch.ext.inferViewModelClass
 import com.answufeng.arch.ext.observeMvi
 
@@ -20,9 +21,16 @@ abstract class SimpleMviFragment<VB : ViewBinding, STATE : UiState, INTENT : UiI
 
     protected lateinit var viewModel: SimpleMviViewModel<STATE, INTENT>
 
+    private val lazyLoadHelper = LazyLoadHelper(this)
+
     abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
     open val shareViewModelWithActivity: Boolean = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lazyLoadHelper.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = inflateBinding(inflater, container)
@@ -36,7 +44,21 @@ abstract class SimpleMviFragment<VB : ViewBinding, STATE : UiState, INTENT : UiI
         initObservers()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (lazyLoadHelper.shouldLazyLoad()) {
+            onLazyLoad()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        lazyLoadHelper.onSaveInstanceState(outState)
+    }
+
     abstract fun initView(savedInstanceState: Bundle?)
+
+    open fun onLazyLoad() {}
 
     abstract fun render(state: STATE)
 

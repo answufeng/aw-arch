@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
+import com.answufeng.arch.base.LazyLoadHelper
 import com.answufeng.arch.ext.observeMvi
 import com.answufeng.arch.mvi.MviDispatcher
 import com.answufeng.arch.mvi.MviViewModel
@@ -25,6 +26,13 @@ abstract class HiltMviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEven
 
     abstract val viewModel: VM
 
+    private val lazyLoadHelper = LazyLoadHelper(this)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        lazyLoadHelper.onCreate(savedInstanceState)
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = inflateBinding(inflater, container)
         return binding.root
@@ -36,7 +44,21 @@ abstract class HiltMviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEven
         initObservers()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (lazyLoadHelper.shouldLazyLoad()) {
+            onLazyLoad()
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        lazyLoadHelper.onSaveInstanceState(outState)
+    }
+
     abstract fun initView(savedInstanceState: Bundle?)
+
+    open fun onLazyLoad() {}
 
     abstract fun render(state: STATE)
 
