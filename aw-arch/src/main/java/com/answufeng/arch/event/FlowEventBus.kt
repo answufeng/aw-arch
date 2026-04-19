@@ -3,6 +3,7 @@ package com.answufeng.arch.event
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -30,12 +31,20 @@ import kotlin.reflect.KClass
  *
  * 调度器：[post] 使用 [Dispatchers.Default] 发射事件，
  * 接收者可通过 [flowOn] 切换到所需调度器。
+ *
+ * 自动清理：当某个事件类型的订阅者数量降为 0 后，
+ * 经过 [autoCleanupDelay] 毫秒（默认 30 秒）自动移除该事件通道，
+ * 避免内存泄漏。可通过设置 [autoCleanupDelay] 为 0 禁用自动清理。
  */
 object FlowEventBus {
 
     private val flows = ConcurrentHashMap<KClass<*>, MutableSharedFlow<Any>>()
     private val stickyFlows = ConcurrentHashMap<KClass<*>, MutableSharedFlow<Any>>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val pendingCleanup = ConcurrentHashMap<KClass<*>, kotlinx.coroutines.Job>()
+
+    /** 自动清理延迟时间（毫秒），0 表示禁用自动清理 */
+    var autoCleanupDelay: Long = 30_000L
 
     /** 挂起方式发送事件，保证事件一定被发射 */
     fun <T : Any> post(event: T) {
@@ -63,22 +72,28 @@ object FlowEventBus {
 
     /** 按类型观察事件流 */
     fun <T : Any> observe(clazz: KClass<T>): Flow<T> {
-        return getFlowInternal(clazz).asSharedFlow() as Flow<T>
+        cancelPendingCleanup(clazz)
+        val flow = getFlowInternal(clazz)
+        scheduleAutoCleanup(clazz, flow)
+        return flow.asSharedFlow() as Flow<T>
     }
 
     /** 按泛型类型观察事件流（推荐用法） */
     inline fun <reified T : Any> observe(): Flow<T> {
-        return getFlowInternal(T::class).asSharedFlow() as Flow<T>
+        return observe(T::class)
     }
 
     /** 按类型观察粘性事件流，会重放最近一次事件 */
     fun <T : Any> observeSticky(clazz: KClass<T>): Flow<T> {
-        return getStickyFlowInternal(clazz).asSharedFlow() as Flow<T>
+        cancelPendingCleanup(clazz)
+        val flow = getStickyFlowInternal(clazz)
+        scheduleAutoCleanup(clazz, flow)
+        return flow.asSharedFlow() as Flow<T>
     }
 
     /** 按泛型类型观察粘性事件流 */
     inline fun <reified T : Any> observeSticky(): Flow<T> {
-        return getStickyFlowInternal(T::class).asSharedFlow() as Flow<T>
+        return observeSticky(T::class)
     }
 
     /** 移除指定类型的粘性事件 */
@@ -109,11 +124,38 @@ object FlowEventBus {
     /** 清除指定类型的普通事件通道 */
     fun <T : Any> clear(clazz: KClass<T>) {
         flows.remove(clazz)
+        stickyFlows.remove(clazz)
+        pendingCleanup.remove(clazz)?.cancel()
     }
 
     /** 清除所有事件通道 */
     fun clearAll() {
         flows.clear()
         stickyFlows.clear()
+        pendingCleanup.values.forEach { it.cancel() }
+        pendingCleanup.clear()
+    }
+
+    private fun cancelPendingCleanup(clazz: KClass<*>) {
+        pendingCleanup.remove(clazz)?.cancel()
+    }
+
+    private fun scheduleAutoCleanup(clazz: KClass<*>, flow: MutableSharedFlow<*>) {
+        if (autoCleanupDelay <= 0) return
+        scope.launch {
+            flow.subscriptionCount.collect { count ->
+                if (count == 0) {
+                    val job = scope.launch {
+                        delay(autoCleanupDelay)
+                        flows.remove(clazz)
+                        stickyFlows.remove(clazz)
+                        pendingCleanup.remove(clazz)
+                    }
+                    pendingCleanup[clazz] = job
+                } else {
+                    pendingCleanup.remove(clazz)?.cancel()
+                }
+            }
+        }
     }
 }
