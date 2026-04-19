@@ -43,11 +43,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
     protected val binding: VB
         get() = _binding ?: error("ViewBinding 在 onCreateView 之前或 onDestroyView 之后不可访问")
 
-    private var isFirstLoad = true
-
-    companion object {
-        private const val KEY_IS_FIRST_LOAD = "aw_base_fragment_is_first_load"
-    }
+    private val lazyLoadHelper = LazyLoadHelper(this)
 
     /** 由子类实现：创建 ViewBinding 实例 */
     abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
@@ -67,9 +63,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState != null) {
-            isFirstLoad = savedInstanceState.getBoolean(KEY_IS_FIRST_LOAD, true)
-        }
+        lazyLoadHelper.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -85,15 +79,14 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (isFirstLoad) {
-            isFirstLoad = false
+        if (lazyLoadHelper.shouldLazyLoad()) {
             onLazyLoad()
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(KEY_IS_FIRST_LOAD, isFirstLoad)
+        lazyLoadHelper.onSaveInstanceState(outState)
     }
 
     override fun onDestroyView() {

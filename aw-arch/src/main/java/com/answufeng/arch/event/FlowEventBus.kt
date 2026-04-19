@@ -142,20 +142,21 @@ object FlowEventBus {
 
     private fun scheduleAutoCleanup(clazz: KClass<*>, flow: MutableSharedFlow<*>) {
         if (autoCleanupDelay <= 0) return
-        scope.launch {
+        val job = scope.launch {
             flow.subscriptionCount.collect { count ->
                 if (count == 0) {
-                    val job = scope.launch {
+                    val cleanupJob = scope.launch {
                         delay(autoCleanupDelay)
                         flows.remove(clazz)
                         stickyFlows.remove(clazz)
                         pendingCleanup.remove(clazz)
                     }
-                    pendingCleanup[clazz] = job
+                    pendingCleanup[clazz] = cleanupJob
                 } else {
                     pendingCleanup.remove(clazz)?.cancel()
                 }
             }
         }
+        pendingCleanup[clazz] = job
     }
 }

@@ -24,4 +24,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     abstract fun initView(savedInstanceState: Bundle?)
 
     open fun initObservers() {}
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
 }
