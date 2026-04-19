@@ -14,13 +14,16 @@ import com.answufeng.arch.mvi.UiState
 abstract class HiltMviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
     AppCompatActivity(), MviDispatcher<INTENT> {
 
-    protected lateinit var binding: VB
+    private var _binding: VB? = null
+
+    protected val binding: VB
+        get() = _binding ?: error("ViewBinding is not available before onCreate or after onDestroy")
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = inflateBinding(layoutInflater)
+        _binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
         initView(savedInstanceState)
         initObservers()
@@ -44,5 +47,10 @@ abstract class HiltMviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEven
 
     override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
         viewModel.dispatchThrottled(intent, windowMillis)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 }

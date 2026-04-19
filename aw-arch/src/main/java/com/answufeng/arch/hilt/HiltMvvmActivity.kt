@@ -13,13 +13,16 @@ import kotlinx.coroutines.launch
 
 abstract class HiltMvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity(), MvvmView {
 
-    protected lateinit var binding: VB
+    private var _binding: VB? = null
+
+    protected val binding: VB
+        get() = _binding ?: error("ViewBinding is not available before onCreate or after onDestroy")
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = inflateBinding(layoutInflater)
+        _binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
         initView(savedInstanceState)
         initObservers()
@@ -43,5 +46,10 @@ abstract class HiltMvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompa
 
     override fun navigateBack() {
         finish()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 }

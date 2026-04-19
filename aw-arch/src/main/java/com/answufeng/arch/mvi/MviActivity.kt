@@ -11,14 +11,18 @@ import com.answufeng.arch.ext.observeMvi
 abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
     AppCompatActivity(), MviDispatcher<INTENT> {
 
+    private var _binding: VB? = null
+
+    protected val binding: VB
+        get() = _binding ?: error("ViewBinding is not available before onCreate or after onDestroy")
+
     protected lateinit var viewModel: VM
-    protected lateinit var binding: VB
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = inflateBinding(layoutInflater)
+        _binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
         viewModel = createViewModel()
         initView(savedInstanceState)
@@ -46,5 +50,10 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
 
     override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
         viewModel.dispatchThrottled(intent, windowMillis)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
     }
 }
