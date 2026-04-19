@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
+import com.answufeng.arch.ext.inferViewModelClass
 import com.answufeng.arch.ext.observeMvi
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
@@ -43,24 +44,9 @@ abstract class MviBottomSheetDialogFragment<VB : ViewBinding, STATE : UiState, E
         observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
 
-    @Suppress("UNCHECKED_CAST")
     protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass()
+        val vmClass = inferViewModelClass(javaClass, MviViewModel::class.java)
         return ViewModelProvider(this)[vmClass]
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun inferViewModelClass(): Class<VM> {
-        val superclass = javaClass.genericSuperclass
-        if (superclass is java.lang.reflect.ParameterizedType) {
-            val types = superclass.actualTypeArguments
-            for (type in types) {
-                if (type is Class<*> && MviViewModel::class.java.isAssignableFrom(type)) {
-                    return type as Class<VM>
-                }
-            }
-        }
-        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
     }
 
     override fun dispatch(intent: INTENT) {

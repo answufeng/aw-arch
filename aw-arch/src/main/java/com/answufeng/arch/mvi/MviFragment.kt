@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.LazyLoadHelper
+import com.answufeng.arch.ext.inferViewModelClass
 import com.answufeng.arch.ext.observeMvi
 
 abstract class MviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
@@ -67,29 +68,14 @@ abstract class MviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
         observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
 
-    @Suppress("UNCHECKED_CAST")
     protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass()
+        val vmClass = inferViewModelClass(javaClass, MviViewModel::class.java)
         val factory = if (shareViewModelWithActivity) {
             ViewModelProvider(requireActivity())
         } else {
             ViewModelProvider(this)
         }
         return factory[vmClass]
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun inferViewModelClass(): Class<VM> {
-        val superclass = javaClass.genericSuperclass
-        if (superclass is java.lang.reflect.ParameterizedType) {
-            val types = superclass.actualTypeArguments
-            for (type in types) {
-                if (type is Class<*> && MviViewModel::class.java.isAssignableFrom(type)) {
-                    return type as Class<VM>
-                }
-            }
-        }
-        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
     }
 
     override fun dispatch(intent: INTENT) {

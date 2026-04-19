@@ -11,6 +11,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.MvvmViewModel
 import com.answufeng.arch.base.MvvmViewModel.UIEvent
+import com.answufeng.arch.ext.inferViewModelClass
 import kotlinx.coroutines.launch
 
 abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : DialogFragment(), MvvmView {
@@ -46,24 +47,9 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
     protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass()
+        val vmClass = inferViewModelClass(javaClass, MvvmViewModel::class.java)
         return ViewModelProvider(this)[vmClass]
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun inferViewModelClass(): Class<VM> {
-        val superclass = javaClass.genericSuperclass
-        if (superclass is java.lang.reflect.ParameterizedType) {
-            val types = superclass.actualTypeArguments
-            for (type in types) {
-                if (type is Class<*> && MvvmViewModel::class.java.isAssignableFrom(type)) {
-                    return type as Class<VM>
-                }
-            }
-        }
-        throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
     }
 
     override fun showToast(message: String) {
