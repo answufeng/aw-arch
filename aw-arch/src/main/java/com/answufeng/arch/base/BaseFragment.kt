@@ -41,7 +41,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
      * 其他时刻访问抛出 [IllegalStateException]。
      */
     protected val binding: VB
-        get() = _binding ?: error("ViewBinding 在 onCreateView 之前或 onDestroyView 之后不可访问")
+        get() = _binding ?: error("ViewBinding is not accessible before onCreateView or after onDestroyView")
 
     private val lazyLoadHelper = LazyLoadHelper(this)
 

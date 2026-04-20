@@ -10,9 +10,9 @@
 -keep interface com.answufeng.arch.mvi.UiState
 -keep interface com.answufeng.arch.mvi.UiEvent
 -keep interface com.answufeng.arch.mvi.UiIntent
--keep class * implements com.answufeng.arch.mvi.UiState { *; }
--keep class * implements com.answufeng.arch.mvi.UiEvent { *; }
--keep class * implements com.answufeng.arch.mvi.UiIntent { *; }
+-keep class * implements com.answufeng.arch.mvi.UiState { public *; }
+-keep class * implements com.answufeng.arch.mvi.UiEvent { public *; }
+-keep class * implements com.answufeng.arch.mvi.UiIntent { public *; }
 
 # MviViewModel
 -keep class com.answufeng.arch.mvi.MviViewModel { *; }
