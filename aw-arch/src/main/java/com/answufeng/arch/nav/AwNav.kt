@@ -28,12 +28,12 @@ import kotlin.reflect.KClass
  * - DSL 批量注册
  *
  * ```kotlin
- * val nav = AwNav.of(this, R.id.container) {
+ * val nav = AwNav.init(this, R.id.container).apply {
  *     register {
  *         route<HomeFragment>("home")
  *         route<DetailFragment>("detail")
  *     }
- *     interceptor(LoginInterceptor())
+ *     addInterceptor(LoginInterceptor())
  * }
  *
  * nav.navigate("detail", Bundle().apply { putInt("id", 42) })

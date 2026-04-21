@@ -29,14 +29,18 @@ open class MvvmViewModel(
     savedStateHandle: SavedStateHandle? = null
 ) : BaseViewModel(savedStateHandle) {
 
-    private val _UiEvent = Channel<UiEvent>(Channel.UNLIMITED)
+    private val uiEventChannel = Channel<UiEvent>(Channel.UNLIMITED)
 
     /** UI 事件流，消费后不会重放 */
-    val UiEvent: Flow<UiEvent> = _UiEvent.receiveAsFlow()
+    val uiEvent: Flow<UiEvent> = uiEventChannel.receiveAsFlow()
+
+    /** 兼容旧 API，建议改用 [uiEvent] */
+    @Deprecated("Use uiEvent instead", ReplaceWith("uiEvent"))
+    val UiEvent: Flow<UiEvent> = uiEvent
 
     /** 发送自定义 UiEvent */
     protected open fun sendEvent(event: UiEvent) {
-        _UiEvent.trySend(event)
+        uiEventChannel.trySend(event)
     }
 
     /** 发送 Toast 事件 */
