@@ -12,6 +12,21 @@ import com.answufeng.arch.base.MvvmViewModel.UiEvent
 import com.answufeng.arch.ext.inferViewModelClass
 import kotlinx.coroutines.launch
 
+/**
+ * MVVM 架构 Activity 基类
+ *
+ * 适用于传统 MVVM 模式的 Activity，提供了 ViewBinding 支持、ViewModel 自动创建和 UI 事件处理。
+ * ViewModel 会根据子类类型自动推断创建。
+ *
+ * 与 [MviActivity] 的区别：MVVM 模式更简单，不需要定义 State/Event/Intent，
+ * 适合不需要严格单向数据流的场景。
+ *
+ * @param VB ViewBinding 类型
+ * @param VM ViewModel 类型，必须继承 [MvvmViewModel]
+ *
+ * @see MvvmViewModel
+ * @see MvvmView
+ */
 abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity(), MvvmView {
 
     private var _binding: VB? = null

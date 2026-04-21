@@ -14,6 +14,18 @@ import com.answufeng.arch.ext.inferViewModelClass
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.launch
 
+/**
+ * MVVM 架构 BottomSheetDialogFragment 基类
+ *
+ * 适用于传统 MVVM 模式的底部弹窗，提供了 ViewBinding 支持和 UI 事件处理。
+ * ViewModel 会根据子类类型自动推断创建。
+ *
+ * @param VB ViewBinding 类型
+ * @param VM ViewModel 类型，必须继承 [MvvmViewModel]
+ *
+ * @see MvvmViewModel
+ * @see MvvmView
+ */
 abstract class MvvmBottomSheetDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : BottomSheetDialogFragment(), MvvmView {
 
     private var _binding: VB? = null

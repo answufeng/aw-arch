@@ -11,6 +11,23 @@ import com.answufeng.arch.base.LazyLoadHelper
 import com.answufeng.arch.ext.inferViewModelClass
 import com.answufeng.arch.ext.observeMvi
 
+/**
+ * 简化版 MVI 架构 Fragment 基类
+ *
+ * 与 [MviFragment] 的区别在于不需要定义独立的 Event 类型，适用于不需要单向 UI 事件的简单场景。
+ * 支持懒加载，首次对用户可见时才调用 [onLazyLoad]。
+ * ViewModel 会根据子类类型自动推断创建。
+ *
+ * @param VB ViewBinding 类型
+ * @param STATE UI 状态类型，必须实现 [UiState]
+ * @param INTENT UI 意图类型，必须实现 [UiIntent]
+ *
+ * @see SimpleMviViewModel
+ * @see UiState
+ * @see UiIntent
+ * @see MviDispatcher
+ * @see LazyLoadHelper
+ */
 abstract class SimpleMviFragment<VB : ViewBinding, STATE : UiState, INTENT : UiIntent> :
     Fragment(), MviDispatcher<INTENT> {
 

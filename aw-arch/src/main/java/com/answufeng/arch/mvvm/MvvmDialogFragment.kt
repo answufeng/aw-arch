@@ -14,6 +14,18 @@ import com.answufeng.arch.base.MvvmViewModel.UiEvent
 import com.answufeng.arch.ext.inferViewModelClass
 import kotlinx.coroutines.launch
 
+/**
+ * MVVM 架构 DialogFragment 基类
+ *
+ * 适用于传统 MVVM 模式的对话框，提供了 ViewBinding 支持和 UI 事件处理。
+ * ViewModel 会根据子类类型自动推断创建。
+ *
+ * @param VB ViewBinding 类型
+ * @param VM ViewModel 类型，必须继承 [MvvmViewModel]
+ *
+ * @see MvvmViewModel
+ * @see MvvmView
+ */
 abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : DialogFragment(), MvvmView {
 
     private var _binding: VB? = null

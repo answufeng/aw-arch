@@ -15,6 +15,22 @@ import com.answufeng.arch.base.MvvmViewModel.UiEvent
 import com.answufeng.arch.ext.inferViewModelClass
 import kotlinx.coroutines.launch
 
+/**
+ * MVVM 架构 Fragment 基类
+ *
+ * 适用于传统 MVVM 模式的 Fragment，提供了 ViewBinding 支持、ViewModel 自动创建、UI 事件处理和懒加载功能。
+ * ViewModel 会根据子类类型自动推断创建，支持通过 [shareViewModelWithActivity] 与 Activity 共享。
+ *
+ * 与 [MviFragment] 的区别：MVVM 模式更简单，不需要定义 State/Event/Intent，
+ * 适合不需要严格单向数据流的场景。
+ *
+ * @param VB ViewBinding 类型
+ * @param VM ViewModel 类型，必须继承 [MvvmViewModel]
+ *
+ * @see MvvmViewModel
+ * @see MvvmView
+ * @see LazyLoadHelper
+ */
 abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment(), MvvmView {
 
     private var _binding: VB? = null
