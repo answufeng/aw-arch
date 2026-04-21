@@ -22,8 +22,8 @@
 
 # MVVM
 -keep class com.answufeng.arch.base.MvvmViewModel { *; }
--keep class com.answufeng.arch.base.MvvmViewModel$UIEvent { *; }
--keep class * extends com.answufeng.arch.base.MvvmViewModel$UIEvent { *; }
+-keep class com.answufeng.arch.base.MvvmViewModel$UiEvent { *; }
+-keep class * extends com.answufeng.arch.base.MvvmViewModel$UiEvent { *; }
 -keep interface com.answufeng.arch.mvvm.MvvmView { *; }
 
 # BaseViewModel

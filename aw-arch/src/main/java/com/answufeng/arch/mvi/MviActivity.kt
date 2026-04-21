@@ -8,6 +8,23 @@ import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.ext.inferViewModelClass
 import com.answufeng.arch.ext.observeMvi
 
+/**
+ * MVI 架构 Activity 基类
+ *
+ * 适用于 MVI 模式的 Activity，提供了 ViewBinding 支持、ViewModel 自动创建和 MVI 状态管理
+ *
+ * @param VB ViewBinding 类型
+ * @param STATE UI 状态类型，必须实现 [UiState]
+ * @param EVENT UI 事件类型，必须实现 [UiEvent]
+ * @param INTENT UI 意图类型，必须实现 [UiIntent]
+ * @param VM ViewModel 类型，必须继承 [MviViewModel]
+ *
+ * @see MviViewModel
+ * @see UiState
+ * @see UiEvent
+ * @see UiIntent
+ * @see MviDispatcher
+ */
 abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
     AppCompatActivity(), MviDispatcher<INTENT> {
 

@@ -13,6 +13,22 @@ import com.answufeng.arch.mvi.UiEvent
 import com.answufeng.arch.mvi.UiIntent
 import com.answufeng.arch.mvi.UiState
 
+/**
+ * Hilt 支持的 MVI 架构 DialogFragment 基类
+ *
+ * 适用于使用 Hilt 进行依赖注入的 MVI 模式 DialogFragment，提供了 ViewBinding 支持和 MVI 状态管理
+ *
+ * @param VB ViewBinding 类型
+ * @param STATE UI 状态类型，必须实现 [UiState]
+ * @param EVENT UI 事件类型，必须实现 [UiEvent]
+ * @param INTENT UI 意图类型，必须实现 [UiIntent]
+ * @param VM ViewModel 类型，必须继承 [MviViewModel]
+ *
+ * @see MviViewModel
+ * @see UiState
+ * @see UiEvent
+ * @see UiIntent
+ */
 abstract class HiltMviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
     DialogFragment(), MviDispatcher<INTENT> {
 

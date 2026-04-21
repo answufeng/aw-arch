@@ -5,7 +5,7 @@
 ### 破坏性变更
 - `BaseViewModel` 不再包含 UI 事件方法（`sendEvent`/`showToast`/`showLoading`/`navigate`/`navigateBack`），仅提供协程能力
 - 新增 `MvvmViewModel` 作为 MVVM 模式的 ViewModel 基类，继承 `BaseViewModel` 并添加 UI 事件能力
-- `BaseViewModel.UIEvent` 移至 `MvvmViewModel.UIEvent`
+- `BaseViewModel.UiEvent` 移至 `MvvmViewModel.UiEvent`
 - `MviViewModel` 不再继承 UI 事件系统，移除 `final override` 拦截方法
 - `MviViewModel.sendMviEvent` 改用 `Channel.UNLIMITED` + `trySend`，消除协程创建开销
 - `MviViewModel.dispatchThrottled` 改用 `SystemClock.elapsedRealtime()` 替代 `System.nanoTime()/1_000_000`
@@ -38,11 +38,11 @@
 - 修复 `FlowEventBus.tryPost()` 使用 `runBlocking` 可能导致 ANR 的问题
 - 修复 `FragmentViewBindingDelegate` 在 view 销毁后仍可访问 binding 的 bug
 - 修复 `BaseViewModel.sendEvent` 每次调用创建新协程的性能问题（改用 `Channel.UNLIMITED` + `trySend`）
-- 修复 `MviViewModel` 双事件系统冲突（移除继承自 BaseViewModel 的 `_uiEvent` Channel）
+- 修复 `MviViewModel` 双事件系统冲突（移除继承自 BaseViewModel 的 `_UiEvent` Channel）
 - 修复 `AwNav.instances` 持有 Activity 强引用的内存泄漏风险（改用 `WeakReference`）
 
 ### 改进
-- ViewModel 层级重构：`BaseViewModel`（协程能力）→ `MvvmViewModel`（+UIEvent）和 `MviViewModel`（+State/Event/Intent）
+- ViewModel 层级重构：`BaseViewModel`（协程能力）→ `MvvmViewModel`（+UiEvent）和 `MviViewModel`（+State/Event/Intent）
 - `MviActivity`/`MvvmActivity` 改用 `lifecycleScope` + `repeatOnLifecycle(STARTED)` 收集 Flow
 - `MviActivity`/`MvvmActivity` 添加 `initObservers()` 回调
 - `MviActivity` 添加 `dispatchThrottled()` 便捷方法

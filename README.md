@@ -78,7 +78,7 @@ class MyApp : Application() {
 
 ```
 BaseViewModel          ← 协程能力（launch/launchIO/launchDefault/withMain/SavedStateHandle）
-├── MvvmViewModel      ← + UIEvent（showToast/showLoading/navigate/navigateBack）
+├── MvvmViewModel      ← + UiEvent（showToast/showLoading/navigate/navigateBack）
 └── MviViewModel       ← + State/Event/Intent（updateState/sendMviEvent/dispatch/dispatchThrottled）
     └── SimpleMviViewModel  ← 简化版（NoEvent，减少泛型参数）
 ```
@@ -462,7 +462,7 @@ class MyViewModelTest {
 ├─────────────────────────────────────────────────────────────────┤
 │                        ViewModel Layer                          │
 │  BaseViewModel (协程)                                            │
-│  ├── MvvmViewModel (+UIEvent)                                   │
+│  ├── MvvmViewModel (+UiEvent)                                   │
 │  └── MviViewModel (+State/Event/Intent)                         │
 │      └── SimpleMviViewModel (NoEvent)                           │
 ├─────────────────────────────────────────────────────────────────┤
@@ -488,7 +488,7 @@ class MyViewModelTest {
 
 | 方法 | 说明 |
 |---|---|
-| `sendEvent(event)` | 发送 UIEvent |
+| `sendEvent(event)` | 发送 UiEvent |
 | `showToast(message)` | 弹 Toast |
 | `showLoading(show)` | 显示/隐藏 Loading |
 | `navigate(route, extras)` | 触发导航 |
@@ -534,7 +534,7 @@ class MyViewModelTest {
 ## 迁移指南（1.x → 2.0）
 
 1. `BaseViewModel` → `MvvmViewModel`：MVVM 模式的 ViewModel 需从 `BaseViewModel` 迁移到 `MvvmViewModel`
-2. `BaseViewModel.UIEvent` → `MvvmViewModel.UIEvent`：UIEvent 类移至 MvvmViewModel 内部
+2. `BaseViewModel.UiEvent` → `MvvmViewModel.UiEvent`：UiEvent 类移至 MvvmViewModel 内部
 3. `MviViewModel` 不再有 `showToast`/`showLoading`/`navigate`/`navigateBack` 方法，改用 `sendMviEvent` + `updateState`
 4. Activity/Fragment 基类自动使用 `lifecycleScope` + `repeatOnLifecycle`，无需手动管理协程生命周期
 5. `FlowEventBus.tryPost()` 不再使用 `runBlocking`，改用 `tryEmit`

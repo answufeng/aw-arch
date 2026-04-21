@@ -37,7 +37,7 @@ class BaseViewModelTest {
 
         fun testNavigateBack() = navigateBack()
 
-        fun testSendEvent(event: UIEvent) = sendEvent(event)
+        fun testSendEvent(event: UiEvent) = sendEvent(event)
 
         fun testGetSavedState(key: String): String? = getSavedState(key)
 
@@ -104,44 +104,44 @@ class BaseViewModelTest {
     fun `showToast sends Toast event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testShowToast("hello")
-        val event = vm.uiEvent.first()
-        assertTrue(event is MvvmViewModel.UIEvent.Toast)
-        assertEquals("hello", (event as MvvmViewModel.UIEvent.Toast).message)
+        val event = vm.UiEvent.first()
+        assertTrue(event is MvvmViewModel.UiEvent.Toast)
+        assertEquals("hello", (event as MvvmViewModel.UiEvent.Toast).message)
     }
 
     @Test
     fun `showLoading sends Loading event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testShowLoading(true)
-        val event = vm.uiEvent.first()
-        assertTrue(event is MvvmViewModel.UIEvent.Loading)
-        assertTrue((event as MvvmViewModel.UIEvent.Loading).show)
+        val event = vm.UiEvent.first()
+        assertTrue(event is MvvmViewModel.UiEvent.Loading)
+        assertTrue((event as MvvmViewModel.UiEvent.Loading).show)
     }
 
     @Test
     fun `navigate sends Navigate event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testNavigate("/detail")
-        val event = vm.uiEvent.first()
-        assertTrue(event is MvvmViewModel.UIEvent.Navigate)
-        assertEquals("/detail", (event as MvvmViewModel.UIEvent.Navigate).route)
+        val event = vm.UiEvent.first()
+        assertTrue(event is MvvmViewModel.UiEvent.Navigate)
+        assertEquals("/detail", (event as MvvmViewModel.UiEvent.Navigate).route)
     }
 
     @Test
     fun `navigateBack sends NavigateBack event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testNavigateBack()
-        val event = vm.uiEvent.first()
-        assertTrue(event is MvvmViewModel.UIEvent.NavigateBack)
+        val event = vm.UiEvent.first()
+        assertTrue(event is MvvmViewModel.UiEvent.NavigateBack)
     }
 
     @Test
     fun `sendEvent sends Custom event`() = runTest {
         val vm = TestMvvmViewModel()
-        vm.testSendEvent(MvvmViewModel.UIEvent.Custom("key", "data"))
-        val event = vm.uiEvent.first()
-        assertTrue(event is MvvmViewModel.UIEvent.Custom)
-        assertEquals("key", (event as MvvmViewModel.UIEvent.Custom).key)
+        vm.testSendEvent(MvvmViewModel.UiEvent.Custom("key", "data"))
+        val event = vm.UiEvent.first()
+        assertTrue(event is MvvmViewModel.UiEvent.Custom)
+        assertEquals("key", (event as MvvmViewModel.UiEvent.Custom).key)
         assertEquals("data", event.data)
     }
 
@@ -160,32 +160,32 @@ class BaseViewModelTest {
     }
 
     @Test
-    fun `UIEvent Toast data equality`() {
-        val e1 = MvvmViewModel.UIEvent.Toast("a")
-        val e2 = MvvmViewModel.UIEvent.Toast("a")
+    fun `UiEvent Toast data equality`() {
+        val e1 = MvvmViewModel.UiEvent.Toast("a")
+        val e2 = MvvmViewModel.UiEvent.Toast("a")
         assertEquals(e1, e2)
     }
 
     @Test
-    fun `UIEvent Loading data equality`() {
-        val e1 = MvvmViewModel.UIEvent.Loading(true)
-        val e2 = MvvmViewModel.UIEvent.Loading(true)
+    fun `UiEvent Loading data equality`() {
+        val e1 = MvvmViewModel.UiEvent.Loading(true)
+        val e2 = MvvmViewModel.UiEvent.Loading(true)
         assertEquals(e1, e2)
     }
 
     @Test
-    fun `UIEvent Navigate data equality`() {
+    fun `UiEvent Navigate data equality`() {
         val bundle1 = android.os.Bundle().apply { putInt("id", 1) }
         val bundle2 = android.os.Bundle().apply { putInt("id", 1) }
-        val e1 = MvvmViewModel.UIEvent.Navigate("/home", bundle1)
-        val e2 = MvvmViewModel.UIEvent.Navigate("/home", bundle2)
+        val e1 = MvvmViewModel.UiEvent.Navigate("/home", bundle1)
+        val e2 = MvvmViewModel.UiEvent.Navigate("/home", bundle2)
         assertEquals(e1.route, e2.route)
     }
 
     @Test
-    fun `UIEvent NavigateBack is singleton`() {
-        val e1 = MvvmViewModel.UIEvent.NavigateBack
-        val e2 = MvvmViewModel.UIEvent.NavigateBack
+    fun `UiEvent NavigateBack is singleton`() {
+        val e1 = MvvmViewModel.UiEvent.NavigateBack
+        val e2 = MvvmViewModel.UiEvent.NavigateBack
         assertSame(e1, e2)
     }
 }
