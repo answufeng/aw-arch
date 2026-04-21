@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * MVI 模式 ViewModel 基类，管理 [UiState]/[UiEvent]/[UiIntent] 三层抽象。
@@ -61,7 +62,7 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     /** 一次性事件流（如 Toast、导航），消费后不会重放 */
     val event: Flow<E> = _event.receiveAsFlow()
 
-    private val intentThrottleMap = HashMap<String, Long>()
+    private val intentThrottleMap = ConcurrentHashMap<String, Long>()
 
     /** 可替换的时间源，用于节流计算。测试中可覆写以控制时间 */
     protected open fun currentTimeMillis(): Long = SystemClock.elapsedRealtime()

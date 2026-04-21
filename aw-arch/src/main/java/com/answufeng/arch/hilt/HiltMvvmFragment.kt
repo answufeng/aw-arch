@@ -74,7 +74,7 @@ abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment
     open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.UiEvent.collect { onUiEvent(it) }
+                viewModel.uiEvent.collect { onUiEvent(it) }
             }
         }
     }

@@ -54,7 +54,7 @@ abstract class MvvmBottomSheetDialogFragment<VB : ViewBinding, VM : MvvmViewMode
     open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.UiEvent.collect { onUiEvent(it) }
+                viewModel.uiEvent.collect { onUiEvent(it) }
             }
         }
     }

@@ -49,6 +49,16 @@ fun <T> Flow<T>.throttleFirst(windowMillis: Long): Flow<T> {
     return ThrottleFirstFlow(this, windowMillis)
 }
 
+/**
+ * 节流 Flow 实现：在 [windowMillis] 时间窗口内只发射第一个元素。
+ *
+ * 与 [debounce] 的区别：throttle 在窗口期开始时立即发射，debounce 在窗口期结束时发射。
+ * 适用于按钮点击防抖、搜索触发等场景。
+ *
+ * @param T 元素类型
+ * @param source 上游 Flow
+ * @param windowMillis 节流窗口（毫秒）
+ */
 internal class ThrottleFirstFlow<T>(
     private val source: Flow<T>,
     private val windowMillis: Long

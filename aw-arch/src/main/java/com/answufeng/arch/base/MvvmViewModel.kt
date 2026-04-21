@@ -34,10 +34,6 @@ open class MvvmViewModel(
     /** UI 事件流，消费后不会重放 */
     val uiEvent: Flow<UiEvent> = uiEventChannel.receiveAsFlow()
 
-    /** 兼容旧 API，建议改用 [uiEvent] */
-    @Deprecated("Use uiEvent instead", ReplaceWith("uiEvent"))
-    val UiEvent: Flow<UiEvent> = uiEvent
-
     /** 发送自定义 UiEvent */
     protected open fun sendEvent(event: UiEvent) {
         uiEventChannel.trySend(event)

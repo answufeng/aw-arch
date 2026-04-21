@@ -57,22 +57,86 @@ dependencies {
 
 ## 快速开始
 
-在 `Application.onCreate()` 中初始化全局配置：
+### Step 1: Application 初始化
 
 ```kotlin
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        // 可选：配置自定义日志（默认使用 Android Log）
         AwArch.init {
             logger = object : AwLogger {
-                override fun d(tag: String, message: String) = Timber.tag(tag).d(message)
-                override fun w(tag: String, message: String, throwable: Throwable?) = Timber.tag(tag).w(throwable, message)
-                override fun e(tag: String, message: String, throwable: Throwable?) = Timber.tag(tag).e(throwable, message)
+                override fun d(tag: String, message: String) = Log.d(tag, message)
+                override fun w(tag: String, message: String, throwable: Throwable?) = Log.w(tag, message, throwable)
+                override fun e(tag: String, message: String, throwable: Throwable?) = Log.e(tag, message, throwable)
             }
         }
     }
 }
 ```
+
+### Step 2: 创建 ViewModel
+
+```kotlin
+class CounterViewModel : MvvmViewModel() {
+    private val _count = MutableStateFlow(0)
+    val count: StateFlow<Int> = _count.asStateFlow()
+
+    fun increment() = launch {
+        _count.value++
+    }
+
+    fun decrement() = launch {
+        _count.value--
+    }
+}
+```
+
+### Step 3: 创建 Activity
+
+布局文件 `activity_counter.xml`：
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView android:id="@+id/tvCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="48sp" />
+
+    <Button android:id="@+id/btnDec" android:text="-"
+        android:layout_width="wrap_content" android:layout_height="wrap_content" />
+    <Button android:id="@+id/btnInc" android:text="+"
+        android:layout_width="wrap_content" android:layout_height="wrap_content" />
+</LinearLayout>
+```
+
+```kotlin
+class CounterActivity : MvvmActivity<ActivityCounterBinding, CounterViewModel>() {
+    override fun viewModelClass() = CounterViewModel::class.java
+
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityCounterBinding.inflate(inflater)
+
+    override fun initView(savedInstanceState: Bundle?) {
+        binding.btnInc.setOnClickListener { viewModel.increment() }
+        binding.btnDec.setOnClickListener { viewModel.decrement() }
+    }
+
+    override fun initObservers() {
+        super.initObservers()
+        viewModel.count.collectOnLifecycle(this) { count ->
+            binding.tvCount.text = count.toString()
+        }
+    }
+}
+```
+
+以上就是一个完整的 MVVM 页面。如需使用 MVI 模式、Hilt 集成、导航等进阶功能，请继续阅读下方章节。
 
 ## ViewModel 层级
 
@@ -541,14 +605,11 @@ class MyViewModelTest {
 
 ## ProGuard / R8
 
-本库无需额外混淆规则。所有基类和公共 API 均通过泛型保持引用，Hilt 注入的 ViewModel 由 Hilt 编译器自动处理。
+本库已通过 `consumer-rules.pro` 自动导出混淆规则，宿主应用无需手动配置。
 
-如项目启用了混淆，确保以下通用规则存在：
+库内部的泛型推断（`inferViewModelClass`）依赖反射读取泛型签名，`consumer-rules.pro` 已保留必要的 `Signature` 属性和 ViewModel 构造函数。
 
-```proguard
--keepattributes *Annotation*
--keep class kotlinx.coroutines.** { *; }
-```
+如宿主项目有特殊需求，可在 `proguard-rules.pro` 中追加规则。
 
 ## 线程安全
 

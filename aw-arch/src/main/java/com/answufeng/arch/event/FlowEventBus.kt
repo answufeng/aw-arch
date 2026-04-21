@@ -42,7 +42,11 @@ object FlowEventBus {
      * 自动清理延迟时间（毫秒）。当某类型事件无订阅者超过此时间后，自动释放资源。
      *
      * 设为 0 或负数可禁用自动清理。默认 30000ms（30秒）。
+     *
+     * 建议在 Application.onCreate() 中通过 [com.answufeng.arch.config.AwArch.init] 配置，
+     * 避免运行时意外修改。
      */
+    @Volatile
     var autoCleanupDelay: Long = 30_000L
 
     /**

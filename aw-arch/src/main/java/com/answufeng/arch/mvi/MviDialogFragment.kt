@@ -13,7 +13,10 @@ import com.answufeng.arch.ext.observeMvi
 /**
  * MVI 架构 DialogFragment 基类
  *
- * 适用于 MVI 模式的 DialogFragment，提供了 ViewBinding 支持、ViewModel 自动创建和 MVI 状态管理
+ * 适用于 MVI 模式的 DialogFragment，提供了 ViewBinding 支持、ViewModel 自动创建和 MVI 状态管理。
+ *
+ * 生命周期回调顺序：
+ * 1. [inflateBinding] → 2. [initView] → 3. [initObservers] → 4. [render]（状态变化时）
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]

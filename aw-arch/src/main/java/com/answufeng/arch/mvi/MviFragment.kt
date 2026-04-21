@@ -14,7 +14,11 @@ import com.answufeng.arch.ext.observeMvi
 /**
  * MVI 架构 Fragment 基类
  *
- * 适用于 MVI 模式的 Fragment，提供了 ViewBinding 支持、ViewModel 自动创建、MVI 状态管理和懒加载功能
+ * 适用于 MVI 模式的 Fragment，提供了 ViewBinding 支持、ViewModel 自动创建、MVI 状态管理和懒加载功能。
+ * ViewModel 会根据子类类型自动推断创建，支持通过 [shareViewModelWithActivity] 与 Activity 共享。
+ *
+ * 生命周期回调顺序：
+ * 1. [inflateBinding] → 2. [initView] → 3. [initObservers] → 4. [render]（状态变化时）→ 5. [onLazyLoad]（首次可见时）
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]

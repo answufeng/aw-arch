@@ -21,6 +21,9 @@ import kotlinx.coroutines.launch
  * 与 [MviActivity] 的区别：MVVM 模式更简单，不需要定义 State/Event/Intent，
  * 适合不需要严格单向数据流的场景。
  *
+ * 生命周期回调顺序：
+ * 1. [inflateBinding] → 2. [initView] → 3. [initObservers]
+ *
  * @param VB ViewBinding 类型
  * @param VM ViewModel 类型，必须继承 [MvvmViewModel]
  *
@@ -52,7 +55,7 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
     open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.UiEvent.collect { onUiEvent(it) }
+                viewModel.uiEvent.collect { onUiEvent(it) }
             }
         }
     }

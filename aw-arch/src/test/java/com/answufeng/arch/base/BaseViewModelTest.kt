@@ -104,7 +104,7 @@ class BaseViewModelTest {
     fun `showToast sends Toast event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testShowToast("hello")
-        val event = vm.UiEvent.first()
+        val event = vm.uiEvent.first()
         assertTrue(event is MvvmViewModel.UiEvent.Toast)
         assertEquals("hello", (event as MvvmViewModel.UiEvent.Toast).message)
     }
@@ -113,7 +113,7 @@ class BaseViewModelTest {
     fun `showLoading sends Loading event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testShowLoading(true)
-        val event = vm.UiEvent.first()
+        val event = vm.uiEvent.first()
         assertTrue(event is MvvmViewModel.UiEvent.Loading)
         assertTrue((event as MvvmViewModel.UiEvent.Loading).show)
     }
@@ -122,7 +122,7 @@ class BaseViewModelTest {
     fun `navigate sends Navigate event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testNavigate("/detail")
-        val event = vm.UiEvent.first()
+        val event = vm.uiEvent.first()
         assertTrue(event is MvvmViewModel.UiEvent.Navigate)
         assertEquals("/detail", (event as MvvmViewModel.UiEvent.Navigate).route)
     }
@@ -131,7 +131,7 @@ class BaseViewModelTest {
     fun `navigateBack sends NavigateBack event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testNavigateBack()
-        val event = vm.UiEvent.first()
+        val event = vm.uiEvent.first()
         assertTrue(event is MvvmViewModel.UiEvent.NavigateBack)
     }
 
@@ -139,7 +139,7 @@ class BaseViewModelTest {
     fun `sendEvent sends Custom event`() = runTest {
         val vm = TestMvvmViewModel()
         vm.testSendEvent(MvvmViewModel.UiEvent.Custom("key", "data"))
-        val event = vm.UiEvent.first()
+        val event = vm.uiEvent.first()
         assertTrue(event is MvvmViewModel.UiEvent.Custom)
         assertEquals("key", (event as MvvmViewModel.UiEvent.Custom).key)
         assertEquals("data", event.data)
