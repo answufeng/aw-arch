@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.ktlint)
 }
 
 android {
@@ -25,10 +26,6 @@ android {
         viewBinding = true
     }
 
-    testOptions {
-        unitTests.isReturnDefaultValues = true
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -40,16 +37,17 @@ android {
     }
 
     lint {
-        abortOnError = false
+        abortOnError = true
         warningsAsErrors = false
     }
 }
 
-dependencies {
-    // AwTestRule 依赖 JUnit / coroutines-test API；由使用方 testImplementation 提供运行时
-    compileOnly(libs.junit)
-    compileOnly(libs.coroutines.test)
+ktlint {
+    android.set(true)
+    ignoreFailures = false
+}
 
+dependencies {
     implementation(libs.core.ktx)
     implementation(libs.annotation)
     implementation(libs.coroutines.core)
@@ -62,18 +60,6 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity.ktx)
-
-    testImplementation(libs.junit)
-    testImplementation(libs.coroutines.test)
-    testImplementation(libs.androidx.test.core)
-    testImplementation(libs.androidx.test.ext.junit)
-
-    androidTestImplementation(libs.junit)
-    androidTestImplementation(libs.coroutines.test)
-    androidTestImplementation(libs.androidx.test.core)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.fragment.testing)
 }
 
 apply(from = "${rootDir}/gradle/publish.gradle.kts")

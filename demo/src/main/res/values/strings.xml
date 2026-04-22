@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">aw-arch Demo</string>
+    <string name="demo_playbook">演示清单</string>
+    <string name="demo_playbook_title">演示清单</string>
+    <string name="demo_playbook_message">索引见仓库 demo/DEMO_MATRIX.md。\n\n• LoadState / RetryLoadState · FlowEventBus（含 Sticky）\n• MVVM / MVI / SimpleMVI / Hilt 独立 Activity\n• AwNav · 微信式多 Tab 示例\n\n宿主侧 ViewModel 单测请自行使用 kotlinx-coroutines-test 替换 Dispatchers.Main。</string>
 </resources>

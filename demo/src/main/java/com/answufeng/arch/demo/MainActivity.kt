@@ -1,9 +1,11 @@
 package com.answufeng.arch.demo
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
 import com.answufeng.arch.event.FlowEventBus
 import com.answufeng.arch.ext.collectOnLifecycle
@@ -38,6 +40,14 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnSimpleMvi).setOnClickListener { openSimpleMviDemo() }
         findViewById<Button>(R.id.btnRemoveSticky).setOnClickListener { removeStickyDemo() }
         findViewById<Button>(R.id.btnClearLog).setOnClickListener { clearLog() }
+
+        findViewById<View>(R.id.btnPlaybook).setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.demo_playbook_title)
+                .setMessage(R.string.demo_playbook_message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
 
         FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { event ->
             log("✅ 收到事件: ${event.message}")
