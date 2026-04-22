@@ -4,6 +4,7 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import com.answufeng.arch.base.BaseViewModel
+import com.answufeng.arch.config.AwArch
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -118,7 +119,13 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
 
     /** 发送一次性事件，适合 Toast、导航等不需要状态持久化的场景 */
     protected fun sendMviEvent(event: E) {
-        _event.trySend(event)
+        val result = _event.trySend(event)
+        if (!result.isSuccess) {
+            AwArch.logger.w(
+                "MviViewModel",
+                "Mvi event not delivered (channel closed or failed): ${event::class.simpleName}"
+            )
+        }
     }
 
     override fun onCleared() {

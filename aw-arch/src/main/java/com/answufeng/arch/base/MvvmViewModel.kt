@@ -2,6 +2,7 @@ package com.answufeng.arch.base
 
 import android.os.Bundle
 import androidx.lifecycle.SavedStateHandle
+import com.answufeng.arch.config.AwArch
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
@@ -42,7 +43,13 @@ open class MvvmViewModel(
 
     /** 发送自定义 UiEvent */
     protected open fun sendEvent(event: UiEvent) {
-        uiEventChannel.trySend(event)
+        val result = uiEventChannel.trySend(event)
+        if (!result.isSuccess) {
+            AwArch.logger.w(
+                "MvvmViewModel",
+                "UiEvent not delivered (channel closed or failed): ${event::class.simpleName}"
+            )
+        }
     }
 
     /** 发送 Toast 事件 */
