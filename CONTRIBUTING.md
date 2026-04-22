@@ -37,3 +37,7 @@
 ./gradlew :aw-arch:lintRelease
 ./gradlew :demo:assembleRelease
 ```
+
+## 发版前补充检查（R8）
+
+Release 打包冒烟后，若收紧混淆可使用 `-printusage` 审查；调整本库 `consumer-rules.pro` 时避免过度 `-keep`，并同步验证 demo XML 自定义 View inflation。
