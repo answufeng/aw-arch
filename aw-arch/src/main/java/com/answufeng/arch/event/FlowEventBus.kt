@@ -235,9 +235,9 @@ object FlowEventBus {
         pendingCleanup[key] = job
     }
 
-    /** 单元测试用：是否仍存在普通事件通道 */
+    /** 内部诊断：是否仍存在普通事件通道 */
     internal fun containsNormalChannel(clazz: KClass<*>): Boolean = flows.containsKey(clazz)
 
-    /** 单元测试用：是否仍存在粘性事件通道 */
+    /** 内部诊断：是否仍存在粘性事件通道 */
     internal fun containsStickyChannel(clazz: KClass<*>): Boolean = stickyFlows.containsKey(clazz)
 }

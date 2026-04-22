@@ -37,36 +37,41 @@ fun <T : Any> Flow<T>.collectOnLifecycle(
 }
 
 /**
- * 节流操作：在 [windowMillis] 时间窗口内只发射第一个事件。
+ * 节流操作：在 [windowMillis] 时间窗口内只发射每个窗口内的**第一个**事件。
  *
- * 适用于按钮点击防抖、搜索触发等场景。
+ * 适用于按钮点击防抖、搜索触发等场景。首个元素始终会发射（不依赖 [timeMillis] 的绝对值大小）。
  *
- * @param windowMillis 时间窗口（毫秒）
+ * @param windowMillis 时间窗口（毫秒），为 `0` 时等价于不节流
+ * @param timeMillis 单调递增的时间源，默认 [android.os.SystemClock.elapsedRealtime]；也可注入自定义毫秒戳（例如虚拟时钟）
  */
-fun <T> Flow<T>.throttleFirst(windowMillis: Long): Flow<T> {
-    return ThrottleFirstFlow(this, windowMillis)
-}
+fun <T> Flow<T>.throttleFirst(
+    windowMillis: Long,
+    timeMillis: () -> Long = { SystemClock.elapsedRealtime() },
+): Flow<T> = ThrottleFirstFlow(
+    this,
+    windowMillis = windowMillis,
+    timeMillis = timeMillis,
+)
 
 /**
- * 节流 Flow 实现：在 [windowMillis] 时间窗口内只发射第一个元素。
+ * 节流 Flow 实现：在 [windowMillis] 时间窗口内只发射每个窗口内的**第一个**元素。
  *
  * 与 [debounce] 的区别：throttle 在窗口期开始时立即发射，debounce 在窗口期结束时发射。
- * 适用于按钮点击防抖、搜索触发等场景。
- *
- * @param T 元素类型
- * @param source 上游 Flow
- * @param windowMillis 节流窗口（毫秒）
+ * 首项发射通过将「上次可发射时间」初始化为 `-windowMillis`，避免 [timeMillis] 较小时被误丢。
  */
 internal class ThrottleFirstFlow<T>(
     private val source: Flow<T>,
-    private val windowMillis: Long
+    windowMillis: Long,
+    private val timeMillis: () -> Long,
 ) : Flow<T> {
+    private val window = windowMillis.coerceAtLeast(0L)
+
     override suspend fun collect(collector: kotlinx.coroutines.flow.FlowCollector<T>) {
-        var lastTime = 0L
+        var lastEmitAt = -window
         source.collect { value ->
-            val now = SystemClock.elapsedRealtime()
-            if (now - lastTime >= windowMillis) {
-                lastTime = now
+            val now = timeMillis()
+            if (now - lastEmitAt >= window) {
+                lastEmitAt = now
                 collector.emit(value)
             }
         }
@@ -108,7 +113,11 @@ fun <T, R> Flow<T>.select(selector: (T) -> R): Flow<R> {
  * @param windowMillis 时间窗口（毫秒），默认 300
  */
 fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> = callbackFlow {
-    val listener = View.OnClickListener { trySend(Unit) }
+    val listener = View.OnClickListener {
+        if (!isClosedForSend) {
+            trySend(Unit)
+        }
+    }
     setOnClickListener(listener)
     awaitClose { setOnClickListener(null) }
 }.throttleFirst(windowMillis)

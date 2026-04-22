@@ -48,12 +48,9 @@ interface AwLogger {
 /**
  * 默认日志实现。
  *
- * Android 环境使用 [android.util.Log]；
- * 非 Android 环境（如 JVM 单元测试）降级为 [System.out]。
+ * Android 环境使用 [android.util.Log]；无法判定为可用 Android 日志 API 时降级为 [System.out]。
  *
- * 通过尝试调用 [android.util.Log.isLoggable] 来检测运行环境，
- * 因为 Android 单元测试中 android.jar 的方法默认抛出 RuntimeException，
- * 而 Robolectric 环境下可以正常调用。
+ * 通过尝试调用 [android.util.Log.isLoggable] 探测运行环境（部分桩/精简环境会抛异常，此时走标准输出）。
  */
 internal class DefaultAwLogger : AwLogger {
 
