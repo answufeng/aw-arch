@@ -3,6 +3,7 @@ package com.answufeng.arch.base
 import android.os.Bundle
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -24,12 +25,17 @@ import kotlinx.coroutines.launch
  *     }
  * }
  * ```
+ *
+ * [UiEvent] 通道为有界队列（默认 [UI_EVENT_CHANNEL_CAPACITY]）；满时按 [BufferOverflow.DROP_OLDEST] 丢弃最旧未消费事件，避免无界堆积。
  */
 open class MvvmViewModel(
     savedStateHandle: SavedStateHandle? = null
 ) : BaseViewModel(savedStateHandle) {
 
-    private val uiEventChannel = Channel<UiEvent>(Channel.UNLIMITED)
+    private val uiEventChannel = Channel<UiEvent>(
+        capacity = UI_EVENT_CHANNEL_CAPACITY,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
 
     /** UI 事件流，消费后不会重放 */
     val uiEvent: Flow<UiEvent> = uiEventChannel.receiveAsFlow()
@@ -67,5 +73,14 @@ open class MvvmViewModel(
         data class Navigate(val route: String, val extras: Bundle? = null) : UiEvent()
         data object NavigateBack : UiEvent()
         data class Custom(val key: String, val data: Any? = null) : UiEvent()
+    }
+
+    override fun onCleared() {
+        uiEventChannel.close()
+        super.onCleared()
+    }
+
+    companion object {
+        const val UI_EVENT_CHANNEL_CAPACITY: Int = 128
     }
 }

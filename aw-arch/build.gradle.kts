@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -47,6 +46,10 @@ android {
 }
 
 dependencies {
+    // AwTestRule 依赖 JUnit / coroutines-test API；由使用方 testImplementation 提供运行时
+    compileOnly(libs.junit)
+    compileOnly(libs.coroutines.test)
+
     implementation(libs.core.ktx)
     implementation(libs.annotation)
     implementation(libs.coroutines.core)

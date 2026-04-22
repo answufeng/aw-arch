@@ -60,8 +60,9 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
     }
 
     protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass(javaClass, MvvmViewModel::class.java)
-        return ViewModelProvider(this)[vmClass]
+        val vmClass = inferViewModelClass<VM>(javaClass, MvvmViewModel::class.java)
+        @Suppress("UNCHECKED_CAST")
+        return ViewModelProvider(this).get(vmClass) as VM
     }
 
     override fun showToast(message: String) {

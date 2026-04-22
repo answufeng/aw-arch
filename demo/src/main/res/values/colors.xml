@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Design system (Exaggerated Minimalism): black + accent gold -->
+    <color name="aw_demo_primary">#171717</color>
+    <color name="aw_demo_primary_variant">#0F0F0F</color>
+    <color name="aw_demo_secondary">#404040</color>
+    <color name="aw_demo_accent">#D4AF37</color>
+
+    <color name="aw_demo_bg">#FFFFFF</color>
+    <color name="aw_demo_surface">#FFFFFF</color>
+    <color name="aw_demo_on_primary">#FFFFFF</color>
+    <color name="aw_demo_on_surface">#171717</color>
+    <color name="aw_demo_on_surface_muted">#616161</color>
+
+    <color name="aw_demo_divider">#E9E9E9</color>
+    <color name="aw_demo_log_bg">#FAFAFA</color>
+</resources>

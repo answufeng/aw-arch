@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.AwArchDemo" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/aw_demo_primary</item>
+        <item name="colorPrimaryVariant">@color/aw_demo_primary_variant</item>
+        <item name="colorOnPrimary">@color/aw_demo_on_primary</item>
+
+        <item name="colorSecondary">@color/aw_demo_accent</item>
+        <item name="colorOnSecondary">@color/aw_demo_primary</item>
+
+        <item name="android:colorBackground">@color/aw_demo_bg</item>
+        <item name="colorSurface">@color/aw_demo_surface</item>
+        <item name="colorOnSurface">@color/aw_demo_on_surface</item>
+
+        <item name="android:statusBarColor">@color/aw_demo_bg</item>
+        <item name="android:navigationBarColor">@color/aw_demo_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+
+        <item name="materialButtonStyle">@style/Widget.AwArchDemo.Button</item>
+        <item name="textInputStyle">@style/Widget.AwArchDemo.TextInputLayout</item>
+    </style>
+</resources>
+

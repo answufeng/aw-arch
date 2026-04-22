@@ -8,13 +8,9 @@ import androidx.annotation.MainThread
  * 通常由 ViewModel 实现，Fragment/Activity 通过此接口发送用户意图。
  *
  * ```kotlin
- * class MyViewModel : MviViewModel<MyState, MyIntent>(), MviDispatcher<MyIntent> {
- *     override fun dispatch(intent: MyIntent) { /* 处理意图 */ }
- * }
- *
- * // 在 Fragment 中
- * viewModel.dispatch(MyIntent.Refresh)
- * viewModel.dispatchThrottled(MyIntent.Submit) // 300ms 内只处理一次
+ * // 在 Fragment / Activity（实现 MviDispatcher）中
+ * dispatch(MyIntent.Refresh)
+ * dispatchThrottled(MyIntent.Submit) // 300ms 内只处理一次（默认同类 Intent 共用一个节流 key）
  * ```
  *
  * @param I 意图类型，必须继承 [UiIntent]

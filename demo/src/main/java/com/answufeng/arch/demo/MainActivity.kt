@@ -34,6 +34,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnMvi).setOnClickListener { openMviDemo() }
         findViewById<Button>(R.id.btnNav).setOnClickListener { openNavDemo() }
         findViewById<Button>(R.id.btnWeChat).setOnClickListener { openWeChatDemo() }
+        findViewById<Button>(R.id.btnHilt).setOnClickListener { openHiltDemo() }
+        findViewById<Button>(R.id.btnSimpleMvi).setOnClickListener { openSimpleMviDemo() }
+        findViewById<Button>(R.id.btnRemoveSticky).setOnClickListener { removeStickyDemo() }
         findViewById<Button>(R.id.btnClearLog).setOnClickListener { clearLog() }
 
         FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { event ->
@@ -42,6 +45,7 @@ class MainActivity : AppCompatActivity() {
 
         log("✅ aw-arch 初始化完成")
         log("📊 点击按钮测试各项功能")
+        log("ℹ️ FlowEventBus：autoCleanup 仅在「曾有订阅者且归零」后延迟清理；仅 observe 未 collect 不会删通道")
     }
 
     private fun log(msg: String) {
@@ -128,5 +132,20 @@ class MainActivity : AppCompatActivity() {
     private fun openWeChatDemo() {
         log("🚀 打开微信演示")
         startActivity(android.content.Intent(this, com.answufeng.arch.demo.wechat.WeChatActivity::class.java))
+    }
+
+    private fun openHiltDemo() {
+        log("🚀 打开 Hilt 演示")
+        startActivity(android.content.Intent(this, HiltDemoActivity::class.java))
+    }
+
+    private fun openSimpleMviDemo() {
+        log("🚀 打开 SimpleMVI 演示")
+        startActivity(android.content.Intent(this, SimpleMviDemoActivity::class.java))
+    }
+
+    private fun removeStickyDemo() {
+        FlowEventBus.removeSticky<DemoEvent>()
+        log("🗑️ 已 removeSticky<DemoEvent>()，新观察者不会收到旧粘性值")
     }
 }

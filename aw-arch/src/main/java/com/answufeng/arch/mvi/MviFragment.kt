@@ -91,21 +91,26 @@ abstract class MviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
     }
 
     protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass(javaClass, MviViewModel::class.java)
+        val vmClass = inferViewModelClass<VM>(javaClass, MviViewModel::class.java)
         val factory = if (shareViewModelWithActivity) {
             ViewModelProvider(requireActivity())
         } else {
             ViewModelProvider(this)
         }
-        return factory[vmClass]
+        @Suppress("UNCHECKED_CAST")
+        return factory.get(vmClass) as VM
     }
 
     override fun dispatch(intent: INTENT) {
         viewModel.dispatch(intent)
     }
 
-    override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
-        viewModel.dispatchThrottled(intent, windowMillis)
+    override fun dispatchThrottled(
+        intent: INTENT,
+        windowMillis: Long,
+        keySelector: (INTENT) -> String,
+    ) {
+        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
     }
 
     override fun onDestroyView() {

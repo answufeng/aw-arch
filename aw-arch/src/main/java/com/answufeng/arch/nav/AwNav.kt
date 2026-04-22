@@ -12,6 +12,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.commit
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import com.answufeng.arch.config.AwArch
 import com.answufeng.arch.R
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
@@ -43,6 +44,7 @@ class AwNav private constructor(
     private val activityRef: WeakReference<FragmentActivity>,
     private val fragmentManager: FragmentManager,
     @IdRes private val containerId: Int,
+    private val instanceKey: Int,
 ) {
 
     private val routes = mutableMapOf<String, KClass<out Fragment>>()
@@ -64,6 +66,43 @@ class AwNav private constructor(
     private val fragmentLifecycleCallbacks = object : FragmentManager.FragmentLifecycleCallbacks() {
         override fun onFragmentStarted(fm: FragmentManager, f: Fragment) {
             syncCurrentRoute()
+        }
+    }
+
+    private val lifecycleObserver = object : DefaultLifecycleObserver {
+        override fun onDestroy(owner: LifecycleOwner) {
+            onHostDestroyed()
+        }
+    }
+
+    private fun onHostDestroyed() {
+        instances.remove(instanceKey)
+        activityRef.get()?.let { a ->
+            try {
+                a.supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
+            } catch (_: Throwable) {
+            }
+            try {
+                backPressedCallback.remove()
+            } catch (_: Throwable) {
+            }
+        }
+    }
+
+    internal fun detachForReinit() {
+        activityRef.get()?.let { a ->
+            try {
+                a.lifecycle.removeObserver(lifecycleObserver)
+            } catch (_: Throwable) {
+            }
+            try {
+                a.supportFragmentManager.unregisterFragmentLifecycleCallbacks(fragmentLifecycleCallbacks)
+            } catch (_: Throwable) {
+            }
+            try {
+                backPressedCallback.remove()
+            } catch (_: Throwable) {
+            }
         }
     }
 
@@ -100,7 +139,10 @@ class AwNav private constructor(
                 "Route \"$route\" is not registered. Available routes: ${routes.keys}"
             )
 
-        if (fragmentManager.isStateSaved) return
+        if (fragmentManager.isStateSaved) {
+            AwArch.logger.w("AwNav", "navigate(\"$route\") ignored: FragmentManager state already saved")
+            return
+        }
 
         val now = SystemClock.uptimeMillis()
         if (now - lastNavigateTime < NAV_THROTTLE_MILLIS) return
@@ -188,21 +230,16 @@ class AwNav private constructor(
 
         fun init(activity: FragmentActivity, @IdRes containerId: Int): AwNav {
             val key = System.identityHashCode(activity)
-            val nav = AwNav(WeakReference(activity), activity.supportFragmentManager, containerId)
+            instances[key]?.get()?.detachForReinit()
+            instances.remove(key)
+
+            val nav = AwNav(WeakReference(activity), activity.supportFragmentManager, containerId, key)
             instances[key] = WeakReference(nav)
 
             activity.onBackPressedDispatcher.addCallback(activity, nav.backPressedCallback)
-
             nav.syncCurrentRoute()
-
             activity.supportFragmentManager.registerFragmentLifecycleCallbacks(nav.fragmentLifecycleCallbacks, false)
-
-            activity.lifecycle.addObserver(object : DefaultLifecycleObserver {
-                override fun onDestroy(owner: LifecycleOwner) {
-                    instances.remove(key)
-                    activity.supportFragmentManager.unregisterFragmentLifecycleCallbacks(nav.fragmentLifecycleCallbacks)
-                }
-            })
+            activity.lifecycle.addObserver(nav.lifecycleObserver)
             return nav
         }
 

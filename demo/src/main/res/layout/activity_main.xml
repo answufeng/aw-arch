@@ -147,6 +147,27 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:text="打开微信演示 (AwNav + BottomBar + MVI)"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnHilt"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="打开 Hilt + MVVM 演示"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnSimpleMvi"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="打开 SimpleMVI 演示"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/btnRemoveSticky"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="移除粘性事件 (removeSticky)"
             android:layout_marginBottom="16dp" />
 
         <Button

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
+        android:name=".DemoApplication"
         android:allowBackup="false"
         android:label="🏗️ 架构库演示"
         android:theme="@style/Theme.MaterialComponents.Light.DarkActionBar">
@@ -23,6 +24,12 @@
             android:exported="false" />
         <activity
             android:name=".wechat.WeChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".HiltDemoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SimpleMviDemoActivity"
             android:exported="false" />
     </application>
 </manifest>

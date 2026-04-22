@@ -17,7 +17,7 @@
 
 ### 新增
 - `MvvmViewModel`：MVVM 专用 ViewModel 基类，提供 `sendEvent`/`showToast`/`showLoading`/`navigate`/`navigateBack`
-- `SimpleMviViewModel`/`SimpleMviActivity`：简化版 MVI，不需要 Event 时减少泛型参数（5→3）
+- `SimpleMviViewModel`/`SimpleMviActivity`：简化版 MVI，不需要 Event 时减少泛型参数（完整 MVI 为 VB+S+E+I+VM；SimpleMvi 为 VB+S+I+VM 共 4 个类型参数）
 - `MvvmFragment`/`MviFragment`：Fragment 基类，支持 ViewBinding + ViewModel + 生命周期安全
 - `MvvmDialogFragment`/`MviDialogFragment`：DialogFragment 基类
 - `MvvmBottomSheetDialogFragment`/`MviBottomSheetDialogFragment`：BottomSheet 基类

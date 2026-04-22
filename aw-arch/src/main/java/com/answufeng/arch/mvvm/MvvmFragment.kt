@@ -91,13 +91,14 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment(), 
     }
 
     protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass(javaClass, MvvmViewModel::class.java)
+        val vmClass = inferViewModelClass<VM>(javaClass, MvvmViewModel::class.java)
         val factory = if (shareViewModelWithActivity) {
             ViewModelProvider(requireActivity())
         } else {
             ViewModelProvider(this)
         }
-        return factory[vmClass]
+        @Suppress("UNCHECKED_CAST")
+        return factory.get(vmClass) as VM
     }
 
     override fun showToast(message: String) {

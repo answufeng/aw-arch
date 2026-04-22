@@ -62,16 +62,21 @@ abstract class MviBottomSheetDialogFragment<VB : ViewBinding, STATE : UiState, E
     }
 
     protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass(javaClass, MviViewModel::class.java)
-        return ViewModelProvider(this)[vmClass]
+        val vmClass = inferViewModelClass<VM>(javaClass, MviViewModel::class.java)
+        @Suppress("UNCHECKED_CAST")
+        return ViewModelProvider(this).get(vmClass) as VM
     }
 
     override fun dispatch(intent: INTENT) {
         viewModel.dispatch(intent)
     }
 
-    override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
-        viewModel.dispatchThrottled(intent, windowMillis)
+    override fun dispatchThrottled(
+        intent: INTENT,
+        windowMillis: Long,
+        keySelector: (INTENT) -> String,
+    ) {
+        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
     }
 
     override fun onDestroyView() {

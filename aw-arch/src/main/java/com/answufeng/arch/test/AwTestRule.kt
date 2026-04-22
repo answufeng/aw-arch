@@ -15,6 +15,8 @@ import org.junit.runner.Description
  * 自动在每个测试前将 [Dispatchers.Main] 替换为 [TestDispatcher]，测试后重置。
  * 消除每个测试类中重复的 `@Before/@After` 样板代码。
  *
+ * 随主 artifact 分发；测试源码中请额外添加 JUnit 与 coroutines-test（见 README）。
+ *
  * ```kotlin
  * class MyViewModelTest {
  *     @get:Rule

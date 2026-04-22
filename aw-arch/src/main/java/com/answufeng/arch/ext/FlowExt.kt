@@ -8,7 +8,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.answufeng.arch.mvi.UiEvent
 import com.answufeng.arch.mvi.UiState
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -62,7 +60,7 @@ fun <T> Flow<T>.throttleFirst(windowMillis: Long): Flow<T> {
 internal class ThrottleFirstFlow<T>(
     private val source: Flow<T>,
     private val windowMillis: Long
-) : Flow<T> by source {
+) : Flow<T> {
     override suspend fun collect(collector: kotlinx.coroutines.flow.FlowCollector<T>) {
         var lastTime = 0L
         source.collect { value ->

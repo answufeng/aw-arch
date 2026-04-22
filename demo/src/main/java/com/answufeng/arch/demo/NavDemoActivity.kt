@@ -5,24 +5,37 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.answufeng.arch.demo.databinding.ActivityNavDemoBinding
 import com.answufeng.arch.nav.AwNav
 import com.answufeng.arch.nav.NavAnim
 
-class NavDemoActivity : androidx.appcompat.app.AppCompatActivity() {
+class NavDemoActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityNavDemoBinding
     private lateinit var nav: AwNav
+
+    /** 为 true 时拦截跳转到 detail，用于演示 [AwNav.addInterceptor] */
+    private var blockDetailNavigation = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val binding = ActivityNavDemoBinding.inflate(layoutInflater)
+        binding = ActivityNavDemoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         nav = AwNav.init(this, binding.container.id)
             .register<HomeFragment>("home")
             .register<DetailFragment>("detail")
             .register<SettingsFragment>("settings")
+            .addInterceptor { _, to, _ ->
+                if (blockDetailNavigation && to == "detail") {
+                    binding.tvInterceptStatus.text = "拦截器已阻止：detail（切换下方开关可放行）"
+                    false
+                } else {
+                    true
+                }
+            }
 
         if (savedInstanceState == null) {
             nav.navigate("home") { addToBackStack = false; anim = NavAnim.NONE }
@@ -39,6 +52,15 @@ class NavDemoActivity : androidx.appcompat.app.AppCompatActivity() {
         }
         binding.btnBack.setOnClickListener {
             if (!nav.back()) finish()
+        }
+
+        binding.btnToggleIntercept.setOnClickListener {
+            blockDetailNavigation = !blockDetailNavigation
+            binding.tvInterceptStatus.text = if (blockDetailNavigation) {
+                "拦截 Detail：开启"
+            } else {
+                "拦截 Detail：关闭（可进入 detail）"
+            }
         }
     }
 }

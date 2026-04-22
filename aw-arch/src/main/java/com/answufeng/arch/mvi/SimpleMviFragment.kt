@@ -16,11 +16,12 @@ import com.answufeng.arch.ext.observeMvi
  *
  * 与 [MviFragment] 的区别在于不需要定义独立的 Event 类型，适用于不需要单向 UI 事件的简单场景。
  * 支持懒加载，首次对用户可见时才调用 [onLazyLoad]。
- * ViewModel 会根据子类类型自动推断创建。
+ * 子类须声明第四类型参数 [VM]（具体 [SimpleMviViewModel] 实现），以便反射创建。
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]
  * @param INTENT UI 意图类型，必须实现 [UiIntent]
+ * @param VM 必须继承 [SimpleMviViewModel] 且泛型为 [STATE]、[INTENT]
  *
  * @see SimpleMviViewModel
  * @see UiState
@@ -28,7 +29,12 @@ import com.answufeng.arch.ext.observeMvi
  * @see MviDispatcher
  * @see LazyLoadHelper
  */
-abstract class SimpleMviFragment<VB : ViewBinding, STATE : UiState, INTENT : UiIntent> :
+abstract class SimpleMviFragment<
+    VB : ViewBinding,
+    STATE : UiState,
+    INTENT : UiIntent,
+    VM : SimpleMviViewModel<STATE, INTENT>,
+    > :
     Fragment(), MviDispatcher<INTENT> {
 
     private var _binding: VB? = null
@@ -36,7 +42,7 @@ abstract class SimpleMviFragment<VB : ViewBinding, STATE : UiState, INTENT : UiI
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
-    protected lateinit var viewModel: SimpleMviViewModel<STATE, INTENT>
+    protected lateinit var viewModel: VM
 
     private val lazyLoadHelper = LazyLoadHelper(this)
 
@@ -83,22 +89,27 @@ abstract class SimpleMviFragment<VB : ViewBinding, STATE : UiState, INTENT : UiI
         observeMvi(viewModel.state, viewModel.event, render = ::render)
     }
 
-    protected open fun createViewModel(): SimpleMviViewModel<STATE, INTENT> {
-        val vmClass = inferViewModelClass(javaClass, SimpleMviViewModel::class.java)
+    protected open fun createViewModel(): VM {
+        val vmClass = inferViewModelClass<VM>(javaClass, SimpleMviViewModel::class.java)
         val factory = if (shareViewModelWithActivity) {
             ViewModelProvider(requireActivity())
         } else {
             ViewModelProvider(this)
         }
-        return factory[vmClass]
+        @Suppress("UNCHECKED_CAST")
+        return factory.get(vmClass) as VM
     }
 
     override fun dispatch(intent: INTENT) {
         viewModel.dispatch(intent)
     }
 
-    override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
-        viewModel.dispatchThrottled(intent, windowMillis)
+    override fun dispatchThrottled(
+        intent: INTENT,
+        windowMillis: Long,
+        keySelector: (INTENT) -> String,
+    ) {
+        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
     }
 
     override fun onDestroyView() {

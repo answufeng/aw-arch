@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -30,7 +32,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // 启用 R8 以验证 aw-arch consumer-rules.pro 在宿主侧合并后可用
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -41,6 +44,9 @@ android {
 
 dependencies {
     implementation(project(":aw-arch"))
+
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
 
     implementation(libs.core.ktx)
     implementation(libs.appcompat)

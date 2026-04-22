@@ -17,12 +17,17 @@
 }
 
 # ===========================================================
-# MVI 标记接口及实现类
-# 保留实现类的 public 成员以便序列化和调试
+# MVI 标记接口及实现类（仅保留构造器，避免整类 public * 过宽）
 # ===========================================================
--keepclassmembers class * implements com.answufeng.arch.mvi.UiState { public *; }
--keepclassmembers class * implements com.answufeng.arch.mvi.UiEvent { public *; }
--keepclassmembers class * implements com.answufeng.arch.mvi.UiIntent { public *; }
+-keepclassmembers class * implements com.answufeng.arch.mvi.UiState {
+    <init>(...);
+}
+-keepclassmembers class * implements com.answufeng.arch.mvi.UiEvent {
+    <init>(...);
+}
+-keepclassmembers class * implements com.answufeng.arch.mvi.UiIntent {
+    <init>(...);
+}
 
 # ===========================================================
 # MVI ViewModel 核心成员

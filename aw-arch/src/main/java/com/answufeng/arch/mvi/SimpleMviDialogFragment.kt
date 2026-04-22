@@ -14,19 +14,24 @@ import com.answufeng.arch.ext.observeMvi
  * 简化版 MVI 架构 DialogFragment 基类
  *
  * 与 [SimpleMviFragment] 类似，但继承 DialogFragment，适用于对话框场景。
- * 不需要定义独立的 Event 类型，适用于不需要单向 UI 事件的简单场景。
- * ViewModel 会根据子类类型自动推断创建。
+ * 不需要定义独立的 Event 类型；子类须声明第四类型参数 [VM]（具体 [SimpleMviViewModel]）。
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]
  * @param INTENT UI 意图类型，必须实现 [UiIntent]
+ * @param VM 必须继承 [SimpleMviViewModel] 且泛型为 [STATE]、[INTENT]
  *
  * @see SimpleMviViewModel
  * @see UiState
  * @see UiIntent
  * @see MviDispatcher
  */
-abstract class SimpleMviDialogFragment<VB : ViewBinding, STATE : UiState, INTENT : UiIntent> :
+abstract class SimpleMviDialogFragment<
+    VB : ViewBinding,
+    STATE : UiState,
+    INTENT : UiIntent,
+    VM : SimpleMviViewModel<STATE, INTENT>,
+    > :
     DialogFragment(), MviDispatcher<INTENT> {
 
     private var _binding: VB? = null
@@ -34,7 +39,7 @@ abstract class SimpleMviDialogFragment<VB : ViewBinding, STATE : UiState, INTENT
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
-    protected lateinit var viewModel: SimpleMviViewModel<STATE, INTENT>
+    protected lateinit var viewModel: VM
 
     abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
@@ -58,17 +63,22 @@ abstract class SimpleMviDialogFragment<VB : ViewBinding, STATE : UiState, INTENT
         observeMvi(viewModel.state, viewModel.event, render = ::render)
     }
 
-    protected open fun createViewModel(): SimpleMviViewModel<STATE, INTENT> {
-        val vmClass = inferViewModelClass(javaClass, SimpleMviViewModel::class.java)
-        return ViewModelProvider(this)[vmClass]
+    protected open fun createViewModel(): VM {
+        val vmClass = inferViewModelClass<VM>(javaClass, SimpleMviViewModel::class.java)
+        @Suppress("UNCHECKED_CAST")
+        return ViewModelProvider(this).get(vmClass) as VM
     }
 
     override fun dispatch(intent: INTENT) {
         viewModel.dispatch(intent)
     }
 
-    override fun dispatchThrottled(intent: INTENT, windowMillis: Long) {
-        viewModel.dispatchThrottled(intent, windowMillis)
+    override fun dispatchThrottled(
+        intent: INTENT,
+        windowMillis: Long,
+        keySelector: (INTENT) -> String,
+    ) {
+        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
     }
 
     override fun onDestroyView() {

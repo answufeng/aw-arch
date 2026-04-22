@@ -4,6 +4,7 @@ import android.os.Looper
 import android.os.SystemClock
 import androidx.lifecycle.SavedStateHandle
 import com.answufeng.arch.base.BaseViewModel
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,6 +44,8 @@ import java.util.concurrent.ConcurrentHashMap
  * @param I 意图类型，必须实现 [UiIntent]
  * @param initialState 初始状态
  * @param savedStateHandle 进程重启后恢复状态
+ *
+ * 一次性 [event] 通道为有界队列（默认 [MVI_EVENT_CHANNEL_CAPACITY]）；缓冲区满时丢弃最旧事件，避免无界内存增长。
  */
 abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     initialState: S,
@@ -57,7 +60,10 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     /** 获取当前状态快照，不触发收集 */
     protected val currentState: S get() = _state.value
 
-    private val _event = Channel<E>(Channel.UNLIMITED)
+    private val _event = Channel<E>(
+        capacity = MVI_EVENT_CHANNEL_CAPACITY,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
 
     /** 一次性事件流（如 Toast、导航），消费后不会重放 */
     val event: Flow<E> = _event.receiveAsFlow()
@@ -116,7 +122,12 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     }
 
     override fun onCleared() {
-        super.onCleared()
+        _event.close()
         intentThrottleMap.clear()
+        super.onCleared()
+    }
+
+    companion object {
+        const val MVI_EVENT_CHANNEL_CAPACITY: Int = 128
     }
 }

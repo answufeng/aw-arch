@@ -45,6 +45,21 @@
 
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvInterceptStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFF9C4"
+        android:padding="8dp"
+        android:text="拦截 Detail：开启（点击切换）"
+        android:textSize="12sp" />
+
+    <Button
+        android:id="@+id/btnToggleIntercept"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="切换：是否拦截 navigate → detail" />
+
     <FrameLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
