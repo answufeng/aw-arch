@@ -10,8 +10,9 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.LazyLoadHelper
 import com.answufeng.arch.base.MvvmViewModel
-import com.answufeng.arch.base.MvvmViewModel.UiEvent
 import com.answufeng.arch.mvvm.MvvmView
+import com.answufeng.arch.mvvm.dispatchMvvmUiEvent
+import com.answufeng.arch.nav.AwNav
 import kotlinx.coroutines.launch
 
 /**
@@ -37,6 +38,9 @@ abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment
 
     abstract val viewModel: VM
 
+    /** 非 null 时由 [AwNav] 处理导航类 [com.answufeng.arch.base.MvvmViewModel.UiEvent]。 */
+    protected open val awNav: AwNav? get() = null
+
     private val lazyLoadHelper = LazyLoadHelper(this)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,6 +49,7 @@ abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        lazyLoadHelper.prepareForNewView()
         _binding = inflateBinding(inflater, container)
         return binding.root
     }
@@ -74,7 +79,9 @@ abstract class HiltMvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment
     open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect { onUiEvent(it) }
+                viewModel.uiEvent.collect { event ->
+                    dispatchMvvmUiEvent(event, awNav) { navigateBack() }
+                }
             }
         }
     }

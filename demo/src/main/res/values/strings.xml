@@ -3,4 +3,21 @@
     <string name="demo_playbook">演示清单</string>
     <string name="demo_playbook_title">演示清单</string>
     <string name="demo_playbook_message">索引见仓库 demo/DEMO_MATRIX.md。\n\n• LoadState / RetryLoadState · FlowEventBus（含 Sticky）\n• MVVM / MVI / SimpleMVI / Hilt 独立 Activity\n• AwNav · 微信式多 Tab 示例</string>
+
+    <string name="demo_main_title">aw-arch 演示</string>
+    <string name="demo_main_subtitle">LoadState · FlowEventBus · MVVM / MVI · AwNav</string>
+    <string name="demo_section_state">状态与加载</string>
+    <string name="demo_section_bus">FlowEventBus</string>
+    <string name="demo_section_arch">架构示例 Activity</string>
+    <string name="demo_section_log">运行日志</string>
+    <string name="demo_log_hint">操作后在此查看输出</string>
+    <string name="wechat_stack_depth">AwNav 返回栈 · %d 层</string>
+    <string name="wechat_overlay_stack">全屏层 · 内层栈 %d 层（Tab 与底栏被盖住，未销毁）</string>
+    <string name="wechat_layer_chat_detail">第 2 层：会话详情（可再进一层）</string>
+    <string name="wechat_layer_chat_info">第 3 层：聊天资料 / 模拟设置</string>
+    <string name="wechat_open_info">进入聊天资料（第 3 层）</string>
+    <string name="wechat_contact_layer_2">第 2 层：联系人详情</string>
+    <string name="wechat_contact_layer_3">第 3 层：标签与更多</string>
+    <string name="wechat_contact_open_extra">查看更多（第 3 层）</string>
+    <string name="wechat_tip_system_back">使用系统返回键或 Toolbar 返回逐级出栈</string>
 </resources>

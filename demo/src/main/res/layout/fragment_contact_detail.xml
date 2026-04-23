@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/aw_demo_bg"
+    android:orientation="vertical"
+    android:padding="@dimen/demo_space_md">
+
+    <TextView
+        android:id="@+id/tvBreadcrumb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/aw_demo_wechat"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_md"
+        android:text="@string/wechat_contact_layer_2"
+        android:textColor="@color/aw_demo_on_surface"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_sm"
+        android:textColor="@color/aw_demo_on_surface_muted"
+        android:textSize="16sp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnOpenExtra"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_lg"
+        android:text="@string/wechat_contact_open_extra" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_md"
+        android:text="@string/wechat_tip_system_back"
+        android:textColor="@color/aw_demo_on_surface_muted"
+        android:textSize="12sp" />
+</LinearLayout>

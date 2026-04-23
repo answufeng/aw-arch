@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="demo_space_sm">8dp</dimen>
+    <dimen name="demo_space_md">16dp</dimen>
+    <dimen name="demo_space_lg">24dp</dimen>
+    <dimen name="demo_card_radius">14dp</dimen>
+    <dimen name="demo_log_min_height">180dp</dimen>
+</resources>

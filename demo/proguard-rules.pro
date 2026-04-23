@@ -2,3 +2,6 @@
 
 -keepattributes *Annotation*
 -dontwarn org.conscrypt.**
+
+# AwNav FragmentFactory.instantiate 依赖完整类名（演示包体量小，整包保留微信模块）
+-keep class com.answufeng.arch.demo.wechat.** { *; }

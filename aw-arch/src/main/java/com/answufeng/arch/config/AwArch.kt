@@ -1,5 +1,7 @@
 package com.answufeng.arch.config
 
+import com.answufeng.arch.event.FlowEventBus
+
 @DslMarker
 annotation class AwArchDsl
 
@@ -10,6 +12,8 @@ annotation class AwArchDsl
  * ```kotlin
  * AwArch.init {
  *     logger = TimberAwLogger()
+ *     strictMainThreadForAwNav = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+ *     flowEventBusAutoCleanupDelayMs = 60_000L
  * }
  * ```
  */
@@ -21,10 +25,31 @@ object AwArch {
     var logger: AwLogger = DefaultAwLogger()
 
     /**
+     * 为 `true` 时，[com.answufeng.arch.nav.AwNav] 的 `navigate` / `back` / `backTo` / `clearStack`
+     * 在非主线程调用会抛出 [IllegalStateException]。建议在 debug 构建开启。
+     */
+    @Volatile
+    var strictMainThreadForAwNav: Boolean = false
+
+    /**
+     * 为 `true` 时，因防连点节流而忽略的 [com.answufeng.arch.nav.AwNav.navigate] 会打一条 [AwLogger.d] 日志。
+     */
+    @Volatile
+    var logAwNavThrottledNavigations: Boolean = false
+
+    /**
+     * 若设置，[init] 结束时同步到 [FlowEventBus.autoCleanupDelay]（毫秒）。
+     * 未设置则保持 [FlowEventBus] 现有默认值。
+     */
+    @Volatile
+    var flowEventBusAutoCleanupDelayMs: Long? = null
+
+    /**
      * DSL 方式初始化配置。
      */
     fun init(block: AwArch.() -> Unit) {
         block()
+        flowEventBusAutoCleanupDelayMs?.let { FlowEventBus.autoCleanupDelay = it }
     }
 }
 

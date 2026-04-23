@@ -82,7 +82,12 @@ abstract class BaseViewModel(
         savedStateHandle?.set(key, value)
     }
 
-    /** 从 SavedStateHandle 获取 StateFlow，进程重启后自动恢复 */
+    /**
+     * 从 SavedStateHandle 获取 StateFlow，进程重启后自动恢复。
+     *
+     * 若构造时未注入 [savedStateHandle]（为 `null`），则退化为普通 [kotlinx.coroutines.flow.MutableStateFlow]，
+     * 仅内存内有效，**杀进程后不会恢复**。
+     */
     protected fun <T> savedStateFlow(key: String, initialValue: T): kotlinx.coroutines.flow.StateFlow<T> =
         savedStateHandle?.getStateFlow(key, initialValue)
             ?: kotlinx.coroutines.flow.MutableStateFlow(initialValue)

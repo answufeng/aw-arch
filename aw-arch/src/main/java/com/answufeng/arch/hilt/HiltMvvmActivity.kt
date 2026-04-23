@@ -7,8 +7,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.MvvmViewModel
-import com.answufeng.arch.base.MvvmViewModel.UiEvent
 import com.answufeng.arch.mvvm.MvvmView
+import com.answufeng.arch.mvvm.dispatchMvvmUiEvent
+import com.answufeng.arch.nav.AwNav
 import kotlinx.coroutines.launch
 
 /**
@@ -31,6 +32,11 @@ abstract class HiltMvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompa
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
+    /**
+     * 若返回非 null，[com.answufeng.arch.base.MvvmViewModel.UiEvent.Navigate] 等将交给 [AwNav]。
+     */
+    protected open val awNav: AwNav? get() = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = inflateBinding(layoutInflater)
@@ -46,7 +52,9 @@ abstract class HiltMvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompa
     open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect { onUiEvent(it) }
+                viewModel.uiEvent.collect { event ->
+                    dispatchMvvmUiEvent(event, awNav) { navigateBack() }
+                }
             }
         }
     }

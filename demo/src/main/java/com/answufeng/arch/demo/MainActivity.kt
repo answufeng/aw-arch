@@ -5,6 +5,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.lifecycle.lifecycleScope
 import com.answufeng.arch.event.FlowEventBus
@@ -24,6 +25,8 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        setSupportActionBar(findViewById<MaterialToolbar>(R.id.topBar))
 
         tvLog = findViewById(R.id.tvLog)
 
@@ -50,12 +53,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { event ->
-            log("✅ 收到事件: ${event.message}")
+            log("[事件] ${event.message}")
         }
 
-        log("✅ aw-arch 初始化完成")
-        log("📊 点击按钮测试各项功能")
-        log("ℹ️ FlowEventBus：autoCleanup 仅在「曾有订阅者且归零」后延迟清理；仅 observe 未 collect 不会删通道")
+        log("[就绪] aw-arch Demo")
+        log("[提示] 点击下方区块按钮逐项验证；FlowEventBus 自动清理见 README")
     }
 
     private fun log(msg: String) {
@@ -68,36 +70,36 @@ class MainActivity : AppCompatActivity() {
 
     private fun testLoadState() {
         lifecycleScope.launch {
-            log("🔄 开始测试 LoadState...")
+            log("[LoadState] 开始加载…")
             val state: LoadState<String> = loadStateCatching {
                 delay(1000)
                 "数据加载成功！"
             }
             when (state) {
-                is LoadState.Loading -> log("⏳ 加载中...")
-                is LoadState.Success -> log("✅ 成功: ${state.data}")
-                is LoadState.Error -> log("❌ 错误: ${state.message}")
+                is LoadState.Loading -> log("[LoadState] 加载中…")
+                is LoadState.Success -> log("[LoadState] 成功: ${state.data}")
+                is LoadState.Error -> log("[LoadState] 错误: ${state.message}")
             }
         }
     }
 
     private fun testRetryLoadState() {
         lifecycleScope.launch {
-            log("🔄 开始测试重试机制（3次重试）...")
+            log("[Retry] 开始（最多 3 次重试）…")
             var attempt = 0
             val state = retryLoadState(times = 3, initialDelayMillis = 500) {
                 attempt++
                 if (attempt < 3) {
-                    log("⏳ 第${attempt}次尝试失败")
+                    log("[Retry] 第 ${attempt} 次失败")
                     throw RuntimeException("第${attempt}次尝试失败")
                 }
-                log("✅ 第${attempt}次尝试成功")
+                log("[Retry] 第 ${attempt} 次成功")
                 "在第${attempt}次尝试时恢复"
             }
             when (state) {
-                is LoadState.Success -> log("✅ 最终成功: ${state.data}")
-                is LoadState.Error -> log("❌ 最终失败: ${state.message}")
-                is LoadState.Loading -> log("⏳ 加载中...")
+                is LoadState.Success -> log("[Retry] 最终成功: ${state.data}")
+                is LoadState.Error -> log("[Retry] 最终失败: ${state.message}")
+                is LoadState.Loading -> log("[Retry] 加载中…")
             }
         }
     }
@@ -106,56 +108,56 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val event = DemoEvent("Hello from FlowEventBus!")
             FlowEventBus.post(event)
-            log("📢 发送事件(suspend): ${event.message}")
+            log("[Bus] post: ${event.message}")
         }
     }
 
     private fun tryPostEvent() {
         val event = DemoEvent("Hello from tryPost!")
         val result = FlowEventBus.tryPost(event)
-        log("📢 发送事件(tryPost): ${event.message}, 结果: $result")
+        log("[Bus] tryPost: ${event.message}, ok=$result")
     }
 
     private fun postStickyEvent() {
         lifecycleScope.launch {
             val event = DemoEvent("Sticky event!")
             FlowEventBus.postSticky(event)
-            log("📢 发送粘性事件: ${event.message}")
+            log("[Bus] sticky: ${event.message}")
         }
     }
 
     private fun openMvvmDemo() {
-        log("🚀 打开 MVVM 演示")
+        log("[打开] MVVM")
         startActivity(android.content.Intent(this, MvvmDemoActivity::class.java))
     }
 
     private fun openMviDemo() {
-        log("🚀 打开 MVI 演示")
+        log("[打开] MVI")
         startActivity(android.content.Intent(this, MviDemoActivity::class.java))
     }
 
     private fun openNavDemo() {
-        log("🚀 打开导航演示")
+        log("[打开] AwNav")
         startActivity(android.content.Intent(this, NavDemoActivity::class.java))
     }
 
     private fun openWeChatDemo() {
-        log("🚀 打开微信演示")
+        log("[打开] 微信式 Demo")
         startActivity(android.content.Intent(this, com.answufeng.arch.demo.wechat.WeChatActivity::class.java))
     }
 
     private fun openHiltDemo() {
-        log("🚀 打开 Hilt 演示")
+        log("[打开] Hilt")
         startActivity(android.content.Intent(this, HiltDemoActivity::class.java))
     }
 
     private fun openSimpleMviDemo() {
-        log("🚀 打开 SimpleMVI 演示")
+        log("[打开] SimpleMVI")
         startActivity(android.content.Intent(this, SimpleMviDemoActivity::class.java))
     }
 
     private fun removeStickyDemo() {
         FlowEventBus.removeSticky<DemoEvent>()
-        log("🗑️ 已 removeSticky<DemoEvent>()，新观察者不会收到旧粘性值")
+        log("[Bus] removeSticky<DemoEvent>")
     }
 }

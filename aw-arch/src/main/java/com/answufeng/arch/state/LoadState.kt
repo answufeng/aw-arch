@@ -1,11 +1,13 @@
 package com.answufeng.arch.state
 
 import com.answufeng.arch.config.AwArch
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withTimeout
 
 /**
  * 通用加载状态密封类，适用于任何异步数据加载场景。
@@ -168,6 +170,29 @@ suspend fun <T> loadStateCatching(block: suspend () -> T): LoadState<T> {
         LoadState.Success(block())
     } catch (e: Exception) {
         AwArch.logger.e("LoadState", "loadStateCatching failed", e)
+        LoadState.Error(e)
+    }
+}
+
+/**
+ * 在 [timeoutMillis] 内执行 [block]，超时则返回 [LoadState.Error]（[TimeoutCancellationException]）。
+ *
+ * ```kotlin
+ * val state = loadStateWithTimeout(5_000) { repository.fetchItems() }
+ * ```
+ */
+suspend fun <T> loadStateWithTimeout(
+    timeoutMillis: Long,
+    timeoutMessage: String = "请求超时",
+    block: suspend () -> T,
+): LoadState<T> {
+    return try {
+        LoadState.Success(withTimeout(timeoutMillis) { block() })
+    } catch (e: TimeoutCancellationException) {
+        AwArch.logger.w("LoadState", "loadStateWithTimeout: $timeoutMessage", e)
+        LoadState.Error(e, timeoutMessage)
+    } catch (e: Exception) {
+        AwArch.logger.e("LoadState", "loadStateWithTimeout failed", e)
         LoadState.Error(e)
     }
 }

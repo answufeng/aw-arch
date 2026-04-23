@@ -45,6 +45,8 @@ android {
 dependencies {
     implementation(project(":aw-arch"))
 
+    implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 

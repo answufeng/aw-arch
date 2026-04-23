@@ -9,7 +9,8 @@ data class WeChatState(
 ) : UiState
 
 data class Message(
+    val id: String,
     val sender: String,
     val content: String,
-    val time: String = ""
+    val time: String = "",
 )

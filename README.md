@@ -1,56 +1,37 @@
 # aw-arch
 
-[![](https://jitpack.io/v/answufeng/aw-arch.svg)](https://jitpack.io/#answufeng/aw-arch)
+[![JitPack](https://jitpack.io/v/answufeng/aw-arch.svg)](https://jitpack.io/#answufeng/aw-arch)
 
-Android 架构基础库，基于 Kotlin + MVVM/MVI + Hilt 封装，提供开箱即用的基类、导航管理、事件总线、Flow 扩展和状态管理。
+Android 架构基础库：**Kotlin + MVVM / MVI + Hilt**，提供基类、**AwNav** 导航、**FlowEventBus**、**LoadState**、Flow 与生命周期扩展、ViewBinding 委托等。
 
-**验证环境**：仓库内 **demo** 使用 compileSdk 35 / targetSdk 35（JDK 17、ViewBinding + Hilt）。
+**运行环境**：JDK **17**；库与 **demo** 使用 compileSdk / targetSdk **35**（ViewBinding；demo 含 Hilt）。
 
-## 文档导读
+---
 
-1. [工程品质与发版检查](#工程品质与发版检查) → [五分钟上手](#五分钟上手最小可复制) → [快速开始](#快速开始)  
-2. 易错点：[误用防火墙（必读）](#误用防火墙必读)  
-3. 演示：[demo/DEMO_MATRIX.md](demo/DEMO_MATRIX.md)（含 **推荐手测**）
+## 目录
 
-## 工程品质与发版检查
+| 想做什么 | 跳转到 |
+|----------|--------|
+| 引入依赖 | [安装](#安装) |
+| 本地 / CI 检查 | [质量与 CI](#质量与-ci) |
+| 避免踩坑 | [使用前必读](#使用前必读常见误用) |
+| 最快跑通 | [五分钟上手](#五分钟上手最小可复制) |
+| 能力清单 | [核心能力一览](#核心能力一览) |
+| 演示 App | [Demo](#demo) |
+| 分步教程 | [快速开始](#快速开始) |
+| 模式与 API | [ViewModel 分层](#viewmodel-分层) · [MVVM](#mvvm-模式) · [MVI](#mvi-模式) · [Hilt](#hilt-集成) · [AwNav](#awnav-导航) · [FlowEventBus](#floweventbus-事件总线) |
+| 状态 / Flow / 生命周期 | [LoadState](#loadstate-状态管理) · [Flow 扩展](#flow-扩展) · [生命周期扩展](#生命周期扩展) |
+| 其他 | [懒加载](#懒加载) · [BaseActivity](#baseactivity) · [ViewBinding 委托](#viewbinding-委托) · [架构图](#架构图) · [API 速览](#api-速览) |
+| 升级 / 混淆 / 线程 | [迁移指南](#迁移指南1x--20) · [ProGuard / R8](#proguard--r8) · [线程安全](#线程安全) |
+| 协议 | [许可证](#许可证) |
 
-- **CI**：[`.github/workflows/ci.yml`](.github/workflows/ci.yml) — JDK 17 下 `:aw-arch:assembleRelease`、`ktlintCheck`、`lintRelease`、`:demo:assembleRelease`（R8 与 consumer 规则冒烟）。
-- **本地建议（仓库根目录）**：`./gradlew :aw-arch:assembleRelease :aw-arch:ktlintCheck :aw-arch:lintRelease :demo:assembleRelease`
-- **演示索引**：[demo/DEMO_MATRIX.md](demo/DEMO_MATRIX.md)；demo 主页 **「演示清单」** 可速览各 Activity 职责。
+演示场景与手测建议：**[demo/DEMO_MATRIX.md](demo/DEMO_MATRIX.md)**
 
-## 误用防火墙（必读）
+---
 
-| 误用 | 后果 | 正确做法 |
-|------|------|----------|
-| `AwNav` 未在 Activity `onCreate` **先** `init` 就 `navigate` | 直接 `error()` 或栈错乱 | 保证 `AwNav.init` 生命周期与容器 `FragmentContainerView` 就绪 |
-| `FlowEventBus` 只 `post` 从未 `observe` 却依赖 autoCleanup | 与文档语义不符，可能占通道 | 阅读 KDoc：`autoCleanup` 在订阅者归零后延迟清理 |
-| 在 `Fragment` 用错 `viewLifecycleOwner` 收集流 | 泄漏或重复收集 | 视图相关用 `viewLifecycleOwner`，纯 VM 用 `lifecycleOwner` |
-| 基类使用星投影 `*` 等导致 `VM` 泛型被擦除 | `createViewModel()` 推断失败抛异常 | 子类写全 `…<VB, S, E, I, MyVm>` 或覆写 `createViewModel()`，参见 `inferViewModelClass` KDoc |
+## 安装
 
-## 五分钟上手（最小可复制）
-
-1. **依赖**：`implementation("com.github.answufeng:aw-arch:…")` + 若用 Hilt：`hilt-android` + `ksp(hilt-compiler)`，模块启用 `viewBinding = true`。
-2. **Application**：`@HiltAndroidApp class App : Application()`；在 `onCreate` 中可选 `AwArch.init { … }`。
-3. **界面**：继承 `HiltMvvmActivity<YourVm, YourBinding>(R.layout.xxx)`（或 `MvvmActivity` / `MviActivity`），在 `onBindViewModel` 里订阅 `StateFlow` / `LiveData`；XML 根布局用标准 `ConstraintLayout` / `FragmentContainerView` 即可。
-
-更完整的基类对照与导航示例见下文「快速开始」与 demo 工程。
-
-## 特性
-
-| 模块 | 说明 |
-|---|---|
-| **MVVM** | BaseViewModel + MvvmViewModel + MvvmActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
-| **MVI** | MviViewModel + MviActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
-| **SimpleMVI** | SimpleMviViewModel + SimpleMvi* 基类（4 个泛型参数含 VM，无需独立 Event 类型） |
-| **Hilt** | HiltMvvm/MviActivity/Fragment/DialogFragment/BottomSheetDialogFragment，使用 `abstract val viewModel` 注入 |
-| **AwNav** | 纯代码 Fragment 导航，支持动画、拦截器、回退栈、防连点 |
-| **FlowEventBus** | 基于 SharedFlow 的事件总线，支持粘性事件、类型安全观察 |
-| **LoadState** | Loading/Success/Error 密封类，支持重试、map、fold、recover、combine / combine(transform) 等操作符 |
-| **Flow 扩展** | throttleFirst、debounceAction、select、throttleClicks |
-| **生命周期安全** | collectOnLifecycle、observeEvent、observeStickyEvent、launchOnStarted/Resumed |
-| **ViewBinding 委托** | Activity/Fragment 属性委托，零反射，自动管理生命周期 |
-
-## 引入
+**JitPack**（版本号与 [Release 标签](https://github.com/answufeng/aw-arch/tags)一致，例如首个版本 **`1.0.0`**）：
 
 ```kotlin
 // settings.gradle.kts
@@ -62,11 +43,11 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.answufeng:aw-arch:2.0.0")
+    implementation("com.github.answufeng:aw-arch:1.0.0")
 }
 ```
 
-如果使用 Hilt 集成，还需添加 Hilt 插件和依赖：
+使用 **Hilt** 时还需：
 
 ```kotlin
 // 项目级 build.gradle.kts
@@ -85,50 +66,102 @@ dependencies {
 }
 ```
 
-## 演示应用
+---
 
-仓库 `demo/` 提供 MVVM / MVI / `FlowEventBus` / `AwNav` / Hilt 等入口，索引见 [demo/DEMO_MATRIX.md](demo/DEMO_MATRIX.md)。
+## 质量与 CI
+
+| 项目 | 说明 |
+|------|------|
+| **CI** | [`.github/workflows/ci.yml`](.github/workflows/ci.yml) — JDK 17 下 `:aw-arch:assembleRelease`、`ktlintCheck`、`lintRelease`、`:demo:assembleRelease` |
+| **本地（仓库根目录）** | `./gradlew :aw-arch:assembleRelease :aw-arch:ktlintCheck :aw-arch:lintRelease :demo:assembleRelease` |
+
+---
+
+## 使用前必读（常见误用）
+
+| 误用 | 后果 | 正确做法 |
+|------|------|----------|
+| `AwNav` 未在 Activity `onCreate` **先** `init` 就 `navigate` | `error()` 或栈错乱 | 保证 `AwNav.init` 与容器 `FragmentContainerView` 生命周期一致 |
+| `FlowEventBus` 只 `post` 从未 `observe` 却依赖 autoCleanup | 与语义不符，可能占通道 | 阅读 KDoc：`autoCleanup` 在订阅者归零后延迟清理 |
+| 在 `Fragment` 用错 `viewLifecycleOwner` 收集流 | 泄漏或重复收集 | 视图相关用 `viewLifecycleOwner`，纯 VM 用 `lifecycleOwner` |
+| 基类星投影 `*` 导致 `VM` 泛型被擦除 | `createViewModel()` 推断失败 | 子类写全泛型或覆写 `createViewModel()`，见 `inferViewModelClass` KDoc |
+
+---
+
+## 五分钟上手（最小可复制）
+
+1. **依赖**：`implementation("com.github.answufeng:aw-arch:1.0.0")`；Hilt 见上文；模块启用 `viewBinding = true`。
+2. **Application**：`@HiltAndroidApp class App : Application()`；`onCreate` 中可选 `AwArch.init { … }`。
+3. **界面**：继承 `HiltMvvmActivity<YourVm, YourBinding>(R.layout.xxx)`（或 `MvvmActivity` / `MviActivity`），在 `onBindViewModel` / `initObservers` 里订阅状态；布局根节点用常规 `ConstraintLayout` + `FragmentContainerView` 即可。
+
+更完整的示例见下文 **[快速开始](#快速开始)** 与 **demo** 工程。
+
+---
+
+## 核心能力一览
+
+| 模块 | 说明 |
+|------|------|
+| **MVVM** | BaseViewModel + MvvmViewModel + MvvmActivity/Fragment/DialogFragment/BottomSheetDialogFragment |
+| **MVI** | MviViewModel + Mvi* 基类 |
+| **SimpleMVI** | SimpleMviViewModel + SimpleMvi*（4 个泛型含 VM，无需独立 Event 类型） |
+| **Hilt** | HiltMvvm/Mvi* 基类，`abstract val viewModel` 注入 |
+| **AwNav** | 纯代码 Fragment 导航：动画、拦截器、回退栈、防连点 |
+| **FlowEventBus** | SharedFlow 事件总线，粘性事件、类型安全观察 |
+| **LoadState** | Loading/Success/Error，`map` / `fold` / `recover` / `combine` 等 |
+| **Flow 扩展** | `throttleFirst`、`debounceAction`、`select`、`throttleClicks` |
+| **生命周期** | `collectOnLifecycle`、`observeEvent`、`launchOnStarted` / `Resumed` 等 |
+| **ViewBinding** | Activity/Fragment 属性委托，零反射 |
+
+---
+
+## Demo
+
+仓库 **`demo/`** 覆盖 MVVM、MVI、`FlowEventBus`、`AwNav`、Hilt 等入口；索引与推荐手测见 **[demo/DEMO_MATRIX.md](demo/DEMO_MATRIX.md)**。demo 主页「演示清单」可快速跳转各 Activity。
+
+---
 
 ## 快速开始
 
-### Step 1: Application 初始化
+### Step 1：Application
 
 ```kotlin
 class MyApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        // 可选：配置自定义日志（默认使用 Android Log）
         AwArch.init {
             logger = object : AwLogger {
                 override fun d(tag: String, message: String) = Log.d(tag, message)
                 override fun w(tag: String, message: String, throwable: Throwable?) = Log.w(tag, message, throwable)
                 override fun e(tag: String, message: String, throwable: Throwable?) = Log.e(tag, message, throwable)
             }
+            // 可选：debuggable 包下强制 AwNav 主线程、导航节流日志等
+            // val d = (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+            // strictMainThreadForAwNav = d
+            // logAwNavThrottledNavigations = d
+            // flowEventBusAutoCleanupDelayMs = 60_000L
         }
     }
 }
 ```
 
-### Step 2: 创建 ViewModel
+### Step 2：ViewModel
 
 ```kotlin
 class CounterViewModel : MvvmViewModel() {
     private val _count = MutableStateFlow(0)
     val count: StateFlow<Int> = _count.asStateFlow()
 
-    fun increment() = launch {
-        _count.value++
-    }
-
-    fun decrement() = launch {
-        _count.value--
-    }
+    fun increment() = launch { _count.value++ }
+    fun decrement() = launch { _count.value-- }
 }
 ```
 
-### Step 3: 创建 Activity
+### Step 3：Activity + 布局
 
-布局文件 `activity_counter.xml`：
+<details>
+<summary><b>展开</b>：示例布局 <code>activity_counter.xml</code> 与 <code>CounterActivity</code></summary>
+
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -170,16 +203,22 @@ class CounterActivity : MvvmActivity<ActivityCounterBinding, CounterViewModel>()
 }
 ```
 
-以上就是一个完整的 MVVM 页面。如需使用 MVI 模式、Hilt 集成、导航等进阶功能，请继续阅读下方章节。
+</details>
 
-## ViewModel 层级
+以上为完整 MVVM 单页。MVI、Hilt、导航等见后续章节。
+
+---
+
+## ViewModel 分层
 
 ```
-BaseViewModel          ← 协程能力（launch/launchIO/launchDefault/withMain/SavedStateHandle）
-├── MvvmViewModel      ← + UiEvent（showToast/showLoading/navigate/navigateBack）
-└── MviViewModel       ← + State/Event/Intent（updateState/sendMviEvent/dispatch/dispatchThrottled）
-    └── SimpleMviViewModel  ← 简化版（NoEvent，减少泛型参数）
+BaseViewModel          ← 协程（launch / launchIO / SavedStateHandle 等）
+├── MvvmViewModel      ← + UiEvent（Toast / Loading / navigate）
+└── MviViewModel       ← + State / Event / Intent
+    └── SimpleMviViewModel  ← 简化（NoEvent）
 ```
+
+---
 
 ## MVVM 模式
 
@@ -246,9 +285,33 @@ class HomeFragment : MvvmFragment<FragmentHomeBinding, HomeViewModel>() {
 }
 ```
 
+### 与 AwNav 联动（单 Activity + 多 Fragment）
+
+宿主中先 `AwNav.init`，再覆写 `awNav`，则 `viewModel.navigate` / `navigateBack` 可走 AwNav：
+
+```kotlin
+class MainActivity : MvvmActivity<ActivityMainBinding, MainViewModel>() {
+    private lateinit var nav: AwNav
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        nav = AwNav.init(this, R.id.container).register<HomeFragment>("home")
+        super.onCreate(savedInstanceState)
+    }
+
+    override val awNav: AwNav get() = nav
+
+    override fun inflateBinding(inflater: LayoutInflater) =
+        ActivityMainBinding.inflate(inflater)
+}
+```
+
+Fragment 中可使用 `override val awNav get() = AwNav.from(this)`。若使用 Jetpack Navigation 等并自行实现 `navigateTo`，保持 `awNav` 默认 `null` 即可。
+
+---
+
 ## MVI 模式
 
-### 定义 State / Event / Intent
+### State / Event / Intent
 
 ```kotlin
 data class CounterState(
@@ -319,7 +382,7 @@ class CounterActivity : MviActivity<
 }
 ```
 
-### 节流分发（防连点）
+### 节流分发
 
 ```kotlin
 binding.btnSubmit.setOnClickListener {
@@ -327,7 +390,7 @@ binding.btnSubmit.setOnClickListener {
 }
 ```
 
-### 简化版 MVI（不需要自定义 Event）
+### SimpleMVI（无自定义 Event）
 
 ```kotlin
 class CounterViewModel : SimpleMviViewModel<CounterState, CounterIntent>(CounterState()) {
@@ -347,9 +410,9 @@ class CounterActivity :
 }
 ```
 
-## Hilt 集成
+---
 
-Hilt 基类使用 `abstract val viewModel` 由子类通过 `@Inject` 注入，无需 `viewModelClass()`：
+## Hilt 集成
 
 ```kotlin
 @AndroidEntryPoint
@@ -366,6 +429,8 @@ class HomeViewModel @Inject constructor(
     fun loadData() = launchIO { /* ... */ }
 }
 ```
+
+---
 
 ## AwNav 导航
 
@@ -394,104 +459,99 @@ class MainActivity : AppCompatActivity() {
 }
 ```
 
-### 从 Fragment 中导航
+### 从 Fragment 导航
 
 ```kotlin
 AwNav.from(this).navigate("settings")
 ```
 
+---
+
 ## FlowEventBus 事件总线
 
 ```kotlin
-// 发送事件
 FlowEventBus.post(LoginSuccessEvent("user123"))
 FlowEventBus.tryPost(LoginSuccessEvent("user123"))
 FlowEventBus.postSticky(ThemeChangedEvent(darkMode = true))
 FlowEventBus.tryPostSticky(ThemeChangedEvent(darkMode = true))
 
-// 接收事件
 FlowEventBus.observe<LoginSuccessEvent>().collectOnLifecycle(this) { event ->
     updateUI(event.userId)
 }
 
-// 便捷扩展
 observeEvent<LoginSuccessEvent> { event ->
     updateUI(event.userId)
 }
 
-// 移除粘性事件
 FlowEventBus.removeSticky<ThemeChangedEvent>()
 ```
 
-- **自动清理**：`FlowEventBus.autoCleanupDelay` 默认 30s；仅当某类型**曾经有过订阅者**且当前订阅数归零超过该时间后，才释放对应 `SharedFlow`。只调用 `observe()` / `observeSticky()` 取得 Flow、尚未开始 `collect` 时**不会**被清理。普通事件与粘性事件通道**分别**清理。设为 `0` 或负数可关闭自动清理。
+**自动清理**：`FlowEventBus.autoCleanupDelay` 默认 30s；仅当某类型**曾经有过订阅者**且当前订阅数归零超过该时间后才释放对应 `SharedFlow`。只取得 Flow、尚未 `collect` 时**不会**被清理。普通与粘性通道**分别**清理。`0` 或负数可关闭自动清理。
+
+---
 
 ## LoadState 状态管理
 
 ```kotlin
-// 在 MVI State 中
 data class HomeState(
     val items: LoadState<List<String>> = LoadState.Loading
 ) : UiState
 
-// ViewModel 中
 updateState { copy(items = LoadState.Loading) }
 val result = loadStateCatching { repository.fetchItems() }
+val resultTimeout = loadStateWithTimeout(5_000) { repository.fetchItems() }
 updateState { copy(items = result) }
 
-// UI 中渲染
 when (val items = state.items) {
     is LoadState.Loading -> showProgressBar()
     is LoadState.Success -> adapter.submitList(items.data)
     is LoadState.Error -> showError(items.message)
 }
 
-// 操作符
 result.map { it.map { item -> item.name } }
 result.getOrNull()
 result.getOrDefault(emptyList())
 result.recover(emptyList())
 result.recoverWith { emptyList() }
-// 合并为 LoadState<Pair<A, B>>；需自定义结果类型时：
-// listState.combine(detailState) { items, d -> /* -> R */ }
-// 与 Pair 版等价：listState.combine(detailState) { a, b -> a to b } == listState.combine(detailState)
 result.fold(onLoading = {}, onSuccess = {}, onError = {})
 
-// Flow 扩展
 viewModel.dataFlow.asLoadState()
 viewModel.loadStateFlow.mapLoadState { it.items }
 ```
 
+---
+
 ## Flow 扩展
 
 ```kotlin
-// 节流：500ms 内每个窗口只发射第一个（首项恒出）；第二参可传 timeMillis { } 注入自定义时间源
 viewModel.state.throttleFirst(500).collectOnLifecycle(this) { render(it) }
 
-// 防抖：300ms 内没有新元素时才发射
 searchFlow.debounceAction(300).collectOnLifecycle(this) { query -> viewModel.search(query) }
 
-// 选择子字段并去重
-viewModel.state.select { it.count }.collectOnLifecycle(this) { count -> binding.tvCount.text = count.toString() }
+viewModel.state.select { it.count }.collectOnLifecycle(this) { count ->
+    binding.tvCount.text = count.toString()
+}
 
-// View 点击防抖
 binding.btnSubmit.throttleClicks(1000).collectOnLifecycle(this) { viewModel.submit() }
 ```
+
+---
 
 ## 生命周期扩展
 
 ```kotlin
-// 便捷事件观察
 observeEvent<LoginSuccessEvent> { updateUI(it.userId) }
 observeStickyEvent<ThemeChangedEvent> { applyTheme(it.darkMode) }
 
-// 生命周期感知的协程启动
 launchOnStarted { viewModel.state.collect { render(it) } }
 launchOnResumed { refreshData() }
 ```
 
+---
+
 ## 懒加载
 
-MviFragment / MvvmFragment / BaseFragment 均支持懒加载，在 Fragment 首次可见时执行一次性初始化：
+`MviFragment` / `MvvmFragment` / `BaseFragment` 支持首次可见时一次性初始化：
 
 ```kotlin
 class HomeFragment : MviFragment<...>() {
@@ -501,13 +561,15 @@ class HomeFragment : MviFragment<...>() {
 }
 ```
 
-- 懒加载仅在 Fragment 首次 `onResume` 时触发一次
-- 配合 ViewPager 使用时，只有当前页会触发 `onLazyLoad`
-- 进程重启后懒加载状态自动恢复
+- 仅在 Fragment 首次 `onResume` 触发  
+- 配合 ViewPager 时通常仅当前页触发  
+- 进程重启后状态会恢复  
+
+---
 
 ## BaseActivity
 
-纯 ViewBinding 基类（不含 ViewModel），适合简单页面：
+不含 ViewModel 的纯 ViewBinding 基类：
 
 ```kotlin
 class SplashActivity : BaseActivity<ActivitySplashBinding>() {
@@ -518,10 +580,11 @@ class SplashActivity : BaseActivity<ActivitySplashBinding>() {
 }
 ```
 
+---
+
 ## ViewBinding 委托
 
 ```kotlin
-// Activity
 class HomeActivity : AppCompatActivity() {
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
@@ -531,19 +594,20 @@ class HomeActivity : AppCompatActivity() {
     }
 }
 
-// Fragment
 class HomeFragment : Fragment(R.layout.fragment_home) {
     private val binding by viewBinding(FragmentHomeBinding::inflate)
 }
 ```
+
+---
 
 ## 架构图
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                           UI Layer                              │
-│  MvvmActivity/Fragment/Dialog   MviActivity/Fragment/Dialog    │
-│  SimpleMviActivity              HiltMvvm/MviActivity/Fragment  │
+│  MvvmActivity/Fragment/Dialog   MviActivity/Fragment/Dialog      │
+│  SimpleMviActivity              HiltMvvm/MviActivity/Fragment   │
 ├─────────────────────────────────────────────────────────────────┤
 │                        ViewModel Layer                          │
 │  BaseViewModel (协程)                                            │
@@ -557,102 +621,102 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 └─────────────────────────────────────────────────────────────────┘
 ```
 
+---
+
 ## API 速览
 
 ### BaseViewModel
 
 | 方法 | 说明 |
-|---|---|
-| `launch(onError?, block)` | 启动协程，自动异常处理 |
-| `launchIO(onError?, block)` | IO 线程协程 |
-| `launchDefault(onError?, block)` | Default 线程协程 |
-| `withMain(block)` | 切换到主线程 |
-| `handleException(throwable)` | 异常处理（可覆写） |
+|------|------|
+| `launch(onError?, block)` | 主协程，自动异常处理 |
+| `launchIO` / `launchDefault` | 调度器封装 |
+| `withMain(block)` | 切主线程 |
+| `handleException(throwable)` | 可覆写 |
 
 ### MvvmViewModel
 
 | 方法 | 说明 |
-|---|---|
-| `sendEvent(event)` | 发送 UiEvent（有界 `Channel`） |
-| `showToast(message)` | 弹 Toast |
-| `showLoading(show)` | 显示/隐藏 Loading |
-| `navigate(route, extras)` | 触发导航 |
-| `navigateBack()` | 触发返回 |
+|------|------|
+| `sendEvent` / `showToast` / `showLoading` | UI 事件与反馈 |
+| `navigate` / `navigateBack` | 导航（可接 AwNav） |
 
 ### MviViewModel
 
 | 方法 | 说明 |
-|---|---|
-| `dispatch(intent)` | 分发 Intent |
-| `dispatchThrottled(intent, windowMillis)` | 节流分发 |
-| `updateState { reduce }` | 更新 State |
-| `sendMviEvent(event)` | 发送一次性事件（有界 `Channel`） |
-| `clearThrottleCache()` | 清除节流缓存 |
+|------|------|
+| `dispatch` / `dispatchThrottled` | Intent（主线程） |
+| `updateState` / `sendMviEvent` | 状态与一次性事件 |
+| `clearThrottleCache` | 清节流缓存 |
 
 ### AwNav
 
 | 方法 | 说明 |
-|---|---|
-| `init(activity, containerId)` | 初始化导航 |
-| `register<F>(route)` | 注册路由 |
-| `addInterceptor(interceptor)` | 添加拦截器 |
-| `navigate(route, args, builder)` | 导航 |
-| `back()` | 返回上一页 |
-| `backTo(route, inclusive)` | 弹出到指定路由 |
-| `clearStack()` | 清空返回栈 |
-| `from(fragment/activity)` | 获取实例 |
+|------|------|
+| `init` / `register` / `addInterceptor` | 初始化与路由 |
+| `navigate` / `back` / `backTo` / `clearStack` | 导航控制 |
+| `from(fragment/activity)` | 取实例 |
 
 ### FlowEventBus
 
 | 方法 | 说明 |
-|---|---|
-| `post(event)` | 发送事件（挂起） |
-| `tryPost(event)` | 发送事件（非挂起，tryEmit） |
-| `postSticky(event)` | 发送粘性事件 |
-| `tryPostSticky(event)` | 发送粘性事件（非挂起） |
-| `observe<T>()` | 观察类型安全事件流 |
-| `observeSticky<T>()` | 观察粘性事件流 |
-| `removeSticky<T>()` | 移除粘性事件 |
-| `clear(clazz)` | 清除指定通道 |
-| `clearAll()` | 清除所有通道 |
+|------|------|
+| `post` / `tryPost` / `postSticky` / `tryPostSticky` | 发送 |
+| `observe` / `observeSticky` | 订阅 |
+| `removeSticky` / `clear` / `clearAll` | 清理 |
+
+---
 
 ## 迁移指南（1.x → 2.0）
 
-1. `BaseViewModel` → `MvvmViewModel`：MVVM 模式的 ViewModel 需从 `BaseViewModel` 迁移到 `MvvmViewModel`
-2. `BaseViewModel.UiEvent` → `MvvmViewModel.UiEvent`：UiEvent 类移至 MvvmViewModel 内部
-3. `MviViewModel` 不再有 `showToast`/`showLoading`/`navigate`/`navigateBack` 方法，改用 `sendMviEvent` + `updateState`
-4. Activity/Fragment 基类自动使用 `lifecycleScope` + `repeatOnLifecycle`，无需手动管理协程生命周期
-5. `FlowEventBus.tryPost()` 不再使用 `runBlocking`，改用 `tryEmit`
-6. **SimpleMvi* 基类**（2.0 后续版本）：须声明第四类型参数 `VM`，例如 `SimpleMviActivity<VB, S, I, MyViewModel>`，以便正确推断并创建 ViewModel
+1. `BaseViewModel` → `MvvmViewModel`（MVVM 场景）  
+2. `BaseViewModel.UiEvent` → `MvvmViewModel.UiEvent`  
+3. `MviViewModel` 不再内置 `showToast` / `showLoading` / `navigate`，改用 `sendMviEvent` + `updateState`  
+4. 基类已接 `lifecycleScope` + `repeatOnLifecycle`  
+5. `FlowEventBus.tryPost()` 使用 `tryEmit`，非 `runBlocking`  
+6. **SimpleMvi***：需第四类型参数 `VM`，如 `SimpleMviActivity<VB, S, I, MyViewModel>`  
+
+---
 
 ## ProGuard / R8
 
-本库已通过 `consumer-rules.pro` 自动导出混淆规则，宿主应用无需手动配置。
+本库通过 **`consumer-rules.pro`** 导出规则，一般无需宿主额外配置。`inferViewModelClass` 依赖反射签名，规则已保留 `Signature` 与 ViewModel 构造。
 
-库内部的泛型推断（`inferViewModelClass`）依赖反射读取泛型签名，`consumer-rules.pro` 已保留必要的 `Signature` 属性和 ViewModel 构造函数。
+**AwNav** 注册的 `Fragment` 依赖类名实例化；宿主开启 R8 时请为已注册 Fragment 增加保留规则，例如：
 
-如宿主项目有特殊需求，可在 `proguard-rules.pro` 中追加规则。
+```proguard
+-keep public class com.example.app.**Fragment extends androidx.fragment.app.Fragment { *; }
+```
 
-**验证**：本仓库 `demo` 模块的 `release` 构建已启用 `minifyEnabled`，可用于本地验证合并后的 consumer 规则（需 JDK 17）：
+（按包名收窄。）
+
+**验证**：`demo` 的 `release` 已启用 `minifyEnabled`：
 
 ```bash
 ./gradlew :demo:assembleRelease
 ```
 
+（需 JDK 17。）
+
+---
+
 ## 线程安全
 
-| 组件 | 线程安全说明 |
-|---|---|
-| `MviViewModel.updateState` | ✅ 使用 `MutableStateFlow.update`，原子操作 |
-| `MviViewModel.dispatch/dispatchThrottled` | ⚠️ 必须在主线程调用 |
-| `MviViewModel.sendMviEvent` / `MvvmViewModel.sendEvent` | ✅ 使用 `Channel.trySend`，线程安全；缓冲区满时 `DROP_OLDEST` |
-| `FlowEventBus.post/tryPost` | ✅ 内部使用 `CoroutineScope + SharedFlow`，线程安全 |
-| `FlowEventBus.observe` | ✅ 返回冷流，线程安全 |
-| `AwNav.navigate/back` | ⚠️ 必须在主线程调用（操作 FragmentManager） |
-| `BaseViewModel.launch/launchIO/launchDefault` | ✅ 可在任意线程调用 |
+| 组件 | 说明 |
+|------|------|
+| `MviViewModel.updateState` | `MutableStateFlow.update`，原子 |
+| `dispatch` / `dispatchThrottled` | 须在主线程 |
+| `sendMviEvent` / `sendEvent` | `Channel.trySend`，线程安全 |
+| `FlowEventBus` post / observe | 线程安全 |
+| `AwNav.navigate` / `back` | 须在主线程；可在 `AwArch.init { strictMainThreadForAwNav = true }` 下强制断言 |
+| `BaseViewModel.launch*` | 任意线程可调用 |
+
+---
 
 ## 许可证
 
-Apache License 2.0，详见 [LICENSE](LICENSE)。
+[Apache License 2.0](LICENSE)
 
-# Last updated: 2026年4月22日
+---
+
+*文档更新：2026-04-23*

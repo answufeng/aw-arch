@@ -4,10 +4,13 @@ import android.os.Bundle
 import androidx.fragment.app.Fragment
 
 /**
- * Fragment 懒加载辅助类，确保 [Fragment] 首次可见时只执行一次加载逻辑。
+ * Fragment 懒加载辅助类：在 **每次新建 View** 后的首次 [Fragment.onResume] 触发一次 [onLazyLoad]。
  *
- * 在进程重启（如配置变更）后通过 [Bundle] 恢复 [isFirstLoad] 状态，
- * 避免重复触发懒加载。
+ * 须在 [Fragment.onCreateView] 开头调用 [prepareForNewView]（各 [BaseFragment]/[MviFragment] 等基类已接入）。
+ * 否则从返回栈恢复、配置变更等导致 View 重建时，若仍沿用「整实例只加载一次」会 **不再调用 onLazyLoad**，易出现空白界面。
+ *
+ * [onSaveInstanceState] 仍会保存当前是否已对本段 View 执行过懒加载；[prepareForNewView] 会在新 View 创建时重置，
+ * 与进程恢复组合后仍能正确再加载一次。
  *
  * 典型用法：
  * ```kotlin
@@ -55,9 +58,17 @@ class LazyLoadHelper(private val fragment: Fragment) {
     }
 
     /**
+     * 在 [Fragment.onCreateView] 中、创建 ViewBinding **之前**调用。
+     * 表示即将挂载新 View，下一次 [onResume] 应再次允许懒加载（若尚未消费）。
+     */
+    fun prepareForNewView() {
+        isFirstLoad = true
+    }
+
+    /**
      * 判断是否需要执行懒加载。
      *
-     * 首次调用返回 `true` 并将内部标记置为 `false`，后续调用均返回 `false`。
+     * 自上一次 [prepareForNewView] 后首次调用返回 `true` 并将内部标记置为 `false`，直至下次 [prepareForNewView]。
      *
      * @return 首次调用返回 `true`，否则返回 `false`
      */

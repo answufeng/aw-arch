@@ -55,6 +55,7 @@ abstract class MviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        lazyLoadHelper.prepareForNewView()
         _binding = inflateBinding(inflater, container)
         return binding.root
     }

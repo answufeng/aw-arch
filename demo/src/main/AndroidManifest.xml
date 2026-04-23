@@ -3,8 +3,8 @@
     <application
         android:name=".DemoApplication"
         android:allowBackup="false"
-        android:label="🏗️ 架构库演示"
-        android:theme="@style/Theme.MaterialComponents.Light.DarkActionBar">
+        android:label="@string/demo_main_title"
+        android:theme="@style/Theme.AwArchDemo">
         <activity
             android:name=".MainActivity"
             android:exported="true">

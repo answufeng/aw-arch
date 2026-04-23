@@ -11,8 +11,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.LazyLoadHelper
 import com.answufeng.arch.base.MvvmViewModel
-import com.answufeng.arch.base.MvvmViewModel.UiEvent
 import com.answufeng.arch.ext.inferViewModelClass
+import com.answufeng.arch.nav.AwNav
 import kotlinx.coroutines.launch
 
 /**
@@ -49,12 +49,19 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment(), 
 
     open val shareViewModelWithActivity: Boolean = false
 
+    /**
+     * 若返回非 null，[UiEvent.Navigate] / [UiEvent.NavigateBack] 将交给 [AwNav] 处理。
+     * 典型写法：`override val awNav get() = AwNav.from(this)`（需在宿主 Activity 中已 [AwNav.init]）。
+     */
+    protected open val awNav: AwNav? get() = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         lazyLoadHelper.onCreate(savedInstanceState)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        lazyLoadHelper.prepareForNewView()
         _binding = inflateBinding(inflater, container)
         return binding.root
     }
@@ -85,7 +92,9 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : Fragment(), 
     open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect { onUiEvent(it) }
+                viewModel.uiEvent.collect { event ->
+                    dispatchMvvmUiEvent(event, awNav) { navigateBack() }
+                }
             }
         }
     }

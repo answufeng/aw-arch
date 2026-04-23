@@ -1,189 +1,222 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FAFAFA">
+    android:background="@color/aw_demo_surface_muted">
 
-    <LinearLayout
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:background="@color/aw_demo_bg">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/demo_main_title"
+            app:titleTextColor="@color/aw_demo_on_surface" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="📱 aw-arch 架构库演示"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="#212121"
-            android:gravity="center"
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp" />
+            android:paddingStart="@dimen/demo_space_md"
+            android:paddingEnd="@dimen/demo_space_md"
+            android:paddingBottom="@dimen/demo_space_md"
+            android:text="@string/demo_main_subtitle"
+            android:textColor="@color/aw_demo_on_surface_muted"
+            android:textSize="14sp" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-        <TextView
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="LoadState 状态管理 · FlowEventBus 事件总线 · MVVM/MVI 架构模式"
-            android:textSize="13sp"
-            android:textColor="#757575"
-            android:gravity="center"
-            android:paddingBottom="16dp" />
+            android:orientation="vertical"
+            android:padding="@dimen/demo_space_md">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPlaybook"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/demo_playbook" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="📋 操作日志"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
-            android:background="#42A5F5"
-            android:padding="12dp" />
-
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="160dp"
-            android:background="#FFFFFF"
-            android:padding="12dp"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:id="@+id/tvLog"
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textSize="13sp"
-                android:textColor="#333333"
-                android:lineSpacingExtra="3dp" />
-        </ScrollView>
+                android:layout_marginBottom="@dimen/demo_space_md">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🔄 状态管理"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/demo_space_md">
 
-        <Button
-            android:id="@+id/btnLoadState"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="测试 LoadState 加载状态"
-            android:layout_marginBottom="8dp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/demo_section_log"
+                        android:textColor="@color/aw_demo_on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnRetryLoadState"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="测试 重试机制（3次重试）"
-            android:layout_marginBottom="16dp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="@string/demo_log_hint"
+                        android:textColor="@color/aw_demo_on_surface_muted"
+                        android:textSize="13sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="📢 事件总线 FlowEventBus"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPlaybook"
+                        style="@style/Widget.MaterialComponents.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="@string/demo_playbook" />
 
-        <Button
-            android:id="@+id/btnPostEvent"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="发送事件 (suspend post)"
-            android:layout_marginBottom="8dp" />
+                    <TextView
+                        android:id="@+id/tvLog"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:background="@color/aw_demo_log_bg"
+                        android:lineSpacingExtra="4dp"
+                        android:minHeight="@dimen/demo_log_min_height"
+                        android:padding="@dimen/demo_space_sm"
+                        android:textColor="@color/aw_demo_on_surface"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-        <Button
-            android:id="@+id/btnTryPostEvent"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="发送事件 (tryPost 非挂起)"
-            android:layout_marginBottom="8dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="@string/demo_section_state"
+                android:textColor="@color/aw_demo_on_surface"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnStickyEvent"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="发送粘性事件 (sticky)"
-            android:layout_marginBottom="16dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLoadState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="LoadState 加载" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="🏗️ 架构模式演示"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRetryLoadState"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_lg"
+                android:text="重试（3 次指数退避）" />
 
-        <Button
-            android:id="@+id/btnMvvm"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="打开 MVVM 演示"
-            android:layout_marginBottom="8dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="@string/demo_section_bus"
+                android:textColor="@color/aw_demo_on_surface"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnMvi"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="打开 MVI 演示"
-            android:layout_marginBottom="8dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPostEvent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="post（挂起）" />
 
-        <Button
-            android:id="@+id/btnNav"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="打开导航演示"
-            android:layout_marginBottom="8dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTryPostEvent"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="tryPost" />
 
-        <Button
-            android:id="@+id/btnWeChat"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="打开微信演示 (AwNav + BottomBar + MVI)"
-            android:layout_marginBottom="8dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStickyEvent"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="postSticky" />
 
-        <Button
-            android:id="@+id/btnHilt"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="打开 Hilt + MVVM 演示"
-            android:layout_marginBottom="8dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRemoveSticky"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_lg"
+                android:text="removeSticky" />
 
-        <Button
-            android:id="@+id/btnSimpleMvi"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="打开 SimpleMVI 演示"
-            android:layout_marginBottom="8dp" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="@string/demo_section_arch"
+                android:textColor="@color/aw_demo_on_surface"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnRemoveSticky"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="移除粘性事件 (removeSticky)"
-            android:layout_marginBottom="16dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMvvm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="MVVM" />
 
-        <Button
-            android:id="@+id/btnClearLog"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="🗑️ 清除日志"
-            android:layout_marginBottom="16dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMvi"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="MVI" />
 
-    </LinearLayout>
-</ScrollView>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSimpleMvi"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="SimpleMVI" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHilt"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="Hilt + MVVM" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNav"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="AwNav 路由演示" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWeChat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_sm"
+                android:text="微信式多 Tab + 多层返回栈" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearLog"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/demo_space_sm"
+                android:layout_marginBottom="@dimen/demo_space_lg"
+                android:text="清除日志" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

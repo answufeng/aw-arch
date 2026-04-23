@@ -88,6 +88,11 @@
 }
 
 # ===========================================================
+# MVVM UiEvent + AwNav 分发（顶层函数）
+# ===========================================================
+-keepclassmembers class com.answufeng.arch.mvvm.MvvmAwNavDispatchKt { *; }
+
+# ===========================================================
 # MVVM ViewModel & View 接口
 # ===========================================================
 -keepclassmembers class com.answufeng.arch.base.MvvmViewModel {

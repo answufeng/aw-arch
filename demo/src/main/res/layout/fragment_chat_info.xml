@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/aw_demo_bg"
+    android:orientation="vertical"
+    android:padding="@dimen/demo_space_md">
+
+    <TextView
+        android:id="@+id/tvBreadcrumb"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/aw_demo_wechat"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_md"
+        android:text="@string/wechat_layer_chat_info"
+        android:textColor="@color/aw_demo_on_surface"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvChatName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_sm"
+        android:textColor="@color/aw_demo_on_surface_muted"
+        android:textSize="15sp" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switchPin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_lg"
+        android:text="置顶聊天（演示开关）" />
+
+    <com.google.android.material.switchmaterial.SwitchMaterial
+        android:id="@+id/switchMute"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_md"
+        android:text="消息免打扰（演示）" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/demo_space_lg"
+        android:text="@string/wechat_tip_system_back"
+        android:textColor="@color/aw_demo_on_surface_muted"
+        android:textSize="12sp" />
+</LinearLayout>

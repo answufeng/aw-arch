@@ -1,6 +1,7 @@
 package com.answufeng.arch.nav
 
 import android.os.Bundle
+import android.os.Looper
 import android.os.SystemClock
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.AnimRes
@@ -128,12 +129,19 @@ class AwNav private constructor(
         return this
     }
 
+    private fun assertMainThread(method: String) {
+        if (AwArch.strictMainThreadForAwNav && Looper.myLooper() != Looper.getMainLooper()) {
+            throw IllegalStateException("$method must be called on the main thread")
+        }
+    }
+
     @MainThread
     fun navigate(
         route: String,
         args: Bundle? = null,
         builder: (NavOptions.() -> Unit)? = null,
     ) {
+        assertMainThread("AwNav.navigate")
         val cls = routes[route]
             ?: throw IllegalArgumentException(
                 "Route \"$route\" is not registered. Available routes: ${routes.keys}"
@@ -145,7 +153,15 @@ class AwNav private constructor(
         }
 
         val now = SystemClock.uptimeMillis()
-        if (now - lastNavigateTime < NAV_THROTTLE_MILLIS) return
+        if (now - lastNavigateTime < NAV_THROTTLE_MILLIS) {
+            if (AwArch.logAwNavThrottledNavigations) {
+                AwArch.logger.d(
+                    "AwNav",
+                    "navigate(\"$route\") ignored: throttled (${NAV_THROTTLE_MILLIS}ms window)",
+                )
+            }
+            return
+        }
         lastNavigateTime = now
 
         val options = NavOptions().apply { builder?.invoke(this) }
@@ -179,6 +195,7 @@ class AwNav private constructor(
 
     @MainThread
     fun back(): Boolean {
+        assertMainThread("AwNav.back")
         if (fragmentManager.isStateSaved) return false
         if (fragmentManager.backStackEntryCount > 0) {
             fragmentManager.popBackStackImmediate()
@@ -190,6 +207,7 @@ class AwNav private constructor(
 
     @MainThread
     fun backTo(route: String, inclusive: Boolean = false): Boolean {
+        assertMainThread("AwNav.backTo")
         if (fragmentManager.isStateSaved) return false
         val flag = if (inclusive) FragmentManager.POP_BACK_STACK_INCLUSIVE else 0
         val result = fragmentManager.popBackStackImmediate(route, flag)
@@ -199,6 +217,7 @@ class AwNav private constructor(
 
     @MainThread
     fun clearStack() {
+        assertMainThread("AwNav.clearStack")
         if (fragmentManager.isStateSaved) return
         if (fragmentManager.backStackEntryCount > 0) {
             val first = fragmentManager.getBackStackEntryAt(0)

@@ -47,6 +47,9 @@ interface MvvmView {
     /**
      * 导航到指定路由。
      *
+     * 若在 MVVM 基类中覆写了 `awNav` 并返回 [com.answufeng.arch.nav.AwNav]，
+     * 则 [UiEvent.Navigate] 由 [com.answufeng.arch.nav.AwNav.navigate] 处理，**不会**再回调此方法。
+     *
      * @param route 目标路由路径
      * @param extras 导航参数，可为 null
      */

@@ -15,11 +15,11 @@ class WeChatViewModel : MviViewModel<WeChatState, WeChatEvent, WeChatIntent>(WeC
         updateState { copy(isLoading = true) }
         kotlinx.coroutines.delay(800)
         val messages = listOf(
-            Message("张三", "你好，最近怎么样？", "10:30"),
-            Message("李四", "周末一起吃饭吗？", "09:15"),
-            Message("王五", "项目进展如何？", "昨天"),
-            Message("赵六", "收到，谢谢！", "昨天"),
-            Message("孙七", "明天开会别忘了", "周一")
+            Message("c1", "张三", "你好，最近怎么样？", "10:30"),
+            Message("c2", "李四", "周末一起吃饭吗？", "09:15"),
+            Message("c3", "王五", "项目进展如何？", "昨天"),
+            Message("c4", "赵六", "收到，谢谢！", "昨天"),
+            Message("c5", "孙七", "明天开会别忘了", "周一"),
         )
         updateState { copy(isLoading = false, messages = messages) }
         sendMviEvent(WeChatEvent.ShowMessage("消息加载完成"))

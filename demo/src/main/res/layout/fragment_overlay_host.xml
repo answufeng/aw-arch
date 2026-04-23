@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 全屏「外层」容器：内部栈由 childFragmentManager 管理，与 Tab 区 AwNav 隔离 -->
+<androidx.fragment.app.FragmentContainerView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/inner_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/aw_demo_bg" />

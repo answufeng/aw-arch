@@ -55,7 +55,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
     open fun initObservers() {}
 
     /**
-     * 懒加载回调，Fragment 首次可见（[onResume]）时触发一次。
+     * 懒加载回调：每次 [onCreateView] 创建新 View 后，首次 [onResume] 触发一次（自 [LazyLoadHelper.prepareForNewView] 起算）。
      *
      * 适合在此处发起首次数据请求。
      */
@@ -67,6 +67,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        lazyLoadHelper.prepareForNewView()
         _binding = inflateBinding(inflater, container)
         return binding.root
     }

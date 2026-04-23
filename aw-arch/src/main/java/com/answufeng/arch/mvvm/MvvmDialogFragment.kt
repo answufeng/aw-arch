@@ -10,8 +10,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.viewbinding.ViewBinding
 import com.answufeng.arch.base.MvvmViewModel
-import com.answufeng.arch.base.MvvmViewModel.UiEvent
 import com.answufeng.arch.ext.inferViewModelClass
+import com.answufeng.arch.nav.AwNav
 import kotlinx.coroutines.launch
 
 /**
@@ -35,6 +35,8 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
 
     protected lateinit var viewModel: VM
 
+    protected open val awNav: AwNav? get() = null
+
     abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -54,7 +56,9 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
     open fun initObservers() {
         lifecycleScope.launch {
             repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
-                viewModel.uiEvent.collect { onUiEvent(it) }
+                viewModel.uiEvent.collect { event ->
+                    dispatchMvvmUiEvent(event, awNav) { navigateBack() }
+                }
             }
         }
     }

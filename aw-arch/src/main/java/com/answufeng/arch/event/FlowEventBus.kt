@@ -8,6 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
@@ -57,6 +58,8 @@ object FlowEventBus {
 
     /**
      * 发送普通事件，挂起直到事件被投递。
+     *
+     * 高频场景（如埋点风暴）会为每次调用启动协程，优先使用 [tryPost] 或自行在调用方合并。
      *
      * @param T 事件类型
      * @param event 事件实例
@@ -214,23 +217,23 @@ object FlowEventBus {
         val key = CleanupKey(clazz, sticky)
         val job = scope.launch {
             var hadSubscribers = false
-            flow.subscriptionCount.collect { count ->
-                    if (count > 0) hadSubscribers = true
-                    if (count == 0 && hadSubscribers) {
-                        delay(autoCleanupDelay)
-                        if (flow.subscriptionCount.value == 0) {
-                            val removed = if (sticky) {
-                                stickyFlows.remove(clazz, flow)
-                            } else {
-                                flows.remove(clazz, flow)
-                            }
-                            if (removed) {
-                                pendingCleanup.remove(key)
-                                coroutineContext[Job]?.cancel()
-                            }
+            flow.subscriptionCount.collectLatest { count ->
+                if (count > 0) hadSubscribers = true
+                if (count == 0 && hadSubscribers) {
+                    delay(autoCleanupDelay)
+                    if (flow.subscriptionCount.value == 0) {
+                        val removed = if (sticky) {
+                            stickyFlows.remove(clazz, flow)
+                        } else {
+                            flows.remove(clazz, flow)
+                        }
+                        if (removed) {
+                            pendingCleanup.remove(key)
+                            coroutineContext[Job]?.cancel()
                         }
                     }
                 }
+            }
         }
         pendingCleanup[key] = job
     }

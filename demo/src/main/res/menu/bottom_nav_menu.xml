@@ -3,17 +3,17 @@
     <item
         android:id="@+id/tab_wechat"
         android:title="微信"
-        android:icon="@android:drawable/ic_dialog_email" />
+        android:icon="@drawable/ic_tab_chat_24" />
     <item
         android:id="@+id/tab_contact"
         android:title="通讯录"
-        android:icon="@android:drawable/ic_menu_search" />
+        android:icon="@drawable/ic_tab_people_24" />
     <item
         android:id="@+id/tab_discover"
         android:title="发现"
-        android:icon="@android:drawable/ic_menu_view" />
+        android:icon="@drawable/ic_tab_explore_24" />
     <item
         android:id="@+id/tab_profile"
         android:title="我"
-        android:icon="@android:drawable/ic_menu_myplaces" />
+        android:icon="@drawable/ic_tab_person_24" />
 </menu>
