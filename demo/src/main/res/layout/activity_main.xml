@@ -54,7 +54,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/demo_section_log"
+                        android:text="演示清单"
                         android:textColor="@color/aw_demo_on_surface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -63,7 +63,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="@string/demo_log_hint"
+                        android:text="请选择一个功能进入独立页面操作与查看日志"
                         android:textColor="@color/aw_demo_on_surface_muted"
                         android:textSize="13sp" />
 
@@ -74,18 +74,6 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/demo_space_sm"
                         android:text="@string/demo_playbook" />
-
-                    <TextView
-                        android:id="@+id/tvLog"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_sm"
-                        android:background="@color/aw_demo_log_bg"
-                        android:lineSpacingExtra="4dp"
-                        android:minHeight="@dimen/demo_log_min_height"
-                        android:padding="@dimen/demo_space_sm"
-                        android:textColor="@color/aw_demo_on_surface"
-                        android:textSize="13sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -103,7 +91,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="LoadState 加载" />
+                android:text="LoadState 加载（新页面）" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRetryLoadState"
@@ -111,7 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_lg"
-                android:text="重试（3 次指数退避）" />
+                android:text="重试（3 次指数退避，新页面）" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -127,7 +115,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="post（挂起）" />
+                android:text="FlowEventBus：post（新页面）" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTryPostEvent"
@@ -135,7 +123,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="tryPost" />
+                android:text="FlowEventBus：tryPost（新页面）" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStickyEvent"
@@ -143,7 +131,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="postSticky" />
+                android:text="FlowEventBus：postSticky（新页面）" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRemoveSticky"
@@ -151,7 +139,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_lg"
-                android:text="removeSticky" />
+                android:text="FlowEventBus：removeSticky（新页面）" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -167,6 +155,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
                 android:text="MVVM" />
 
             <com.google.android.material.button.MaterialButton
@@ -178,20 +167,12 @@
                 android:text="MVI" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSimpleMvi"
+                android:id="@+id/btnMvp"
                 style="@style/Widget.AwArchDemo.Button.Outlined"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="SimpleMVI" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnHilt"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="Hilt + MVVM" />
+                android:text="MVP" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnNav"
@@ -199,23 +180,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="AwNav 路由演示" />
+                android:text="AwNav（路由演示）" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnWeChat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="微信式多 Tab + 多层返回栈" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnClearLog"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/demo_space_sm"
-                android:layout_marginBottom="@dimen/demo_space_lg"
-                android:text="清除日志" />
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:text="AwNav（微信式多 Tab）" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

@@ -28,7 +28,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="SimpleMVI"
+                        android:text="MVI（Hilt）"
                         android:textColor="@color/aw_demo_on_surface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -37,7 +37,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="无独立 Event 类型，适合更轻量的单向数据流"
+                        android:text="ViewModel 由 Hilt 注入；其余流程与普通 MVI 相同"
                         android:textColor="@color/aw_demo_on_surface_muted"
                         android:textSize="13sp" />
 
@@ -45,38 +45,71 @@
                         android:id="@+id/tvCount"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:layout_marginTop="@dimen/demo_space_lg"
                         android:gravity="center"
                         android:text="0"
                         android:textColor="@color/aw_demo_on_surface"
-                        android:textSize="48sp"
+                        android:textSize="64sp"
                         android:textStyle="bold" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnInc"
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:visibility="gone" />
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_md"
-                        android:text="+1" />
+                        android:layout_marginTop="@dimen/demo_space_lg"
+                        android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnDec"
-                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDecrement"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="-" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnIncrement"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="+" />
+                    </LinearLayout>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="-1" />
+                        android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnBack"
-                        style="@style/Widget.AwArchDemo.Button.Outlined"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_md"
-                        android:text="返回" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnReset"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Reset" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnLoadData"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="Load Data" />
+                    </LinearLayout>
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
+

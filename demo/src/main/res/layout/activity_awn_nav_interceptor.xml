@@ -33,16 +33,6 @@
             android:textSize="12sp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSettings"
-            style="@style/Widget.AwArchDemo.Button.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/demo_space_sm"
-            android:layout_weight="1"
-            android:text="Settings"
-            android:textSize="12sp" />
-
-        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnBack"
             style="@style/Widget.AwArchDemo.Button.Outlined"
             android:layout_width="0dp"
@@ -81,3 +71,4 @@
         android:layout_height="match_parent" />
 
 </LinearLayout>
+

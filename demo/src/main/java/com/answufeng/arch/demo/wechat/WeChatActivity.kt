@@ -53,7 +53,32 @@ class WeChatActivity : AppCompatActivity() {
         setupBottomNavigation()
 
         if (savedInstanceState == null) {
-            binding.bottomNavigation.selectedItemId = R.id.tab_wechat
+            val initialTab = intent.getStringExtra(EXTRA_INITIAL_TAB)
+            binding.bottomNavigation.selectedItemId = when (initialTab) {
+                TAB_CONTACT -> R.id.tab_contact
+                TAB_DISCOVER -> R.id.tab_discover
+                TAB_PROFILE -> R.id.tab_profile
+                else -> R.id.tab_wechat
+            }
+
+            when (intent.getStringExtra(EXTRA_OPEN_OVERLAY)) {
+                OVERLAY_CHAT_DETAIL -> pushOverlayPage(ChatDetailFragment(), "chat_detail")
+                OVERLAY_CHAT_INFO -> {
+                    pushOverlayPage(ChatDetailFragment(), "chat_detail")
+                    pushOverlayPage(ChatInfoFragment().apply {
+                        arguments = android.os.Bundle().apply { putString("title", "Chat A") }
+                    }, "chat_info")
+                }
+                OVERLAY_CONTACT_DETAIL -> pushOverlayPage(ContactDetailFragment(), "contact_detail")
+                OVERLAY_CONTACT_EXTRA -> {
+                    pushOverlayPage(ContactDetailFragment().apply {
+                        arguments = android.os.Bundle().apply { putString("name", "小明") }
+                    }, "contact_detail")
+                    pushOverlayPage(ContactExtraFragment().apply {
+                        arguments = android.os.Bundle().apply { putString("name", "小明") }
+                    }, "contact_extra")
+                }
+            }
         } else {
             syncWeChatChrome()
         }
@@ -143,5 +168,19 @@ class WeChatActivity : AppCompatActivity() {
             syncWeChatChrome()
             true
         }
+    }
+
+    companion object {
+        const val EXTRA_INITIAL_TAB: String = "aw_demo_wechat_initial_tab"
+        const val EXTRA_OPEN_OVERLAY: String = "aw_demo_wechat_open_overlay"
+
+        const val TAB_CONTACT: String = "contact"
+        const val TAB_DISCOVER: String = "discover"
+        const val TAB_PROFILE: String = "profile"
+
+        const val OVERLAY_CHAT_DETAIL: String = "overlay_chat_detail"
+        const val OVERLAY_CHAT_INFO: String = "overlay_chat_info"
+        const val OVERLAY_CONTACT_DETAIL: String = "overlay_contact_detail"
+        const val OVERLAY_CONTACT_EXTRA: String = "overlay_contact_extra"
     }
 }

@@ -1,47 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@color/aw_demo_surface_muted">
 
-    <TextView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="MVVM Demo"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_height="match_parent">
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/demo_space_md">
 
-    <Button
-        android:id="@+id/btnLoadData"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Load Data (IO)" />
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-    <Button
-        android:id="@+id/btnShowToast"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Show Toast" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/demo_space_md">
 
-    <Button
-        android:id="@+id/btnError"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Trigger Error" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="MVVM（普通）"
+                        android:textColor="@color/aw_demo_on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/btnNavigateBack"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Navigate Back" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="UiEvent 负责 Toast/Loading/导航等一次性行为"
+                        android:textColor="@color/aw_demo_on_surface_muted"
+                        android:textSize="13sp" />
 
-</LinearLayout>
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:visibility="gone" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLoadData"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:text="Load Data（IO）" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnShowToast"
+                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="Show Toast" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnError"
+                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="Trigger Error" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnNavigateBack"
+                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="Navigate Back" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

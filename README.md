@@ -2,7 +2,7 @@
 
 [![](https://jitpack.io/v/answufeng/aw-arch.svg)](https://jitpack.io/#answufeng/aw-arch)
 
-基于 **Kotlin + MVVM / MVI** 的 Android 架构基础库，提供基类、**AwNav** 导航、**FlowEventBus**、**LoadState**、Flow 与生命周期扩展、ViewBinding 委托等。
+基于 **Kotlin + MVVM / MVI / MVP** 的 Android 架构基础库，提供基类、**AwNav** 导航、**FlowEventBus**、**LoadState**、Flow 与生命周期扩展、ViewBinding 委托等。
 
 如果你只想最快接入并跑通第一个页面，直接看下面的「5 分钟上手」即可；其它内容都可以后置按需查阅。
 
@@ -22,11 +22,11 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.answufeng:aw-arch:1.0.0")
+    implementation("com.github.answufeng:aw-arch:1.0.1")
 }
 ```
 
-`implementation` 的 **版本号与 Git / JitPack 的 tag 一致**（上例为 `1.0.0`）。
+`implementation` 的 **版本号与 Git / JitPack 的 tag 一致**（上例为 `1.0.1`）。
 
 ### 2) 打开 ViewBinding（必需）
 
@@ -46,7 +46,6 @@ class CounterViewModel : MvvmViewModel() {
 }
 
 class CounterActivity : MvvmActivity<ActivityCounterBinding, CounterViewModel>() {
-    override fun viewModelClass() = CounterViewModel::class.java
     override fun inflateBinding(inflater: LayoutInflater) = ActivityCounterBinding.inflate(inflater)
     override fun initView(savedInstanceState: Bundle?) {
         binding.btnInc.setOnClickListener { viewModel.inc() }
@@ -54,6 +53,40 @@ class CounterActivity : MvvmActivity<ActivityCounterBinding, CounterViewModel>()
     override fun initObservers() {
         super.initObservers()
         viewModel.count.collectOnLifecycle(this) { binding.tvCount.text = it.toString() }
+    }
+}
+```
+
+### 4) 第一个页面（MVP）
+
+```kotlin
+interface CounterContract {
+    interface View : MvpView {
+        fun render(count: Int)
+    }
+}
+
+class CounterPresenter : BaseMvpPresenter<CounterContract.View>() {
+    private var count = 0
+
+    fun inc() {
+        count++
+        viewOrNull?.render(count)
+    }
+}
+
+class CounterActivity :
+    MvpActivity<ActivityCounterBinding, CounterContract.View, CounterPresenter>(),
+    CounterContract.View {
+
+    override fun inflateBinding(inflater: LayoutInflater) = ActivityCounterBinding.inflate(inflater)
+
+    override fun initView(savedInstanceState: Bundle?) {
+        binding.btnInc.setOnClickListener { presenter.inc() }
+    }
+
+    override fun render(count: Int) {
+        binding.tvCount.text = count.toString()
     }
 }
 ```
@@ -66,7 +99,7 @@ class CounterActivity : MvvmActivity<ActivityCounterBinding, CounterViewModel>()
 |----------|--------|
 | 最短时间跑通依赖与第一个页面 | [5 分钟上手（最小接入）](#5-分钟上手最小接入) · [环境要求](#环境要求) |
 | 避免踩坑（导航 / 事件总线 / 生命周期） | [集成约定与踩坑](#集成约定与踩坑) |
-| 能力列表 / 选型（MVVM / MVI） | [功能概览](#功能概览) · [ViewModel 分层](#viewmodel-分层) |
+| 能力列表 / 选型（MVVM / MVI / MVP） | [功能概览](#功能概览) · [ViewModel 分层](#viewmodel-分层) |
 | 按模块看 API：AwNav / EventBus / LoadState | [AwNav](#awnav-导航) · [FlowEventBus](#floweventbus-事件总线) · [LoadState](#loadstate-状态管理) |
 | Demo 与本地构建 | [本仓库与工程检查](#本仓库与工程检查) |
 | 混淆 / 迁移 / 线程 | [ProGuard / R8](#proguard--r8) · [迁移指南](#迁移指南1x--20) · [线程安全](#线程安全) |
@@ -106,6 +139,7 @@ class CounterActivity : MvvmActivity<ActivityCounterBinding, CounterViewModel>()
 |------|------|
 | **MVVM** | `MvvmViewModel` + `MvvmActivity/Fragment/Dialog` 等基类 |
 | **MVI** | `MviViewModel<State, Event, Intent>` + 对应基类 |
+| **MVP** | `BaseMvpPresenter` + `MvpActivity/Fragment/Dialog` 等基类（含 Hilt 版本 `HiltMvp*`） |
 | **SimpleMVI** | 无自定义 Event 的简化版本（泛型含 VM） |
 | **AwNav** | 纯代码 Fragment 导航：动画、拦截器、回退栈、防连点 |
 | **FlowEventBus** | 基于 SharedFlow：类型安全、粘性事件、自动清理 |

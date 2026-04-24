@@ -54,30 +54,10 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvInterceptStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/aw_demo_log_bg"
-        android:padding="@dimen/demo_space_sm"
-        android:text="拦截 Detail：开启（点击切换）"
-        android:textColor="@color/aw_demo_on_surface_muted"
-        android:textSize="12sp" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnToggleIntercept"
-        style="@style/Widget.AwArchDemo.Button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/demo_space_sm"
-        android:layout_marginEnd="@dimen/demo_space_sm"
-        android:layout_marginTop="@dimen/demo_space_sm"
-        android:layout_marginBottom="@dimen/demo_space_sm"
-        android:text="切换：是否拦截 navigate → detail" />
-
     <FrameLayout
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
 </LinearLayout>
+
