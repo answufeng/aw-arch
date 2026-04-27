@@ -22,11 +22,11 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.answufeng:aw-arch:1.0.1")
+    implementation("com.github.answufeng:aw-arch:1.0.3")
 }
 ```
 
-`implementation` 的 **版本号与 Git / JitPack 的 tag 一致**（上例为 `1.0.1`）。
+`implementation` 的 **版本号与 Git / JitPack 的 tag 一致**（上例为 `1.0.3`）。
 
 ### 2) 打开 ViewBinding（必需）
 
@@ -266,4 +266,4 @@ Apache License 2.0，见 [LICENSE](LICENSE)。
 
 ---
 
-*文档更新：2026-04-24*
+*文档更新：2026-04-27*
