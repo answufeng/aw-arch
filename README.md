@@ -22,11 +22,11 @@ dependencyResolutionManagement {
 
 // app/build.gradle.kts
 dependencies {
-    implementation("com.github.answufeng:aw-arch:1.0.3")
+    implementation("com.github.answufeng:aw-arch:1.0.4")
 }
 ```
 
-`implementation` 的 **版本号与 Git / JitPack 的 tag 一致**（上例为 `1.0.3`）。
+`implementation` 的 **版本号与 Git / JitPack 的 tag 一致**（上例为 `1.0.4`）。
 
 ### 2) 打开 ViewBinding（必需）
 
@@ -97,10 +97,19 @@ class CounterActivity :
 
 | 想做什么 | 跳转到 |
 |----------|--------|
-| 最短时间跑通依赖与第一个页面 | [5 分钟上手（最小接入）](#5-分钟上手最小接入) · [环境要求](#环境要求) |
-| 避免踩坑（导航 / 事件总线 / 生命周期） | [集成约定与踩坑](#集成约定与踩坑) |
-| 能力列表 / 选型（MVVM / MVI / MVP） | [功能概览](#功能概览) · [ViewModel 分层](#viewmodel-分层) |
-| 按模块看 API：AwNav / EventBus / LoadState | [AwNav](#awnav-导航) · [FlowEventBus](#floweventbus-事件总线) · [LoadState](#loadstate-状态管理) |
+| 最短时间跑通依赖与第一个页面 | [5 分钟上手](#5-分钟上手最小接入) · [环境要求](#环境要求) |
+| 避免踩坑 | [集成约定与踩坑](#集成约定与踩坑) |
+| 能力列表 / 选型 | [功能概览](#功能概览) · [ViewModel 分层](#viewmodel-分层) |
+| 基类体系与选型 | [📖 基类体系](aw-arch/doc/base-classes.md) |
+| MVVM 模式 | [📖 MVVM 文档](aw-arch/doc/mvvm.md) |
+| MVI 模式 | [📖 MVI 文档](aw-arch/doc/mvi.md) |
+| MVP 模式 | [📖 MVP 文档](aw-arch/doc/mvp.md) |
+| AwNav 导航 | [📖 AwNav 文档](aw-arch/doc/awnav.md) |
+| FlowEventBus 事件总线 | [📖 FlowEventBus 文档](aw-arch/doc/flow-event-bus.md) |
+| LoadState 状态管理 | [📖 LoadState 文档](aw-arch/doc/load-state.md) |
+| Flow & 生命周期扩展 | [📖 扩展文档](aw-arch/doc/extensions.md) |
+| Hilt 集成 | [📖 Hilt 文档](aw-arch/doc/hilt.md) |
+| 全局配置 | [📖 AwArch 配置](aw-arch/doc/config.md) |
 | Demo 与本地构建 | [本仓库与工程检查](#本仓库与工程检查) |
 | 混淆 / 迁移 / 线程 | [ProGuard / R8](#proguard--r8) · [迁移指南](#迁移指南1x--20) · [线程安全](#线程安全) |
 | 协议 | [许可证](#许可证) |
@@ -130,23 +139,26 @@ class CounterActivity :
 | 在 `Fragment` 用错 `viewLifecycleOwner` 收集流 | 泄漏或重复收集 | 视图相关用 `viewLifecycleOwner`，纯 VM 用 `lifecycleOwner` |
 | 基类星投影 `*` 导致 `VM` 泛型被擦除 | `createViewModel()` 推断失败 | 子类写全泛型或覆写 `createViewModel()`（见 `inferViewModelClass` 的 KDoc） |
 | `FlowEventBus` 只 `post` 从未订阅却依赖 `autoCleanup` | 与语义不符 | `autoCleanup` 仅在订阅者归零后延迟清理（见 KDoc） |
+| `MviViewModel.event` / `MvvmViewModel.uiEvent` 多收集者分摊 | 事件丢失 | Channel + receiveAsFlow 仅单收集者安全；多收集者场景需自行转 SharedFlow 或保证只有一个收集者 |
 
 ---
 
 ## 功能概览
 
-| 能力 | 说明 |
-|------|------|
-| **MVVM** | `MvvmViewModel` + `MvvmActivity/Fragment/Dialog` 等基类 |
-| **MVI** | `MviViewModel<State, Event, Intent>` + 对应基类 |
-| **MVP** | `BaseMvpPresenter` + `MvpActivity/Fragment/Dialog` 等基类（含 Hilt 版本 `HiltMvp*`） |
-| **SimpleMVI** | 无自定义 Event 的简化版本（泛型含 VM） |
-| **AwNav** | 纯代码 Fragment 导航：动画、拦截器、回退栈、防连点 |
-| **FlowEventBus** | 基于 SharedFlow：类型安全、粘性事件、自动清理 |
-| **LoadState** | Loading/Success/Error：`map` / `fold` / `recover` 等 |
-| **Flow 扩展** | `throttleFirst`、`debounceAction`、`select`、`throttleClicks` |
-| **生命周期扩展** | `collectOnLifecycle`、`observeEvent`、`launchOnStarted/Resumed` |
-| **ViewBinding 委托** | Activity/Fragment 属性委托，零反射 |
+| 能力 | 说明 | 详细文档 |
+|------|------|----------|
+| **MVVM** | `MvvmViewModel` + `MvvmActivity/Fragment/Dialog` 等基类 | [📖 MVVM](aw-arch/doc/mvvm.md) |
+| **MVI** | `MviViewModel<State, Event, Intent>` + 对应基类 | [📖 MVI](aw-arch/doc/mvi.md) |
+| **MVP** | `BaseMvpPresenter` + `MvpActivity/Fragment/Dialog` 等基类 | [📖 MVP](aw-arch/doc/mvp.md) |
+| **SimpleMVI** | 无自定义 Event 的简化版本 | [📖 MVI](aw-arch/doc/mvi.md) |
+| **AwNav** | 纯代码 Fragment 导航：动画、拦截器、回退栈、防连点 | [📖 AwNav](aw-arch/doc/awnav.md) |
+| **FlowEventBus** | 基于 SharedFlow：类型安全、粘性事件、自动清理 | [📖 FlowEventBus](aw-arch/doc/flow-event-bus.md) |
+| **LoadState** | Loading/Success/Error：`map` / `fold` / `recover` 等 | [📖 LoadState](aw-arch/doc/load-state.md) |
+| **Flow 扩展** | `throttleFirst`、`debounceAction`、`select`、`throttleClicks` | [📖 扩展](aw-arch/doc/extensions.md) |
+| **生命周期扩展** | `collectOnLifecycle`、`observeEvent`、`launchOnStarted/Resumed` | [📖 扩展](aw-arch/doc/extensions.md) |
+| **ViewBinding 委托** | Activity/Fragment 属性委托，零反射 | [📖 扩展](aw-arch/doc/extensions.md) |
+| **Hilt 集成** | `HiltMvvm*` / `HiltMvi*` / `HiltMvp*` 基类 | [📖 Hilt](aw-arch/doc/hilt.md) |
+| **全局配置** | `AwArch.init { ... }` | [📖 配置](aw-arch/doc/config.md) |
 
 ---
 
@@ -157,59 +169,6 @@ BaseViewModel          ← 协程（launch / launchIO / SavedStateHandle 等）
 ├── MvvmViewModel      ← + UiEvent（Toast / Loading / navigate）
 └── MviViewModel       ← + State / Event / Intent
     └── SimpleMviViewModel  ← 简化（NoEvent）
-```
-
----
-
-## AwNav 导航
-
-```kotlin
-class MainActivity : AppCompatActivity() {
-    private lateinit var nav: AwNav
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        nav = AwNav.init(this, R.id.container)
-            .register<HomeFragment>("home")
-            .register<ProfileFragment>("profile")
-            .addInterceptor { _, to, _ -> to != "profile" || userManager.isLoggedIn }
-
-        if (savedInstanceState == null) nav.navigate("home") { addToBackStack = false; anim = NavAnim.NONE }
-    }
-}
-```
-
-Fragment 内导航：
-
-```kotlin
-AwNav.from(this).navigate("settings")
-```
-
----
-
-## FlowEventBus 事件总线
-
-```kotlin
-FlowEventBus.post(LoginSuccessEvent("user123"))
-FlowEventBus.postSticky(ThemeChangedEvent(darkMode = true))
-
-FlowEventBus.observe<LoginSuccessEvent>()
-    .collectOnLifecycle(this) { updateUI(it.userId) }
-```
-
-`autoCleanupDelay` 默认 30s：仅当某类型**曾经有过订阅者**且订阅数归零超过该时间后才清理对应通道；普通与粘性通道分别清理。
-
----
-
-## LoadState 状态管理
-
-```kotlin
-data class HomeState(val items: LoadState<List<String>> = LoadState.Loading) : UiState
-
-val result = loadStateCatching { repository.fetchItems() }
-val timeout = loadStateWithTimeout(5_000) { repository.fetchItems() }
 ```
 
 ---
@@ -228,12 +187,12 @@ val timeout = loadStateWithTimeout(5_000) { repository.fetchItems() }
 
 ## 迁移指南（1.x → 2.0）
 
-1. `BaseViewModel` → `MvvmViewModel`（MVVM 场景）  
-2. `BaseViewModel.UiEvent` → `MvvmViewModel.UiEvent`  
-3. `MviViewModel` 不再内置 `showToast` / `showLoading` / `navigate`，改用 `sendMviEvent` + `updateState`  
-4. 基类已接 `lifecycleScope` + `repeatOnLifecycle`  
-5. `FlowEventBus.tryPost()` 使用 `tryEmit`，非 `runBlocking`  
-6. **SimpleMvi***：需第四类型参数 `VM`，如 `SimpleMviActivity<VB, S, I, MyViewModel>`  
+1. `BaseViewModel` → `MvvmViewModel`（MVVM 场景）
+2. `BaseViewModel.UiEvent` → `MvvmViewModel.UiEvent`
+3. `MviViewModel` 不再内置 `showToast` / `showLoading` / `navigate`，改用 `sendMviEvent` + `updateState`
+4. 基类已接 `lifecycleScope` + `repeatOnLifecycle`
+5. `FlowEventBus.tryPost()` 使用 `tryEmit`，非 `runBlocking`
+6. **SimpleMvi***：需第四类型参数 `VM`，如 `SimpleMviActivity<VB, S, I, MyViewModel>`
 
 ---
 
@@ -266,4 +225,4 @@ Apache License 2.0，见 [LICENSE](LICENSE)。
 
 ---
 
-*文档更新：2026-04-27*
+*文档更新：2026-04-29*

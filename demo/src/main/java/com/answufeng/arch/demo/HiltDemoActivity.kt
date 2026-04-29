@@ -16,7 +16,8 @@ class HiltDemoActivity : HiltMvvmActivity<ActivityHiltDemoBinding, HiltDemoViewM
         ActivityHiltDemoBinding.inflate(inflater)
 
     override fun initView(savedInstanceState: Bundle?) {
+        binding.topBar.setNavigationOnClickListener { finish() }
+
         binding.btnPing.setOnClickListener { viewModel.showHiltMessage() }
-        binding.btnBack.setOnClickListener { finish() }
     }
 }

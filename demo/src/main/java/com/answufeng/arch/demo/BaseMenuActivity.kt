@@ -59,4 +59,3 @@ abstract class BaseMenuActivity : AppCompatActivity() {
 
     protected abstract fun buildMenu(savedInstanceState: Bundle?)
 }
-

@@ -17,67 +17,28 @@
             android:name=".LoadStateDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".RetryLoadStateDemoActivity"
+            android:name=".FlowEventBusDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".BusPostDemoActivity"
+            android:name=".MvvmDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".BusTryPostDemoActivity"
+            android:name=".HiltDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".BusStickyDemoActivity"
+            android:name=".MviDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".BusRemoveStickyDemoActivity"
+            android:name=".SimpleMviDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".MvvmMenuActivity"
+            android:name=".HiltMviDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".MviMenuActivity"
+            android:name=".MvpDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".MvpMenuActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvvmLoadingDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvvmToastDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvvmErrorDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvvmBackDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MviIncrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MviDecrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MviResetDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MviLoadDataDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMviIncrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMviDecrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMviResetDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMviLoadDataDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AwNavMenuActivity"
+            android:name=".HiltMvpDemoActivity"
             android:exported="false" />
         <activity
             android:name=".AwNavBasicRouteDemoActivity"
@@ -90,36 +51,6 @@
             android:exported="false" />
         <activity
             android:name=".wechat.WeChatActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvpIncrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvpDecrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvpResetDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".MvpLoadDataDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMvpIncrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMvpDecrementDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMvpResetDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HiltMvpLoadDataDemoActivity"
-            android:exported="false" />
-        <activity
-            android:name=".SimpleMviDemoActivity"
             android:exported="false" />
     </application>
 </manifest>

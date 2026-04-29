@@ -1,49 +1,42 @@
 package com.answufeng.arch.demo
 
-import com.answufeng.arch.mvi.MviViewModel
-import com.answufeng.arch.mvi.UiEvent
-import com.answufeng.arch.mvi.UiIntent
-import com.answufeng.arch.mvi.UiState
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
-import javax.inject.Inject
+import android.os.Bundle
+import android.view.LayoutInflater
+import androidx.activity.viewModels
+import com.answufeng.arch.demo.databinding.ActivityHiltMviDemoBinding
+import com.answufeng.arch.hilt.HiltMviActivity
+import dagger.hilt.android.AndroidEntryPoint
 
-data class HiltCounterState(
-    val count: Int = 0,
-    val isLoading: Boolean = false,
-) : UiState
+@AndroidEntryPoint
+class HiltMviDemoActivity : HiltMviActivity<
+    ActivityHiltMviDemoBinding,
+    HiltCounterState,
+    HiltCounterEvent,
+    HiltCounterIntent,
+    HiltCounterViewModel,
+>() {
+    override val viewModel: HiltCounterViewModel by viewModels()
 
-sealed class HiltCounterEvent : UiEvent {
-    data class Toast(val message: String) : HiltCounterEvent()
-}
+    override fun inflateBinding(inflater: LayoutInflater) = ActivityHiltMviDemoBinding.inflate(inflater)
 
-sealed class HiltCounterIntent : UiIntent {
-    data object Increment : HiltCounterIntent()
-    data object Decrement : HiltCounterIntent()
-    data object Reset : HiltCounterIntent()
-    data object LoadData : HiltCounterIntent()
-}
+    override fun initView(savedInstanceState: Bundle?) {
+        binding.topBar.setNavigationOnClickListener { finish() }
 
-@HiltViewModel
-class HiltCounterViewModel @Inject constructor() :
-    MviViewModel<HiltCounterState, HiltCounterEvent, HiltCounterIntent>(HiltCounterState()) {
+        binding.btnIncrement.setOnClickListener { dispatch(HiltCounterIntent.Increment) }
+        binding.btnDecrement.setOnClickListener { dispatch(HiltCounterIntent.Decrement) }
+        binding.btnReset.setOnClickListener { dispatch(HiltCounterIntent.Reset) }
+        binding.btnLoadData.setOnClickListener { dispatch(HiltCounterIntent.LoadData) }
+    }
 
-    override fun handleIntent(intent: HiltCounterIntent) {
-        when (intent) {
-            HiltCounterIntent.Increment -> updateState { copy(count = count + 1) }
-            HiltCounterIntent.Decrement -> updateState { copy(count = count - 1) }
-            HiltCounterIntent.Reset -> updateState { copy(count = 0) }
-            HiltCounterIntent.LoadData -> loadData()
+    override fun render(state: HiltCounterState) {
+        binding.tvCount.text = state.count.toString()
+        binding.progressBar.visibility = if (state.isLoading) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    override fun handleEvent(event: HiltCounterEvent) {
+        when (event) {
+            is HiltCounterEvent.Toast ->
+                android.widget.Toast.makeText(this, event.message, android.widget.Toast.LENGTH_SHORT).show()
         }
     }
-
-    private fun loadData() = launchIO {
-        updateState { copy(isLoading = true) }
-        delay(800)
-        updateState { copy(isLoading = false, count = 42) }
-        sendMviEvent(HiltCounterEvent.Toast("Hilt MVI: loaded = 42"))
-    }
 }
-
-// Activity 已拆分为单 Intent 的 Feature Activity（见 HiltMviFeatureDemos.kt）。
-

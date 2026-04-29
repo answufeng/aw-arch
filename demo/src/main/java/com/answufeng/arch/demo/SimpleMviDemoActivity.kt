@@ -37,9 +37,10 @@ class SimpleMviDemoActivity :
         ActivitySimpleMviDemoBinding.inflate(inflater)
 
     override fun initView(savedInstanceState: Bundle?) {
+        binding.topBar.setNavigationOnClickListener { finish() }
+
         binding.btnInc.setOnClickListener { dispatch(SimpleDemoIntent.Inc) }
         binding.btnDec.setOnClickListener { dispatch(SimpleDemoIntent.Dec) }
-        binding.btnBack.setOnClickListener { finish() }
     }
 
     override fun render(state: SimpleDemoState) {

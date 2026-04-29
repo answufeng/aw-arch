@@ -13,6 +13,8 @@ class MvvmDemoActivity : MvvmActivity<ActivityMvvmDemoBinding, MvvmDemoViewModel
         ActivityMvvmDemoBinding.inflate(inflater)
 
     override fun initView(savedInstanceState: Bundle?) {
+        binding.topBar.setNavigationOnClickListener { finish() }
+
         binding.btnLoadData.setOnClickListener { viewModel.loadData() }
         binding.btnShowToast.setOnClickListener { viewModel.triggerToast() }
         binding.btnNavigateBack.setOnClickListener { viewModel.goBack() }

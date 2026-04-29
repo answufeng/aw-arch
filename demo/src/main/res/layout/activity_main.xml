@@ -16,16 +16,6 @@
             android:layout_height="?attr/actionBarSize"
             app:title="@string/demo_main_title"
             app:titleTextColor="@color/aw_demo_on_surface" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="@dimen/demo_space_md"
-            android:paddingEnd="@dimen/demo_space_md"
-            android:paddingBottom="@dimen/demo_space_md"
-            android:text="@string/demo_main_subtitle"
-            android:textColor="@color/aw_demo_on_surface_muted"
-            android:textSize="14sp" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -54,141 +44,348 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="演示清单"
-                        android:textColor="@color/aw_demo_on_surface"
+                        android:text="LoadState"
+                        android:textColor="@color/aw_demo_primary"
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="请选择一个功能进入独立页面操作与查看日志"
+                        android:layout_marginTop="4dp"
+                        android:text="Loading / Success / Error 三态管理与重试"
                         android:textColor="@color/aw_demo_on_surface_muted"
                         android:textSize="13sp" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnPlaybook"
-                        style="@style/Widget.MaterialComponents.Button.TextButton"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="@string/demo_playbook" />
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnLoadState"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="LoadState" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnRetryLoadState"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="RetryLoadState" />
+                    </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <TextView
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="@string/demo_section_state"
-                android:textColor="@color/aw_demo_on_surface"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="@dimen/demo_space_md">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnLoadState"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="LoadState 加载（新页面）" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/demo_space_md">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRetryLoadState"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_lg"
-                android:text="重试（3 次指数退避，新页面）" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="FlowEventBus"
+                        android:textColor="@color/aw_demo_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="@string/demo_section_bus"
-                android:textColor="@color/aw_demo_on_surface"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="基于 SharedFlow 的类型安全事件总线"
+                        android:textColor="@color/aw_demo_on_surface_muted"
+                        android:textSize="13sp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPostEvent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="FlowEventBus：post（新页面）" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTryPostEvent"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="FlowEventBus：tryPost（新页面）" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnPostEvent"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="post" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnStickyEvent"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="FlowEventBus：postSticky（新页面）" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTryPostEvent"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="tryPost" />
+                    </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRemoveSticky"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_lg"
-                android:text="FlowEventBus：removeSticky（新页面）" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:orientation="horizontal">
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="@string/demo_section_arch"
-                android:textColor="@color/aw_demo_on_surface"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStickyEvent"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="postSticky" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMvvm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:text="MVVM" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnRemoveSticky"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="removeSticky" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMvi"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="MVI" />
+                android:layout_marginBottom="@dimen/demo_space_md">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnMvp"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="MVP" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/demo_space_md">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnNav"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                android:text="AwNav（路由演示）" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="MVVM"
+                        android:textColor="@color/aw_demo_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnWeChat"
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="MvvmViewModel + UiEvent（Toast / Loading / 导航）"
+                        android:textColor="@color/aw_demo_on_surface_muted"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnMvvm"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="MVVM（普通）" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnHiltMvvm"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="MVVM（Hilt）" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/demo_space_sm"
-                style="@style/Widget.AwArchDemo.Button.Outlined"
-                android:text="AwNav（微信式多 Tab）" />
+                android:layout_marginBottom="@dimen/demo_space_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/demo_space_md">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="MVI"
+                        android:textColor="@color/aw_demo_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="MviViewModel&lt;State, Event, Intent&gt; 单向数据流"
+                        android:textColor="@color/aw_demo_on_surface_muted"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnMvi"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="MVI（普通）" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSimpleMvi"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="SimpleMVI" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnHiltMvi"
+                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="MVI（Hilt）" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/demo_space_md">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="MVP"
+                        android:textColor="@color/aw_demo_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="BaseMvpPresenter + MvpActivity 契约式架构"
+                        android:textColor="@color/aw_demo_on_surface_muted"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnMvp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="MVP（普通）" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnHiltMvp"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="MVP（Hilt）" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/demo_space_md">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/demo_space_md">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="AwNav"
+                        android:textColor="@color/aw_demo_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="纯代码 Fragment 导航：动画、拦截器、回退栈"
+                        android:textColor="@color/aw_demo_on_surface_muted"
+                        android:textSize="13sp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_md"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnNav"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="基础路由" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnNavInterceptor"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="拦截器" />
+                    </LinearLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnWeChat"
+                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/demo_space_sm"
+                        android:text="微信式多 Tab" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

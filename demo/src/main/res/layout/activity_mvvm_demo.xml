@@ -5,9 +5,24 @@
     android:layout_height="match_parent"
     android:background="@color/aw_demo_surface_muted">
 
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/aw_demo_bg">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="MVVM"
+            app:titleTextColor="@color/aw_demo_on_surface" />
+    </com.google.android.material.appbar.AppBarLayout>
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -29,16 +44,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="MVVM（普通）"
-                        android:textColor="@color/aw_demo_on_surface"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="UiEvent 负责 Toast/Loading/导航等一次性行为"
+                        android:text="UiEvent 负责 Toast / Loading / 导航等一次性行为"
                         android:textColor="@color/aw_demo_on_surface_muted"
                         android:textSize="13sp" />
 
@@ -57,25 +63,33 @@
                         android:layout_marginTop="@dimen/demo_space_md"
                         android:text="Load Data（IO）" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnShowToast"
-                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="Show Toast" />
+                        android:orientation="horizontal">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnError"
-                        style="@style/Widget.AwArchDemo.Button.Outlined"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/demo_space_sm"
-                        android:text="Trigger Error" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnShowToast"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Show Toast" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnError"
+                            style="@style/Widget.AwArchDemo.Button.Outlined"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/demo_space_sm"
+                            android:layout_weight="1"
+                            android:text="Trigger Error" />
+                    </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnNavigateBack"
-                        style="@style/Widget.AwArchDemo.Button.Outlined"
+                        style="@style/Widget.Material3.Button.TextButton"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/demo_space_sm"
