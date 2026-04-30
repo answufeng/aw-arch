@@ -17,7 +17,7 @@ import kotlin.reflect.KProperty
  * Fragment 用法（自动在 onDestroyView 时置空）：
  * ```kotlin
  * class MyFragment : Fragment() {
- *     private val binding by viewBinding(MyFragmentBinding::inflate)
+ *     private val binding by viewBinding(MyFragmentBinding::bind)
  * }
  * ```
  *
@@ -29,14 +29,14 @@ import kotlin.reflect.KProperty
  * ```
  */
 
-/** Fragment ViewBinding 委托，View 销毁后自动释放 */
+/** Fragment ViewBinding 委托，使用 [bind] 绑定到 Fragment 已有的 View，View 销毁后自动释放 */
 inline fun <reified VB : ViewBinding> Fragment.viewBinding(
-    noinline inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB
-) = FragmentViewBindingDelegate(this, inflate)
+    noinline bind: (View) -> VB
+) = FragmentViewBindingDelegate(this, bind)
 
 class FragmentViewBindingDelegate<VB : ViewBinding>(
     private val fragment: Fragment,
-    private val inflate: (LayoutInflater, ViewGroup?, Boolean) -> VB
+    private val bind: (View) -> VB
 ) : ReadOnlyProperty<Fragment, VB> {
 
     private var binding: VB? = null
@@ -70,11 +70,7 @@ class FragmentViewBindingDelegate<VB : ViewBinding>(
         val view = fragment.view
             ?: throw IllegalStateException("Cannot access view bindings when Fragment.view is null")
 
-        val viewBinding = inflate(
-            LayoutInflater.from(fragment.requireContext()),
-            view.parent as? ViewGroup,
-            false
-        )
+        val viewBinding = bind(view)
         this.binding = viewBinding
         return viewBinding
     }

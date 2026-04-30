@@ -1,12 +1,7 @@
 package com.answufeng.arch.hilt
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
-import com.answufeng.arch.base.LazyLoadHelper
+import com.answufeng.arch.base.BaseFragment
 import com.answufeng.arch.ext.observeMvi
 import com.answufeng.arch.mvi.MviDispatcher
 import com.answufeng.arch.mvi.MviViewModel
@@ -17,7 +12,8 @@ import com.answufeng.arch.mvi.UiState
 /**
  * Hilt 支持的 MVI 架构 Fragment 基类
  *
- * 适用于使用 Hilt 进行依赖注入的 MVI 模式 Fragment，提供了 ViewBinding 支持、MVI 状态管理和懒加载功能
+ * 适用于使用 Hilt 进行依赖注入的 MVI 模式 Fragment，提供了 ViewBinding 支持、MVI 状态管理和懒加载功能。
+ * 继承 [BaseFragment]，复用 ViewBinding 生命周期管理与懒加载逻辑。
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]
@@ -29,60 +25,18 @@ import com.answufeng.arch.mvi.UiState
  * @see UiState
  * @see UiEvent
  * @see UiIntent
- * @see LazyLoadHelper
+ * @see BaseFragment
  */
 abstract class HiltMviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
-    Fragment(), MviDispatcher<INTENT> {
-
-    private var _binding: VB? = null
-
-    protected val binding: VB
-        get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
-
-    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
+    BaseFragment<VB>(), MviDispatcher<INTENT> {
 
     abstract val viewModel: VM
-
-    private val lazyLoadHelper = LazyLoadHelper(this)
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        lazyLoadHelper.onCreate(savedInstanceState)
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        lazyLoadHelper.prepareForNewView()
-        _binding = inflateBinding(inflater, container)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initView(savedInstanceState)
-        initObservers()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (lazyLoadHelper.shouldLazyLoad()) {
-            onLazyLoad()
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        lazyLoadHelper.onSaveInstanceState(outState)
-    }
-
-    abstract fun initView(savedInstanceState: Bundle?)
-
-    open fun onLazyLoad() {}
 
     abstract fun render(state: STATE)
 
     open fun handleEvent(event: EVENT) {}
 
-    protected open fun initObservers() {
+    override fun initObservers() {
         observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
 
@@ -96,10 +50,5 @@ abstract class HiltMviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEven
         keySelector: (INTENT) -> String,
     ) {
         viewModel.dispatchThrottled(intent, windowMillis, keySelector)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }

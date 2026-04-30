@@ -157,7 +157,7 @@ class CounterActivity :
 | **Flow 扩展** | `throttleFirst`、`debounceAction`、`select`、`throttleClicks` | [📖 扩展](aw-arch/doc/extensions.md) |
 | **生命周期扩展** | `collectOnLifecycle`、`observeEvent`、`launchOnStarted/Resumed` | [📖 扩展](aw-arch/doc/extensions.md) |
 | **ViewBinding 委托** | Activity/Fragment 属性委托，零反射 | [📖 扩展](aw-arch/doc/extensions.md) |
-| **Hilt 集成** | `HiltMvvm*` / `HiltMvi*` / `HiltMvp*` 基类 | [📖 Hilt](aw-arch/doc/hilt.md) |
+| **Hilt 集成** | `HiltMvvm*` / `HiltMvi*` / `HiltMvp*` / `HiltSimpleMvi*` 基类 | [📖 Hilt](aw-arch/doc/hilt.md) |
 | **全局配置** | `AwArch.init { ... }` | [📖 配置](aw-arch/doc/config.md) |
 
 ---

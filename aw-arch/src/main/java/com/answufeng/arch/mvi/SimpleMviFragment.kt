@@ -1,13 +1,10 @@
 package com.answufeng.arch.mvi
 
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
-import com.answufeng.arch.base.LazyLoadHelper
+import com.answufeng.arch.base.BaseFragment
 import com.answufeng.arch.ext.inferViewModelClass
 import com.answufeng.arch.ext.observeMvi
 
@@ -15,6 +12,7 @@ import com.answufeng.arch.ext.observeMvi
  * 简化版 MVI 架构 Fragment 基类
  *
  * 与 [MviFragment] 的区别在于不需要定义独立的 Event 类型，适用于不需要单向 UI 事件的简单场景。
+ * 继承 [BaseFragment]，复用 ViewBinding 生命周期管理与懒加载逻辑。
  * 支持懒加载，首次对用户可见时才调用 [onLazyLoad]。
  * 子类须声明第四类型参数 [VM]（具体 [SimpleMviViewModel] 实现），以便反射创建。
  *
@@ -27,7 +25,7 @@ import com.answufeng.arch.ext.observeMvi
  * @see UiState
  * @see UiIntent
  * @see MviDispatcher
- * @see LazyLoadHelper
+ * @see BaseFragment
  */
 abstract class SimpleMviFragment<
     VB : ViewBinding,
@@ -35,58 +33,20 @@ abstract class SimpleMviFragment<
     INTENT : UiIntent,
     VM : SimpleMviViewModel<STATE, INTENT>,
     > :
-    Fragment(), MviDispatcher<INTENT> {
-
-    private var _binding: VB? = null
-
-    protected val binding: VB
-        get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
+    BaseFragment<VB>(), MviDispatcher<INTENT> {
 
     protected lateinit var viewModel: VM
 
-    private val lazyLoadHelper = LazyLoadHelper(this)
-
-    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
-
     open val shareViewModelWithActivity: Boolean = false
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        lazyLoadHelper.onCreate(savedInstanceState)
-    }
-
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        lazyLoadHelper.prepareForNewView()
-        _binding = inflateBinding(inflater, container)
-        return binding.root
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         viewModel = createViewModel()
-        initView(savedInstanceState)
-        initObservers()
+        super.onViewCreated(view, savedInstanceState)
     }
-
-    override fun onResume() {
-        super.onResume()
-        if (lazyLoadHelper.shouldLazyLoad()) {
-            onLazyLoad()
-        }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        lazyLoadHelper.onSaveInstanceState(outState)
-    }
-
-    abstract fun initView(savedInstanceState: Bundle?)
-
-    open fun onLazyLoad() {}
 
     abstract fun render(state: STATE)
 
-    protected open fun initObservers() {
+    override fun initObservers() {
         observeMvi(viewModel.state, viewModel.event, render = ::render)
     }
 
@@ -111,10 +71,5 @@ abstract class SimpleMviFragment<
         keySelector: (INTENT) -> String,
     ) {
         viewModel.dispatchThrottled(intent, windowMillis, keySelector)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 }
