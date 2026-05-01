@@ -1,5 +1,6 @@
 package com.answufeng.arch.mvp
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
@@ -46,11 +47,19 @@ abstract class MvpActivity<VB : ViewBinding, V : MvpView, P : MvpPresenter<V>> :
 
     open fun initObservers() {}
 
+    @SuppressLint("DiscouragedPrivateApi")
     protected open fun createPresenter(): P {
         val pClass = inferPresenterClass<P>(javaClass, MvpPresenter::class.java)
-        val ctor = pClass.getDeclaredConstructor()
-        ctor.isAccessible = true
-        return ctor.newInstance()
+        return try {
+            val ctor = pClass.getDeclaredConstructor()
+            ctor.isAccessible = true
+            ctor.newInstance()
+        } catch (e: ReflectiveOperationException) {
+            throw IllegalStateException(
+                "Cannot reflectively instantiate ${pClass.name}; override createPresenter() or adjust R8 / API restrictions.",
+                e
+            )
+        }
     }
 
     override fun showToast(message: String) {

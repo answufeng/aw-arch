@@ -37,6 +37,7 @@ abstract class BaseMvpPresenter<V : MvpView> : MvpPresenter<V> {
     override fun attachView(view: V) {
         _view = view
         if (job.isCancelled) {
+            presenterScope.cancel()
             job = SupervisorJob()
         }
         presenterScope = CoroutineScope(Dispatchers.Main.immediate + job + exceptionHandler)
