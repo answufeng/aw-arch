@@ -55,8 +55,9 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
 
     private val stateKey = "mvi_state_${this::class.java.name}"
 
+    @Suppress("UNCHECKED_CAST")
     private val _state: MutableStateFlow<S> =
-        savedStateHandle?.getStateFlow(stateKey, initialState)
+        savedStateHandle?.let { it.getStateFlow(stateKey, initialState) as MutableStateFlow<S> }
             ?: MutableStateFlow(initialState)
 
     /** 当前 UI 状态流，UI 层通过 `collect` 订阅渲染 */
