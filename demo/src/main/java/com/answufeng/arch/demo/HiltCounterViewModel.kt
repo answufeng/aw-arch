@@ -1,7 +1,7 @@
 package com.answufeng.arch.demo
 
 import com.answufeng.arch.mvi.MviViewModel
-import com.answufeng.arch.mvi.UiEvent
+import com.answufeng.arch.mvi.MviEffect
 import com.answufeng.arch.mvi.UiIntent
 import com.answufeng.arch.mvi.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +13,7 @@ data class HiltCounterState(
     val isLoading: Boolean = false,
 ) : UiState
 
-sealed class HiltCounterEvent : UiEvent {
+sealed class HiltCounterEvent : MviEffect {
     data class Toast(val message: String) : HiltCounterEvent()
 }
 

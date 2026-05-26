@@ -2,7 +2,6 @@ package com.answufeng.arch.ext
 
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
@@ -27,35 +26,49 @@ import kotlin.reflect.KProperty
  *     private val binding by viewBinding(MyActivityBinding::inflate)
  * }
  * ```
+ *
+ * 若已使用 aw-arch 的 `MvvmActivity` / `MviActivity` 等基类，其内置 binding 管理，无需再使用本委托。
+ *
+ * Fragment：使用 [viewBinding] 绑定到已有 View，View 销毁后自动释放。
+ * Activity：使用 [viewBinding] 首次访问时自动 setContentView。
+ *
+ * @deprecated 优先使用 aw-arch 架构基类内置的 ViewBinding。
  */
-
-/** Fragment ViewBinding 委托，使用 [bind] 绑定到 Fragment 已有的 View，View 销毁后自动释放 */
-inline fun <reified VB : ViewBinding> Fragment.viewBinding(
-    noinline bind: (View) -> VB
-) = FragmentViewBindingDelegate(this, bind)
+@Deprecated(
+    message = "Prefer aw-arch base classes (MvvmFragment, etc.) for ViewBinding lifecycle",
+    replaceWith = ReplaceWith("MvvmFragment or BaseFragment with inflateBinding()"),
+    level = DeprecationLevel.WARNING,
+)
+inline fun <reified VB : ViewBinding> Fragment.viewBinding(noinline bind: (View) -> VB) = FragmentViewBindingDelegate(this, bind)
 
 class FragmentViewBindingDelegate<VB : ViewBinding>(
     private val fragment: Fragment,
-    private val bind: (View) -> VB
+    private val bind: (View) -> VB,
 ) : ReadOnlyProperty<Fragment, VB> {
-
     private var binding: VB? = null
 
     init {
-        fragment.lifecycle.addObserver(object : DefaultLifecycleObserver {
-            override fun onCreate(owner: LifecycleOwner) {
-                fragment.viewLifecycleOwnerLiveData.observe(fragment) { viewLifecycleOwner ->
-                    viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
-                        override fun onDestroy(owner: LifecycleOwner) {
-                            binding = null
-                        }
-                    })
+        fragment.lifecycle.addObserver(
+            object : DefaultLifecycleObserver {
+                override fun onCreate(owner: LifecycleOwner) {
+                    fragment.viewLifecycleOwnerLiveData.observe(fragment) { viewLifecycleOwner ->
+                        viewLifecycleOwner.lifecycle.addObserver(
+                            object : DefaultLifecycleObserver {
+                                override fun onDestroy(owner: LifecycleOwner) {
+                                    binding = null
+                                }
+                            },
+                        )
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 
-    override fun getValue(thisRef: Fragment, property: KProperty<*>): VB {
+    override fun getValue(
+        thisRef: Fragment,
+        property: KProperty<*>,
+    ): VB {
         val binding = binding
         if (binding != null) return binding
 
@@ -67,8 +80,9 @@ class FragmentViewBindingDelegate<VB : ViewBinding>(
             throw IllegalStateException("Cannot access view bindings after view has been destroyed")
         }
 
-        val view = fragment.view
-            ?: throw IllegalStateException("Cannot access view bindings when Fragment.view is null")
+        val view =
+            fragment.view
+                ?: throw IllegalStateException("Cannot access view bindings when Fragment.view is null")
 
         val viewBinding = bind(view)
         this.binding = viewBinding
@@ -76,19 +90,29 @@ class FragmentViewBindingDelegate<VB : ViewBinding>(
     }
 }
 
-/** Activity ViewBinding 委托，首次访问时自动 setContentView */
-inline fun <reified VB : ViewBinding> android.app.Activity.viewBinding(
-    noinline inflate: (LayoutInflater) -> VB
-) = ActivityViewBindingDelegate(this, inflate)
+/**
+ * Activity ViewBinding 委托，首次访问时自动 setContentView。
+ *
+ * @deprecated 优先使用 aw-arch 架构基类内置的 ViewBinding。
+ */
+@Deprecated(
+    message = "Prefer aw-arch base classes (MvvmActivity, etc.) for ViewBinding lifecycle",
+    replaceWith = ReplaceWith("MvvmActivity with inflateBinding()"),
+    level = DeprecationLevel.WARNING,
+)
+inline fun <reified VB : ViewBinding> android.app.Activity.viewBinding(noinline inflate: (LayoutInflater) -> VB) =
+    ActivityViewBindingDelegate(this, inflate)
 
 class ActivityViewBindingDelegate<VB : ViewBinding>(
     private val activity: android.app.Activity,
-    private val inflate: (LayoutInflater) -> VB
+    private val inflate: (LayoutInflater) -> VB,
 ) : ReadOnlyProperty<android.app.Activity, VB> {
-
     private var binding: VB? = null
 
-    override fun getValue(thisRef: android.app.Activity, property: KProperty<*>): VB {
+    override fun getValue(
+        thisRef: android.app.Activity,
+        property: KProperty<*>,
+    ): VB {
         val binding = binding
         if (binding != null) return binding
 

@@ -16,7 +16,6 @@ import androidx.annotation.MainThread
  * @param I 意图类型，必须继承 [UiIntent]
  */
 interface MviDispatcher<I : UiIntent> {
-
     /**
      * 分发意图，立即处理。
      *
@@ -37,5 +36,9 @@ interface MviDispatcher<I : UiIntent> {
      * @param keySelector  意图去重 key 选择器，默认使用意图类名
      */
     @MainThread
-    fun dispatchThrottled(intent: I, windowMillis: Long = 300, keySelector: (I) -> String = { it::class.java.name })
+    fun dispatchThrottled(
+        intent: I,
+        windowMillis: Long = 300,
+        keySelector: (I) -> String = { it::class.java.name },
+    )
 }

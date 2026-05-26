@@ -22,6 +22,9 @@
 -keepclassmembers class * implements com.answufeng.arch.mvi.UiState {
     <init>(...);
 }
+-keepclassmembers class * implements com.answufeng.arch.mvi.MviEffect {
+    <init>(...);
+}
 -keepclassmembers class * implements com.answufeng.arch.mvi.UiEvent {
     <init>(...);
 }
@@ -106,7 +109,9 @@
 }
 -keepclassmembers class com.answufeng.arch.base.MvvmViewModel$UiEvent { *; }
 -keepclassmembers class * extends com.answufeng.arch.base.MvvmViewModel$UiEvent { *; }
+-keepclassmembers interface com.answufeng.arch.base.ArchView { *; }
 -keepclassmembers interface com.answufeng.arch.mvvm.MvvmView { *; }
+-keepclassmembers interface com.answufeng.arch.mvp.MvpView { *; }
 
 # ===========================================================
 # MVVM Activity/Fragment 基类
@@ -225,6 +230,7 @@
 # ===========================================================
 -keepclassmembers class com.answufeng.arch.nav.AwNav { *; }
 -keepclassmembers class com.answufeng.arch.nav.AwNav$Companion { *; }
+-keep class com.answufeng.arch.nav.AwNavHostFragment { *; }
 -keepclassmembers class com.answufeng.arch.nav.NavOptions { *; }
 -keepclassmembers enum com.answufeng.arch.nav.NavAnim { *; }
 -keepclassmembers interface com.answufeng.arch.nav.NavInterceptor { *; }

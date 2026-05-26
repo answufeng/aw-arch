@@ -3,7 +3,7 @@ package com.answufeng.arch.mvi
 import androidx.lifecycle.SavedStateHandle
 
 /**
- * 简化版 MVI ViewModel，省略了事件层（[UiEvent]）。
+ * 简化版 MVI ViewModel，省略了事件层（[MviEffect]）。
  *
  * 适用于不需要一次性事件的场景，仅保留状态（[UiState]）和意图（[UiIntent]）两层抽象。
  * 内部使用 [NoEvent] 作为事件类型的占位。
@@ -24,10 +24,10 @@ import androidx.lifecycle.SavedStateHandle
  */
 abstract class SimpleMviViewModel<S : UiState, I : UiIntent>(
     initialState: S,
-    savedStateHandle: SavedStateHandle? = null
+    savedStateHandle: SavedStateHandle? = null,
 ) : MviViewModel<S, NoEvent, I>(initialState, savedStateHandle)
 
 /**
  * [SimpleMviViewModel] 的空事件占位对象，表示无需事件。
  */
-object NoEvent : UiEvent
+object NoEvent : MviEffect

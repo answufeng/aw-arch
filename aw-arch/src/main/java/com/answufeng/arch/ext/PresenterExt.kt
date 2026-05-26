@@ -11,7 +11,7 @@ import com.answufeng.arch.mvp.MvpPresenter
 @Suppress("UNCHECKED_CAST")
 internal fun <P : MvpPresenter<*>> inferPresenterClass(
     javaClass: Class<*>,
-    baseClass: Class<out MvpPresenter<*>>
+    baseClass: Class<out MvpPresenter<*>>,
 ): Class<P> {
     var current: Class<*>? = javaClass
     while (current != null) {
@@ -28,13 +28,13 @@ internal fun <P : MvpPresenter<*>> inferPresenterClass(
 
 private fun resolvePresenterArg(
     type: java.lang.reflect.Type,
-    baseClass: Class<out MvpPresenter<*>>
-): Class<*>? = when (type) {
-    is Class<*> -> type.takeIf { baseClass.isAssignableFrom(it) }
-    is java.lang.reflect.ParameterizedType -> {
-        val raw = type.rawType as? Class<*> ?: return null
-        raw.takeIf { baseClass.isAssignableFrom(it) }
+    baseClass: Class<out MvpPresenter<*>>,
+): Class<*>? =
+    when (type) {
+        is Class<*> -> type.takeIf { baseClass.isAssignableFrom(it) }
+        is java.lang.reflect.ParameterizedType -> {
+            val raw = type.rawType as? Class<*> ?: return null
+            raw.takeIf { baseClass.isAssignableFrom(it) }
+        }
+        else -> null
     }
-    else -> null
-}
-

@@ -12,7 +12,6 @@ import androidx.viewbinding.ViewBinding
  * @param VB ViewBinding 类型
  */
 abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
-
     private var _binding: VB? = null
 
     protected val binding: VB

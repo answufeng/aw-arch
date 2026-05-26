@@ -10,26 +10,41 @@ import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
 /**
- * LifecycleOwner 扩展函数，提供生命周期感知的事件观察和协程启动。
+ * LifecycleOwner 扩展：生命周期感知的事件观察与协程启动。
+ *
+ * [observeEvent]：观察 FlowEventBus；[sticky] 为 `true` 时订阅粘性通道。
  */
-
-/** 观察 FlowEventBus 中的普通事件，生命周期到达 [state] 时自动收集 */
 inline fun <reified T : Any> LifecycleOwner.observeEvent(
+    sticky: Boolean = false,
     state: Lifecycle.State = Lifecycle.State.STARTED,
-    noinline action: suspend (T) -> Unit
+    noinline action: suspend (T) -> Unit,
 ) {
     lifecycleScope.launch {
         repeatOnLifecycle(state) {
-            FlowEventBus.observe<T>().collect { action(it) }
+            val flow =
+                if (sticky) {
+                    FlowEventBus.observeSticky<T>()
+                } else {
+                    FlowEventBus.observe<T>()
+                }
+            flow.collect { action(it) }
         }
     }
 }
 
-/** 按类型观察普通事件（KClass 版本） */
+/** @deprecated 请使用 [observeEvent]（`sticky` 参数）。 */
+@Deprecated(
+    message = "Use observeEvent(clazz, sticky = false, state, action)",
+    replaceWith =
+        ReplaceWith(
+            "observeEvent(clazz, sticky = false, state, action)",
+            "com.answufeng.arch.ext.LifecycleOwnerKt",
+        ),
+)
 fun <T : Any> LifecycleOwner.observeEvent(
     clazz: KClass<T>,
     state: Lifecycle.State = Lifecycle.State.STARTED,
-    action: suspend (T) -> Unit
+    action: suspend (T) -> Unit,
 ) {
     lifecycleScope.launch {
         repeatOnLifecycle(state) {
@@ -38,23 +53,38 @@ fun <T : Any> LifecycleOwner.observeEvent(
     }
 }
 
-/** 观察 FlowEventBus 中的粘性事件，新订阅者会收到最近一次事件 */
+/**
+ * 观察 FlowEventBus 粘性事件。
+ *
+ * @deprecated 请使用 [observeEvent]（`sticky = true`）。
+ */
+@Deprecated(
+    message = "Use observeEvent<T>(sticky = true, state, action)",
+    replaceWith =
+        ReplaceWith(
+            "observeEvent<T>(sticky = true, state = state, action = action)",
+        ),
+)
 inline fun <reified T : Any> LifecycleOwner.observeStickyEvent(
     state: Lifecycle.State = Lifecycle.State.STARTED,
-    noinline action: suspend (T) -> Unit
+    noinline action: suspend (T) -> Unit,
 ) {
-    lifecycleScope.launch {
-        repeatOnLifecycle(state) {
-            FlowEventBus.observeSticky<T>().collect { action(it) }
-        }
-    }
+    observeEvent<T>(sticky = true, state = state, action = action)
 }
 
-/** 按类型观察粘性事件（KClass 版本） */
+/** @deprecated 请使用 [observeEvent]（`sticky = true`）。 */
+@Deprecated(
+    message = "Use observeEvent(clazz, sticky = true, state, action)",
+    replaceWith =
+        ReplaceWith(
+            "observeEvent(clazz, sticky = true, state, action)",
+            "com.answufeng.arch.ext.LifecycleOwnerKt",
+        ),
+)
 fun <T : Any> LifecycleOwner.observeStickyEvent(
     clazz: KClass<T>,
     state: Lifecycle.State = Lifecycle.State.STARTED,
-    action: suspend (T) -> Unit
+    action: suspend (T) -> Unit,
 ) {
     lifecycleScope.launch {
         repeatOnLifecycle(state) {

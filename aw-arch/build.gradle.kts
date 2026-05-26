@@ -31,7 +31,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -62,4 +62,4 @@ dependencies {
     implementation(libs.activity.ktx)
 }
 
-apply(from = "${rootDir}/gradle/publish.gradle.kts")
+apply(from = "$rootDir/gradle/publish.gradle.kts")

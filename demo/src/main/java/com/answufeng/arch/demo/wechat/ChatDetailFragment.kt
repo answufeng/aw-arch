@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import com.answufeng.arch.demo.R
 import com.answufeng.arch.demo.databinding.FragmentChatDetailBinding
+import com.answufeng.arch.nav.AwNav
 class ChatDetailFragment : Fragment() {
 
     private var _binding: FragmentChatDetailBinding? = null
@@ -35,8 +36,7 @@ class ChatDetailFragment : Fragment() {
                 "chat_id" to arguments?.getString("chat_id"),
                 "title" to title,
             )
-            val page = ChatInfoFragment().apply { arguments = args }
-            (requireActivity() as WeChatActivity).pushOverlayPage(page, "chat_info")
+            AwNav.from(this).navigate("chat_info", args)
         }
     }
 

@@ -1,63 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/aw_demo_surface_muted">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/aw_demo_bg">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="?attr/homeAsUpIndicator"
+            app:title="@string/demo_awnav_basic_title"
+            app:titleTextColor="@color/aw_demo_on_surface" />
+    </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/demo_space_sm"
-        android:background="@color/aw_demo_surface"
-        android:elevation="2dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnHome"
-            style="@style/Widget.AwArchDemo.Button.Outlined"
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Home"
-            android:textSize="12sp" />
+            android:orientation="horizontal"
+            android:padding="@dimen/demo_space_sm"
+            android:background="@color/aw_demo_surface"
+            android:elevation="2dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDetail"
-            style="@style/Widget.AwArchDemo.Button.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/demo_space_sm"
-            android:layout_weight="1"
-            android:text="Detail"
-            android:textSize="12sp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnHome"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/demo_awnav_btn_home"
+                android:textSize="12sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSettings"
-            style="@style/Widget.AwArchDemo.Button.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/demo_space_sm"
-            android:layout_weight="1"
-            android:text="Settings"
-            android:textSize="12sp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDetail"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/demo_space_sm"
+                android:layout_weight="1"
+                android:text="@string/demo_awnav_btn_detail"
+                android:textSize="12sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnBack"
-            style="@style/Widget.AwArchDemo.Button.Outlined"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/demo_space_sm"
-            android:layout_weight="1"
-            android:text="Back"
-            android:textSize="12sp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettings"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/demo_space_sm"
+                android:layout_weight="1"
+                android:text="@string/demo_awnav_btn_settings"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBack"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/demo_space_sm"
+                android:layout_weight="1"
+                android:text="@string/demo_awnav_btn_back"
+                android:textSize="12sp" />
+
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
 
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-
-</LinearLayout>
-
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

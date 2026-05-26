@@ -3,12 +3,10 @@ package com.answufeng.arch.base
 import android.os.Bundle
 import androidx.lifecycle.SavedStateHandle
 import com.answufeng.arch.config.AwArch
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.launch
 
 /**
  * MVVM 模式 ViewModel 基类，通过 [UiEvent] 通道向 UI 层发送一次性事件。
@@ -30,13 +28,13 @@ import kotlinx.coroutines.launch
  * [UiEvent] 通道为有界队列（默认 [UI_EVENT_CHANNEL_CAPACITY]）；满时按 [BufferOverflow.DROP_OLDEST] 丢弃最旧未消费事件，避免无界堆积。
  */
 open class MvvmViewModel(
-    savedStateHandle: SavedStateHandle? = null
+    savedStateHandle: SavedStateHandle? = null,
 ) : BaseViewModel(savedStateHandle) {
-
-    private val uiEventChannel = Channel<UiEvent>(
-        capacity = UI_EVENT_CHANNEL_CAPACITY,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+    private val uiEventChannel =
+        Channel<UiEvent>(
+            capacity = UI_EVENT_CHANNEL_CAPACITY,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     /** UI 事件流，消费后不会重放 */
     val uiEvent: Flow<UiEvent> = uiEventChannel.receiveAsFlow()
@@ -47,7 +45,7 @@ open class MvvmViewModel(
         if (!result.isSuccess) {
             AwArch.logger.w(
                 "MvvmViewModel",
-                "UiEvent not delivered (channel closed or failed): ${event::class.simpleName}"
+                "UiEvent not delivered (channel closed or failed): ${event::class.simpleName}",
             )
         }
     }
@@ -59,8 +57,10 @@ open class MvvmViewModel(
     protected open fun showLoading(show: Boolean = true) = sendEvent(UiEvent.Loading(show))
 
     /** 发送导航事件，[extras] 使用 Bundle 传递参数 */
-    protected open fun navigate(route: String, extras: Bundle? = null) =
-        sendEvent(UiEvent.Navigate(route, extras))
+    protected open fun navigate(
+        route: String,
+        extras: Bundle? = null,
+    ) = sendEvent(UiEvent.Navigate(route, extras))
 
     /** 发送返回事件 */
     protected open fun navigateBack() = sendEvent(UiEvent.NavigateBack)
@@ -76,9 +76,13 @@ open class MvvmViewModel(
      */
     sealed class UiEvent {
         data class Toast(val message: String) : UiEvent()
+
         data class Loading(val show: Boolean) : UiEvent()
+
         data class Navigate(val route: String, val extras: Bundle? = null) : UiEvent()
+
         data object NavigateBack : UiEvent()
+
         data class Custom(val key: String, val data: Any? = null) : UiEvent()
     }
 

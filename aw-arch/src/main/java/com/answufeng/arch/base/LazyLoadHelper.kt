@@ -39,7 +39,6 @@ import androidx.fragment.app.Fragment
  * @param fragment 关联的 Fragment 实例
  */
 class LazyLoadHelper(private val fragment: Fragment) {
-
     private var isFirstLoad = true
 
     companion object {

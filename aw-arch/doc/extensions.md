@@ -21,6 +21,14 @@ viewModel.count
     }
 ```
 
+### bindLifecycle
+
+与 [collectOnLifecycle] 相同语义的别名，便于 MVVM 状态绑定：
+
+```kotlin
+viewModel.count.bindLifecycle(this) { binding.tvCount.text = it.toString() }
+```
+
 ### throttleFirst
 
 在时间窗口内只发射第一个事件，适用于按钮点击防抖：
@@ -33,15 +41,9 @@ searchTrigger
 
 与 `debounce` 的区别：throttle 在窗口期**开始**时立即发射，debounce 在窗口期**结束**时发射。
 
-### debounceAction
+### debounce
 
-防抖操作，在指定时间内无新事件才发射最后一个：
-
-```kotlin
-searchInput
-    .debounceAction(300)
-    .collect { query -> search(query) }
-```
+防抖请直接使用 Kotlin Flow 标准库 `debounce`（`debounceAction` 已废弃）。
 
 ### select
 
@@ -89,17 +91,15 @@ observeMvi(
 
 ### observeEvent
 
-观察 FlowEventBus 中的普通事件：
+观察 FlowEventBus 事件；`sticky = true` 时订阅粘性通道：
 
 ```kotlin
-// reified 版本（推荐）
 observeEvent<LoginSuccessEvent> { event ->
     updateUI(event.userId)
 }
 
-// KClass 版本
-observeEvent(LoginSuccessEvent::class) { event ->
-    updateUI(event.userId)
+observeEvent<SessionExpiredEvent>(sticky = true) { event ->
+    forceLogout(event.reason)
 }
 ```
 
@@ -138,13 +138,15 @@ launchOnResumed {
 
 ## ViewBinding 委托
 
-除基类内置的 ViewBinding 管理外，还提供独立的属性委托方式。
+> **不推荐**：新页面请优先使用 `MvvmActivity` / `MviFragment` 等基类内置的 `binding`。
+
+除基类内置的 ViewBinding 管理外，还提供独立的属性委托方式（遗留兼容）。
 
 ### Fragment 委托
 
 ```kotlin
 class MyFragment : Fragment() {
-    private val binding by viewBinding(MyFragmentBinding::inflate)
+    private val binding by viewBinding(MyFragmentBinding::bind)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.tvTitle.text = "Hello"

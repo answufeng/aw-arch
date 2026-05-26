@@ -16,7 +16,7 @@ import kotlinx.coroutines.flow.update
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * MVI 模式 ViewModel 基类，管理 [UiState]/[UiEvent]/[UiIntent] 三层抽象。
+ * MVI 模式 ViewModel 基类，管理 [UiState]/[MviEffect]/[UiIntent] 三层抽象。
  *
  * - **State**: 通过 [state] 暴露，UI 订阅后自动渲染
  * - **Event**: 一次性事件（如 Toast、导航），通过 [event] 暴露
@@ -41,24 +41,23 @@ import java.util.concurrent.ConcurrentHashMap
  * ```
  *
  * @param S 状态类型，必须实现 [UiState]
- * @param E 事件类型，必须实现 [UiEvent]
+ * @param E 事件类型，必须实现 [MviEffect]
  * @param I 意图类型，必须实现 [UiIntent]
  * @param initialState 初始状态
  * @param savedStateHandle 进程重启后恢复状态
  *
  * 一次性 [event] 通道为有界队列（默认 [MVI_EVENT_CHANNEL_CAPACITY]）；缓冲区满时丢弃最旧事件，避免无界内存增长。
  */
-abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
+abstract class MviViewModel<S : UiState, E : MviEffect, I : UiIntent>(
     initialState: S,
-    savedStateHandle: SavedStateHandle? = null
+    savedStateHandle: SavedStateHandle? = null,
 ) : BaseViewModel(savedStateHandle) {
-
     private val stateKey = "mvi_state_${this::class.java.name}"
 
-    @Suppress("UNCHECKED_CAST")
-    private val _state: MutableStateFlow<S> =
-        savedStateHandle?.let { it.getStateFlow(stateKey, initialState) as MutableStateFlow<S> }
-            ?: MutableStateFlow(initialState)
+    private val _state =
+        MutableStateFlow(
+            savedStateHandle?.get<S>(stateKey) ?: initialState,
+        )
 
     /** 当前 UI 状态流，UI 层通过 `collect` 订阅渲染 */
     val state: StateFlow<S> = _state.asStateFlow()
@@ -66,10 +65,11 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
     /** 获取当前状态快照，不触发收集 */
     protected val currentState: S get() = _state.value
 
-    private val _event = Channel<E>(
-        capacity = MVI_EVENT_CHANNEL_CAPACITY,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
+    private val _event =
+        Channel<E>(
+            capacity = MVI_EVENT_CHANNEL_CAPACITY,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     /** 一次性事件流（如 Toast、导航），消费后不会重放 */
     val event: Flow<E> = _event.receiveAsFlow()
@@ -99,7 +99,11 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
      *
      * @param keySelector 自定义节流 key 函数，默认使用 Intent 类名
      */
-    fun dispatchThrottled(intent: I, windowMillis: Long = 300, keySelector: (I) -> String = { it::class.java.name }) {
+    fun dispatchThrottled(
+        intent: I,
+        windowMillis: Long = 300,
+        keySelector: (I) -> String = { it::class.java.name },
+    ) {
         check(Looper.myLooper() == Looper.getMainLooper()) {
             "dispatchThrottled() must be called on the main thread"
         }
@@ -117,9 +121,13 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
         intentThrottleMap.clear()
     }
 
-    /** 更新状态，使用原子操作确保线程安全 */
+    /** 更新状态，使用原子操作确保线程安全；若提供 [SavedStateHandle] 则同步写入以便进程恢复。 */
     protected fun updateState(reduce: S.() -> S) {
-        _state.update { it.reduce() }
+        _state.update {
+            val next = it.reduce()
+            savedStateHandle?.set(stateKey, next)
+            next
+        }
     }
 
     /** 发送一次性事件，适合 Toast、导航等不需要状态持久化的场景 */
@@ -128,7 +136,7 @@ abstract class MviViewModel<S : UiState, E : UiEvent, I : UiIntent>(
         if (!result.isSuccess) {
             AwArch.logger.w(
                 "MviViewModel",
-                "Mvi event not delivered (channel closed or failed): ${event::class.simpleName}"
+                "Mvi event not delivered (channel closed or failed): ${event::class.simpleName}",
             )
         }
     }

@@ -8,9 +8,9 @@ package com.answufeng.arch.mvp
  */
 interface MvpPresenter<V : MvpView> {
     fun attachView(view: V)
+
     fun detachView()
 
     /** 当前是否已绑定 View。*/
     val isViewAttached: Boolean
 }
-

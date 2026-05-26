@@ -34,13 +34,18 @@ abstract class SimpleMviFragment<
     VM : SimpleMviViewModel<STATE, INTENT>,
     > :
     BaseFragment<VB>(), MviDispatcher<INTENT> {
+    private lateinit var archViewModelHolder: VM
 
-    protected lateinit var viewModel: VM
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
     open val shareViewModelWithActivity: Boolean = false
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel = createViewModel()
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         super.onViewCreated(view, savedInstanceState)
     }
 
@@ -50,13 +55,18 @@ abstract class SimpleMviFragment<
         observeMvi(viewModel.state, viewModel.event, render = ::render)
     }
 
+    protected open fun injectViewModel(): VM? = null
+
+    protected open fun obtainViewModel(): VM = createViewModel()
+
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, SimpleMviViewModel::class.java)
-        val factory = if (shareViewModelWithActivity) {
-            ViewModelProvider(requireActivity())
-        } else {
-            ViewModelProvider(this)
-        }
+        val factory =
+            if (shareViewModelWithActivity) {
+                ViewModelProvider(requireActivity())
+            } else {
+                ViewModelProvider(this)
+            }
         @Suppress("UNCHECKED_CAST")
         return factory.get(vmClass) as VM
     }

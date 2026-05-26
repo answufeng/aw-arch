@@ -33,8 +33,10 @@ import kotlinx.coroutines.launch
  * @see BaseFragment
  */
 abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : BaseFragment<VB>(), MvvmView {
+    private lateinit var archViewModelHolder: VM
 
-    protected lateinit var viewModel: VM
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
     open val shareViewModelWithActivity: Boolean = false
 
@@ -44,8 +46,11 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : BaseFragment
      */
     protected open val awNav: AwNav? get() = null
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel = createViewModel()
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         super.onViewCreated(view, savedInstanceState)
     }
 
@@ -59,13 +64,19 @@ abstract class MvvmFragment<VB : ViewBinding, VM : MvvmViewModel> : BaseFragment
         }
     }
 
+    /** Hilt 注入；见 [com.answufeng.arch.hilt.HiltMvvmFragment]。 */
+    protected open fun injectViewModel(): VM? = null
+
+    protected open fun obtainViewModel(): VM = createViewModel()
+
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MvvmViewModel::class.java)
-        val factory = if (shareViewModelWithActivity) {
-            ViewModelProvider(requireActivity())
-        } else {
-            ViewModelProvider(this)
-        }
+        val factory =
+            if (shareViewModelWithActivity) {
+                ViewModelProvider(requireActivity())
+            } else {
+                ViewModelProvider(this)
+            }
         @Suppress("UNCHECKED_CAST")
         return factory.get(vmClass) as VM
     }

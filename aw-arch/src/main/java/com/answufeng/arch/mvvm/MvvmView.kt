@@ -1,6 +1,6 @@
 package com.answufeng.arch.mvvm
 
-import android.os.Bundle
+import com.answufeng.arch.base.ArchView
 import com.answufeng.arch.base.MvvmViewModel.UiEvent
 
 /**
@@ -8,13 +8,15 @@ import com.answufeng.arch.base.MvvmViewModel.UiEvent
  *
  * 所有 MVVM 基类（Activity/Fragment/DialogFragment/BottomSheetDialogFragment）
  * 均实现此接口，统一处理 ViewModel 发出的 UI 事件。
+ * 通用 UI 能力（Toast / Loading / 导航）见 [ArchView]。
  *
- * 子类可覆写 [showToast]、[onLoading]、[navigateTo]、[navigateBack]、[handleCustomEvent]
+ * 子类可覆写 [ArchView.showToast]、[ArchView.onLoading]、[ArchView.navigateTo]、[ArchView.navigateBack]、[handleCustomEvent]
  * 来自定义事件处理行为。
  *
  * @see MvvmViewModel.UiEvent
+ * @see ArchView
  */
-interface MvvmView {
+interface MvvmView : ArchView {
     /**
      * 处理 ViewModel 发出的 [UiEvent]，默认分发到各具体方法。
      *
@@ -31,40 +33,13 @@ interface MvvmView {
     }
 
     /**
-     * Loading 状态变化回调。
-     *
-     * @param show `true` 表示显示 Loading，`false` 表示隐藏
-     */
-    fun onLoading(show: Boolean) {}
-
-    /**
-     * 显示 Toast 消息。
-     *
-     * @param message 要显示的消息文本
-     */
-    fun showToast(message: String) {}
-
-    /**
-     * 导航到指定路由。
-     *
-     * 若在 MVVM 基类中覆写了 `awNav` 并返回 [com.answufeng.arch.nav.AwNav]，
-     * 则 [UiEvent.Navigate] 由 [com.answufeng.arch.nav.AwNav.navigate] 处理，**不会**再回调此方法。
-     *
-     * @param route 目标路由路径
-     * @param extras 导航参数，可为 null
-     */
-    fun navigateTo(route: String, extras: Bundle? = null) {}
-
-    /**
-     * 返回上一页。
-     */
-    fun navigateBack() {}
-
-    /**
      * 处理自定义事件。
      *
      * @param key 事件标识
      * @param data 事件携带的数据
      */
-    fun handleCustomEvent(key: String, data: Any?) {}
+    fun handleCustomEvent(
+        key: String,
+        data: Any?,
+    ) {}
 }

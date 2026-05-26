@@ -31,13 +31,16 @@ import kotlinx.coroutines.launch
  * @see MvvmView
  */
 abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatActivity(), MvvmView {
-
     private var _binding: VB? = null
 
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreate or after onDestroy")
 
-    protected lateinit var viewModel: VM
+    private lateinit var archViewModelHolder: VM
+
+    /** 当前 ViewModel；Hilt 子类可 `override val viewModel by viewModels()`。 */
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
     /**
      * 若返回非 null，[UiEvent.Navigate] / [UiEvent.NavigateBack] 将交给 [AwNav] 处理；
@@ -51,10 +54,22 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
         super.onCreate(savedInstanceState)
         _binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
-        viewModel = createViewModel()
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         initView(savedInstanceState)
         initObservers()
     }
+
+    /**
+     * Hilt 等注入场景：返回非 null 时优先于 [obtainViewModel]。
+     * [HiltMvvmActivity] 默认实现为 `abstract val viewModel`。
+     */
+    protected open fun injectViewModel(): VM? = null
+
+    /**
+     * 获取 [viewModel] 实例。默认通过 [createViewModel] 反射创建；
+     * Hilt 子类通过 [injectViewModel] 提供注入实例。
+     */
+    protected open fun obtainViewModel(): VM = createViewModel()
 
     abstract fun initView(savedInstanceState: Bundle?)
 

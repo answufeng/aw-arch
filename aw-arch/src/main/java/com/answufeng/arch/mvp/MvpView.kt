@@ -1,16 +1,10 @@
 package com.answufeng.arch.mvp
 
-import android.os.Bundle
+import com.answufeng.arch.base.ArchView
 
 /**
- * MVP 视图基接口。
+ * MVP 视图 Contract 标记接口，继承 [ArchView] 的通用 UI 能力。
  *
- * Presenter 通过该接口与 UI 层交互；子类可按需扩展更具体的 Contract.View。
+ * Presenter 通过该接口与 UI 层交互；子类可按需扩展更具体的 `Contract.View`。
  */
-interface MvpView {
-    fun onLoading(show: Boolean) {}
-    fun showToast(message: String) {}
-    fun navigateTo(route: String, extras: Bundle? = null) {}
-    fun navigateBack() {}
-}
-
+interface MvpView : ArchView

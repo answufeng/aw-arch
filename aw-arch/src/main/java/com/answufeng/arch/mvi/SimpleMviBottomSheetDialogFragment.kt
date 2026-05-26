@@ -33,24 +33,36 @@ abstract class SimpleMviBottomSheetDialogFragment<
     VM : SimpleMviViewModel<STATE, INTENT>,
     > :
     BottomSheetDialogFragment(), MviDispatcher<INTENT> {
-
     private var _binding: VB? = null
 
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
-    protected lateinit var viewModel: VM
+    private lateinit var archViewModelHolder: VM
 
-    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    abstract fun inflateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): VB
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
         _binding = inflateBinding(inflater, container)
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = createViewModel()
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         initView(savedInstanceState)
         initObservers()
     }
@@ -62,6 +74,10 @@ abstract class SimpleMviBottomSheetDialogFragment<
     protected open fun initObservers() {
         observeMvi(viewModel.state, viewModel.event, render = ::render)
     }
+
+    protected open fun injectViewModel(): VM? = null
+
+    protected open fun obtainViewModel(): VM = createViewModel()
 
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, SimpleMviViewModel::class.java)

@@ -1,6 +1,6 @@
 package com.answufeng.arch.demo
 
-import com.answufeng.arch.mvi.UiEvent
+import com.answufeng.arch.mvi.MviEffect
 import com.answufeng.arch.mvi.UiIntent
 import com.answufeng.arch.mvi.UiState
 import com.answufeng.arch.mvi.MviViewModel
@@ -11,7 +11,7 @@ data class CounterState(
     val isLoading: Boolean = false
 ) : UiState
 
-sealed class CounterEvent : UiEvent {
+sealed class CounterEvent : MviEffect {
     data class ShowSnackbar(val message: String) : CounterEvent()
 }
 

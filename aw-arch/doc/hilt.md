@@ -113,15 +113,32 @@ class HiltMvpDemoActivity : HiltMvpActivity<VB, V, P>() {
 
 ## 与非 Hilt 版本的区别
 
+`HiltMvvm*` / `HiltMvi*` / `HiltSimpleMvi*` / `HiltMvp*` **直接继承**对应非 Hilt 基类，生命周期、`render`、`attachView` 等行为与非 Hilt 完全一致。
+
 | 特性 | 非 Hilt 版本 | Hilt 版本 |
 |------|-------------|-----------|
 | ViewModel 创建 | 反射推断 + `ViewModelProvider` | `by viewModels()` 注入 |
-| Presenter 创建 | 反射推断无参构造 | `@Inject` 注入 |
-| `viewModel` / `presenter` | `lateinit var` 自动创建 | `abstract val` 由子类注入 |
+| Presenter 创建 | 反射推断无参构造（Fragment 由 ViewModel 持有） | `override val presenter` + `injectPresenter()` |
+| `viewModel` | `open val`，内部缓存 | `abstract override val viewModel`，经 `injectViewModel()` 注入 |
+| `presenter` | `open val`，反射或 ViewModel 持有 | `abstract override val presenter`，经 `injectPresenter()` 注入 |
+| 自定义注入 | 覆写 `injectViewModel()` / `injectPresenter()` 或 `obtainViewModel()` | Hilt 子类默认委托至 `viewModel` / `presenter` |
 | `createViewModel()` | 可覆写 | 不需要 |
+
+```kotlin
+// 非 Hilt：手动提供 ViewModel（可选）
+class MyActivity : MvvmActivity<..., MyVm>() {
+    override fun injectViewModel(): MyVm? = myManualVm
+}
+
+// Hilt：与之前相同
+@AndroidEntryPoint
+class HiltDemoActivity : HiltMvvmActivity<..., HiltDemoViewModel>() {
+    override val viewModel: HiltDemoViewModel by viewModels()
+}
+```
 
 ## 注意事项
 
-- Hilt 基类中 `viewModel` / `presenter` 为 `abstract val`，必须由子类通过 `by viewModels()` 或 `@Inject` 提供
+- Hilt 基类中 `viewModel` 为 `abstract override val`，必须由子类通过 `by viewModels()` 或 `@Inject` 提供
 - `@HiltViewModel` 的 ViewModel 必须有 `@Inject constructor()`
 - Fragment 中使用 `by viewModels()` 获取的是 Fragment 作用域的 ViewModel，如需 Activity 作用域使用 `by activityViewModels()`

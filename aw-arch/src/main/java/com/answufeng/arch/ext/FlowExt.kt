@@ -6,7 +6,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.answufeng.arch.mvi.UiEvent
+import com.answufeng.arch.mvi.MviEffect
 import com.answufeng.arch.mvi.UiState
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -27,13 +27,24 @@ import kotlinx.coroutines.launch
 fun <T : Any> Flow<T>.collectOnLifecycle(
     lifecycleOwner: LifecycleOwner,
     state: Lifecycle.State = Lifecycle.State.STARTED,
-    action: suspend (T) -> Unit
+    action: suspend (T) -> Unit,
 ) {
     lifecycleOwner.lifecycleScope.launch {
         lifecycleOwner.repeatOnLifecycle(state) {
             collect { action(it) }
         }
     }
+}
+
+/**
+ * 在 [LifecycleOwner] 的指定生命周期状态下收集 Flow，语义同 [collectOnLifecycle]。
+ */
+fun <T : Any> Flow<T>.bindLifecycle(
+    lifecycleOwner: LifecycleOwner,
+    state: Lifecycle.State = Lifecycle.State.STARTED,
+    action: suspend (T) -> Unit,
+) {
+    collectOnLifecycle(lifecycleOwner, state, action)
 }
 
 /**
@@ -47,11 +58,12 @@ fun <T : Any> Flow<T>.collectOnLifecycle(
 fun <T> Flow<T>.throttleFirst(
     windowMillis: Long,
     timeMillis: () -> Long = { SystemClock.elapsedRealtime() },
-): Flow<T> = ThrottleFirstFlow(
-    this,
-    windowMillis = windowMillis,
-    timeMillis = timeMillis,
-)
+): Flow<T> =
+    ThrottleFirstFlow(
+        this,
+        windowMillis = windowMillis,
+        timeMillis = timeMillis,
+    )
 
 /**
  * 节流 Flow 实现：在 [windowMillis] 时间窗口内只发射每个窗口内的**第一个**元素。
@@ -81,10 +93,12 @@ internal class ThrottleFirstFlow<T>(
 /**
  * 防抖操作：在 [timeoutMillis] 时间内无新事件才发射最后一个。
  *
- * 适用于搜索输入框实时搜索等场景。
- *
- * @param timeoutMillis 超时时间（毫秒）
+ * @deprecated 请直接使用 [debounce]。
  */
+@Deprecated(
+    message = "Use debounce(timeoutMillis) instead",
+    replaceWith = ReplaceWith("debounce(timeoutMillis)"),
+)
 fun <T> Flow<T>.debounceAction(timeoutMillis: Long): Flow<T> {
     return debounce(timeoutMillis)
 }
@@ -112,15 +126,17 @@ fun <T, R> Flow<T>.select(selector: (T) -> R): Flow<R> {
  *
  * @param windowMillis 时间窗口（毫秒），默认 300
  */
-fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> = callbackFlow {
-    val listener = View.OnClickListener {
-        if (!isClosedForSend) {
-            trySend(Unit)
-        }
-    }
-    setOnClickListener(listener)
-    awaitClose { setOnClickListener(null) }
-}.throttleFirst(windowMillis)
+fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> =
+    callbackFlow {
+        val listener =
+            View.OnClickListener {
+                if (!isClosedForSend) {
+                    trySend(Unit)
+                }
+            }
+        setOnClickListener(listener)
+        awaitClose { setOnClickListener(null) }
+    }.throttleFirst(windowMillis)
 
 /**
  * 观察 MVI 架构的 StateFlow 和事件 Flow，在指定生命周期状态下自动收集。
@@ -131,12 +147,12 @@ fun View.throttleClicks(windowMillis: Long = 300): Flow<Unit> = callbackFlow {
  * @param render      状态渲染回调
  * @param handleEvent 事件处理回调
  */
-fun <S : UiState, E : UiEvent> LifecycleOwner.observeMvi(
+fun <S : UiState, E : MviEffect> LifecycleOwner.observeMvi(
     stateFlow: StateFlow<S>,
     eventFlow: Flow<E>,
     state: Lifecycle.State = Lifecycle.State.STARTED,
     render: (S) -> Unit,
-    handleEvent: (E) -> Unit = {}
+    handleEvent: (E) -> Unit = {},
 ) {
     lifecycleScope.launch {
         repeatOnLifecycle(state) {

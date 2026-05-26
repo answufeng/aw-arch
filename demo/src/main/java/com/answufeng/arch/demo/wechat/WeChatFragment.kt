@@ -90,7 +90,7 @@ class WeChatFragment : MviFragment<FragmentWechatBinding, WeChatState, WeChatEve
             putString("snippet", msg.content)
         }
         val page = ChatDetailFragment().apply { arguments = args }
-        (requireActivity() as WeChatActivity).pushOverlayPage(page, "chat_detail")
+        (requireActivity() as WeChatActivity).pushOverlayRoute("chat_detail", args)
     }
 
     private fun Int.dp(): Int = TypedValue.applyDimension(

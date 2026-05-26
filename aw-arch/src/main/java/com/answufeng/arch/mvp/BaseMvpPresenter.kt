@@ -15,17 +15,17 @@ import kotlinx.coroutines.withContext
  * - 内置协程作用域，detach 时自动 cancel，避免泄漏
  */
 abstract class BaseMvpPresenter<V : MvpView> : MvpPresenter<V> {
-
     private var _view: V? = null
     protected val viewOrNull: V? get() = _view
     protected val view: V get() = _view ?: error("View is not attached yet (or already detached).")
 
     override val isViewAttached: Boolean get() = _view != null
 
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        AwArch.logger.e(this::class.simpleName ?: "BaseMvpPresenter", "Unhandled exception", throwable)
-        onUnhandledException(throwable)
-    }
+    private val exceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            AwArch.logger.e(this::class.simpleName ?: "BaseMvpPresenter", "Unhandled exception", throwable)
+            onUnhandledException(throwable)
+        }
 
     private var job = SupervisorJob()
 
@@ -52,6 +52,7 @@ abstract class BaseMvpPresenter<V : MvpView> : MvpPresenter<V> {
     }
 
     protected open fun onViewAttached(view: V) {}
+
     protected open fun onViewDetached(view: V?) {}
 
     protected open fun onUnhandledException(throwable: Throwable) {}
@@ -68,7 +69,5 @@ abstract class BaseMvpPresenter<V : MvpView> : MvpPresenter<V> {
         presenterScope.launch(context = Dispatchers.Default, block = block)
     }
 
-    protected suspend fun <T> withMain(block: suspend CoroutineScope.() -> T): T =
-        withContext(Dispatchers.Main, block)
+    protected suspend fun <T> withMain(block: suspend CoroutineScope.() -> T): T = withContext(Dispatchers.Main, block)
 }
-

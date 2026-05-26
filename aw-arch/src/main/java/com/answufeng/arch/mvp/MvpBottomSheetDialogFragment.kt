@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.viewbinding.ViewBinding
-import com.answufeng.arch.ext.inferPresenterClass
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 /**
  * MVP 架构 BottomSheetDialogFragment 基类
+ *
+ * Presenter 由 ViewModel 持有，避免 [onDestroyView] 后重建导致状态丢失。
  *
  * @param VB ViewBinding 类型
  * @param V View Contract 类型，必须实现 [MvpView]（通常由 BottomSheetDialogFragment 自身实现）
@@ -17,28 +19,44 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
  */
 abstract class MvpBottomSheetDialogFragment<VB : ViewBinding, V : MvpView, P : MvpPresenter<V>> :
     BottomSheetDialogFragment(), MvpView {
-
     private var _binding: VB? = null
 
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
-    protected lateinit var presenter: P
+    private var archInjectedPresenter: P? = null
+
+    private val presenterHolder: MvpPresenterHolder<P> by viewModels {
+        MvpPresenterViewModelFactory { createPresenter() }
+    }
+
+    protected open val presenter: P
+        get() = archInjectedPresenter ?: presenterHolder.presenter
 
     @Suppress("UNCHECKED_CAST")
     protected val contractView: V get() = this as V
 
-    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
+    abstract fun inflateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): VB
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
         _binding = inflateBinding(inflater, container)
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        presenter = createPresenter()
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        injectPresenter()?.let { archInjectedPresenter = it }
         presenter.attachView(contractView)
+        super.onViewCreated(view, savedInstanceState)
         initView(savedInstanceState)
         initObservers()
     }
@@ -47,12 +65,9 @@ abstract class MvpBottomSheetDialogFragment<VB : ViewBinding, V : MvpView, P : M
 
     open fun initObservers() {}
 
-    protected open fun createPresenter(): P {
-        val pClass = inferPresenterClass<P>(javaClass, MvpPresenter::class.java)
-        val ctor = pClass.getDeclaredConstructor()
-        ctor.isAccessible = true
-        return ctor.newInstance()
-    }
+    protected open fun injectPresenter(): P? = null
+
+    protected open fun createPresenter(): P = reflectiveCreatePresenter(javaClass)
 
     override fun showToast(message: String) {
         android.widget.Toast.makeText(requireContext(), message, android.widget.Toast.LENGTH_SHORT).show()
@@ -64,8 +79,8 @@ abstract class MvpBottomSheetDialogFragment<VB : ViewBinding, V : MvpView, P : M
 
     override fun onDestroyView() {
         presenter.detachView()
+        archInjectedPresenter = null
         super.onDestroyView()
         _binding = null
     }
 }
-

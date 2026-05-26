@@ -30,12 +30,12 @@ import kotlinx.coroutines.withContext
  * @param savedStateHandle 进程重启后恢复状态，由 ViewModelProvider 自动注入
  */
 abstract class BaseViewModel(
-    protected val savedStateHandle: SavedStateHandle? = null
+    protected val savedStateHandle: SavedStateHandle? = null,
 ) : ViewModel() {
-
-    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        handleException(throwable)
-    }
+    private val exceptionHandler =
+        CoroutineExceptionHandler { _, throwable ->
+            handleException(throwable)
+        }
 
     private fun resolveHandler(onError: ((Throwable) -> Unit)?): CoroutineExceptionHandler {
         return if (onError != null) {
@@ -48,7 +48,7 @@ abstract class BaseViewModel(
     /** 在 Main 线程启动协程，异常由 [handleException] 或 [onError] 回调处理 */
     protected fun launch(
         onError: ((Throwable) -> Unit)? = null,
-        block: suspend CoroutineScope.() -> Unit
+        block: suspend CoroutineScope.() -> Unit,
     ) {
         viewModelScope.launch(resolveHandler(onError), block = block)
     }
@@ -56,7 +56,7 @@ abstract class BaseViewModel(
     /** 在 IO 线程启动协程，适合网络请求、数据库操作等 */
     protected fun launchIO(
         onError: ((Throwable) -> Unit)? = null,
-        block: suspend CoroutineScope.() -> Unit
+        block: suspend CoroutineScope.() -> Unit,
     ) {
         viewModelScope.launch(Dispatchers.IO + resolveHandler(onError), block = block)
     }
@@ -64,21 +64,22 @@ abstract class BaseViewModel(
     /** 在 Default 线程启动协程，适合 CPU 密集型计算 */
     protected fun launchDefault(
         onError: ((Throwable) -> Unit)? = null,
-        block: suspend CoroutineScope.() -> Unit
+        block: suspend CoroutineScope.() -> Unit,
     ) {
         viewModelScope.launch(Dispatchers.Default + resolveHandler(onError), block = block)
     }
 
     /** 切换到 Main 线程执行，通常用于在 IO 协程中更新 UI */
-    protected suspend fun <T> withMain(block: suspend CoroutineScope.() -> T): T =
-        withContext(Dispatchers.Main, block)
+    protected suspend fun <T> withMain(block: suspend CoroutineScope.() -> T): T = withContext(Dispatchers.Main, block)
 
     /** 从 SavedStateHandle 读取值 */
-    protected inline fun <reified T> getSavedState(key: String): T? =
-        savedStateHandle?.get<T>(key)
+    protected inline fun <reified T> getSavedState(key: String): T? = savedStateHandle?.get<T>(key)
 
     /** 向 SavedStateHandle 写入值 */
-    protected fun <T> setSavedState(key: String, value: T) {
+    protected fun <T> setSavedState(
+        key: String,
+        value: T,
+    ) {
         savedStateHandle?.set(key, value)
     }
 
@@ -88,7 +89,10 @@ abstract class BaseViewModel(
      * 若构造时未注入 [savedStateHandle]（为 `null`），则退化为普通 [kotlinx.coroutines.flow.MutableStateFlow]，
      * 仅内存内有效，**杀进程后不会恢复**。
      */
-    protected fun <T> savedStateFlow(key: String, initialValue: T): kotlinx.coroutines.flow.StateFlow<T> =
+    protected fun <T> savedStateFlow(
+        key: String,
+        initialValue: T,
+    ): kotlinx.coroutines.flow.StateFlow<T> =
         savedStateHandle?.getStateFlow(key, initialValue)
             ?: kotlinx.coroutines.flow.MutableStateFlow(initialValue)
 

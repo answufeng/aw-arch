@@ -19,7 +19,6 @@ annotation class AwArchDsl
  */
 @AwArchDsl
 object AwArch {
-
     /** 全局日志实现，默认使用 Android Log（测试环境自动降级为 println） */
     @Volatile
     var logger: AwLogger = DefaultAwLogger()
@@ -65,9 +64,22 @@ object AwArch {
  * ```
  */
 interface AwLogger {
-    fun d(tag: String, message: String)
-    fun w(tag: String, message: String, throwable: Throwable? = null)
-    fun e(tag: String, message: String, throwable: Throwable? = null)
+    fun d(
+        tag: String,
+        message: String,
+    )
+
+    fun w(
+        tag: String,
+        message: String,
+        throwable: Throwable? = null,
+    )
+
+    fun e(
+        tag: String,
+        message: String,
+        throwable: Throwable? = null,
+    )
 }
 
 /**
@@ -78,7 +90,6 @@ interface AwLogger {
  * 通过尝试调用 [android.util.Log.isLoggable] 探测运行环境（部分桩/精简环境会抛异常，此时走标准输出）。
  */
 internal class DefaultAwLogger : AwLogger {
-
     private val isAndroid: Boolean by lazy {
         try {
             android.util.Log.isLoggable("AwArch", android.util.Log.VERBOSE)
@@ -88,7 +99,10 @@ internal class DefaultAwLogger : AwLogger {
         }
     }
 
-    override fun d(tag: String, message: String) {
+    override fun d(
+        tag: String,
+        message: String,
+    ) {
         if (isAndroid) {
             android.util.Log.d(tag, message)
         } else {
@@ -96,7 +110,11 @@ internal class DefaultAwLogger : AwLogger {
         }
     }
 
-    override fun w(tag: String, message: String, throwable: Throwable?) {
+    override fun w(
+        tag: String,
+        message: String,
+        throwable: Throwable?,
+    ) {
         if (isAndroid) {
             android.util.Log.w(tag, message, throwable)
         } else {
@@ -104,7 +122,11 @@ internal class DefaultAwLogger : AwLogger {
         }
     }
 
-    override fun e(tag: String, message: String, throwable: Throwable?) {
+    override fun e(
+        tag: String,
+        message: String,
+        throwable: Throwable?,
+    ) {
         if (isAndroid) {
             android.util.Log.e(tag, message, throwable)
         } else {

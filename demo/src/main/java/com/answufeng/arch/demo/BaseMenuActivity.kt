@@ -34,27 +34,47 @@ abstract class BaseMenuActivity : AppCompatActivity() {
         buildMenu(savedInstanceState)
     }
 
+    protected fun addSectionTitle(title: String) {
+        val tv =
+            TextView(this).apply {
+                text = title
+                setTextAppearance(R.style.TextAppearance_AwArchDemo_SectionLabel)
+                val top = if (actions.childCount > 0) R.dimen.demo_space_md else R.dimen.demo_space_sm
+                setPadding(0, resources.getDimensionPixelSize(top), 0, resources.getDimensionPixelSize(R.dimen.demo_space_sm))
+            }
+        actions.addView(
+            tv,
+            ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT),
+        )
+    }
+
     protected fun addMenuItem(
         text: String,
+        subtitle: String = "",
         outlined: Boolean = false,
         intent: Intent,
     ) {
-        val defStyleAttr = if (outlined) {
-            com.google.android.material.R.attr.materialButtonOutlinedStyle
+        val container =
+            layoutInflater.inflate(R.layout.item_demo_menu_action, actions, false)
+        container.findViewById<TextView>(R.id.title).text = text
+        val sub = container.findViewById<TextView>(R.id.subtitle)
+        if (subtitle.isBlank()) {
+            sub.visibility = View.GONE
         } else {
-            com.google.android.material.R.attr.materialButtonStyle
+            sub.text = subtitle
         }
-        val btn = MaterialButton(this, null, defStyleAttr).apply { this.text = text }
-        btn.setOnClickListener { startActivity(intent) }
 
-        val lp = ViewGroup.MarginLayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
+        container.findViewById<MaterialButton>(R.id.btnOpen).setOnClickListener { startActivity(intent) }
+
+        val lp =
+            ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+            )
         if (actions.childCount > 0) {
             lp.topMargin = resources.getDimensionPixelSize(R.dimen.demo_space_sm)
         }
-        actions.addView(btn, lp)
+        actions.addView(container, lp)
     }
 
     protected abstract fun buildMenu(savedInstanceState: Bundle?)

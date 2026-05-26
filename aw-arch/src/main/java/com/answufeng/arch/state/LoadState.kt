@@ -4,9 +4,7 @@ import com.answufeng.arch.config.AwArch
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withTimeout
 
 /**
@@ -63,7 +61,6 @@ import kotlinx.coroutines.withTimeout
  * @param T 数据类型
  */
 sealed class LoadState<out T> {
-
     /** 加载中 */
     data object Loading : LoadState<Nothing>()
 
@@ -73,7 +70,7 @@ sealed class LoadState<out T> {
     /** 加载失败 */
     data class Error(
         val exception: Throwable,
-        val message: String = exception.message ?: "未知错误"
+        val message: String = exception.message ?: "未知错误",
     ) : LoadState<Nothing>()
 
     /** 是否正在加载 */
@@ -91,27 +88,30 @@ sealed class LoadState<out T> {
  *
  * 其他状态原样返回。
  */
-fun <T, R> LoadState<T>.map(transform: (T) -> R): LoadState<R> = when (this) {
-    is LoadState.Loading -> LoadState.Loading
-    is LoadState.Success -> LoadState.Success(transform(data))
-    is LoadState.Error -> this
-}
+fun <T, R> LoadState<T>.map(transform: (T) -> R): LoadState<R> =
+    when (this) {
+        is LoadState.Loading -> LoadState.Loading
+        is LoadState.Success -> LoadState.Success(transform(data))
+        is LoadState.Error -> this
+    }
 
 /**
  * 取出成功数据，失败和加载中返回 null。
  */
-fun <T> LoadState<T>.getOrNull(): T? = when (this) {
-    is LoadState.Success -> data
-    else -> null
-}
+fun <T> LoadState<T>.getOrNull(): T? =
+    when (this) {
+        is LoadState.Success -> data
+        else -> null
+    }
 
 /**
  * 取出成功数据，失败和加载中返回默认值。
  */
-fun <T> LoadState<T>.getOrDefault(default: T): T = when (this) {
-    is LoadState.Success -> data
-    else -> default
-}
+fun <T> LoadState<T>.getOrDefault(default: T): T =
+    when (this) {
+        is LoadState.Success -> data
+        else -> default
+    }
 
 /**
  * 三态模式匹配，覆盖所有分支。
@@ -119,12 +119,13 @@ fun <T> LoadState<T>.getOrDefault(default: T): T = when (this) {
 inline fun <T, R> LoadState<T>.fold(
     onLoading: () -> R,
     onSuccess: (T) -> R,
-    onError: (Throwable) -> R
-): R = when (this) {
-    is LoadState.Loading -> onLoading()
-    is LoadState.Success -> onSuccess(data)
-    is LoadState.Error -> onError(exception)
-}
+    onError: (Throwable) -> R,
+): R =
+    when (this) {
+        is LoadState.Loading -> onLoading()
+        is LoadState.Success -> onSuccess(data)
+        is LoadState.Error -> onError(exception)
+    }
 
 /**
  * 成功时执行回调。
@@ -217,7 +218,7 @@ suspend fun <T> retryLoadState(
     initialDelayMillis: Long = 1000,
     factor: Double = 2.0,
     maxDelayMillis: Long = 30_000L,
-    block: suspend () -> T
+    block: suspend () -> T,
 ): LoadState<T> {
     var currentDelay = initialDelayMillis.coerceAtMost(maxDelayMillis)
     repeat(times) { attempt ->
@@ -227,7 +228,7 @@ suspend fun <T> retryLoadState(
             AwArch.logger.w(
                 "LoadState",
                 "retryLoadState attempt ${attempt + 1}/$times failed, retrying in ${currentDelay}ms",
-                e
+                e,
             )
             delay(currentDelay)
             currentDelay = (currentDelay * factor).toLong().coerceAtMost(maxDelayMillis)
@@ -241,29 +242,47 @@ suspend fun <T> retryLoadState(
     }
 }
 
-fun <T> LoadState<T>.recover(defaultValue: T): LoadState<T> = when (this) {
-    is LoadState.Error -> LoadState.Success(defaultValue)
-    else -> this
-}
+fun <T> LoadState<T>.recover(defaultValue: T): LoadState<T> =
+    when (this) {
+        is LoadState.Error -> LoadState.Success(defaultValue)
+        else -> this
+    }
 
-fun <T> LoadState<T>.recoverWith(fn: (Throwable) -> T): LoadState<T> = when (this) {
-    is LoadState.Error -> LoadState.Success(fn(exception))
-    else -> this
-}
+fun <T> LoadState<T>.recoverWith(fn: (Throwable) -> T): LoadState<T> =
+    when (this) {
+        is LoadState.Error -> LoadState.Success(fn(exception))
+        else -> this
+    }
 
-fun <T, R> LoadState<T>.combine(other: LoadState<R>): LoadState<Pair<T, R>> = when {
-    this is LoadState.Loading || other is LoadState.Loading -> LoadState.Loading
-    this is LoadState.Error -> LoadState.Error(this.exception, this.message)
-    other is LoadState.Error -> LoadState.Error(other.exception, other.message)
-    this is LoadState.Success && other is LoadState.Success -> LoadState.Success(this.data to other.data)
-    else -> LoadState.Loading
-}
+fun <T, R> LoadState<T>.combine(other: LoadState<R>): LoadState<Pair<T, R>> =
+    when {
+        this is LoadState.Loading || other is LoadState.Loading -> LoadState.Loading
+        this is LoadState.Error -> LoadState.Error(this.exception, this.message)
+        other is LoadState.Error -> LoadState.Error(other.exception, other.message)
+        this is LoadState.Success && other is LoadState.Success -> LoadState.Success(this.data to other.data)
+        else -> error("Unreachable LoadState.combine branch")
+    }
 
 fun <T> Flow<T>.asLoadState(): Flow<LoadState<T>> {
-    return this
-        .map<T, LoadState<T>> { LoadState.Success(it) }
-        .onStart { emit(LoadState.Loading) }
-        .catch { emit(LoadState.Error(it)) }
+    return kotlinx.coroutines.flow.flow {
+        emit(LoadState.Loading)
+        var emitted = false
+        try {
+            collect { value ->
+                emitted = true
+                emit(LoadState.Success(value))
+            }
+            if (!emitted) {
+                emit(
+                    LoadState.Error(
+                        IllegalStateException("Source Flow completed without emitting any value"),
+                    ),
+                )
+            }
+        } catch (e: Throwable) {
+            emit(LoadState.Error(e))
+        }
+    }
 }
 
 fun <T, R> Flow<LoadState<T>>.mapLoadState(transform: (T) -> R): Flow<LoadState<R>> {

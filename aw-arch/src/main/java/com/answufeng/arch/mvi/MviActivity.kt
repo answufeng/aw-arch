@@ -19,25 +19,32 @@ import com.answufeng.arch.ext.observeMvi
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]
- * @param EVENT UI 事件类型，必须实现 [UiEvent]
+ * @param EVENT 一次性 Effect 类型，必须实现 [MviEffect]
  * @param INTENT UI 意图类型，必须实现 [UiIntent]
  * @param VM ViewModel 类型，必须继承 [MviViewModel]
  *
  * @see MviViewModel
  * @see UiState
- * @see UiEvent
+ * @see MviEffect
  * @see UiIntent
  * @see MviDispatcher
  */
-abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
-    AppCompatActivity(), MviDispatcher<INTENT> {
-
+abstract class MviActivity<
+    VB : ViewBinding,
+    STATE : UiState,
+    EVENT : MviEffect,
+    INTENT : UiIntent,
+    VM : MviViewModel<STATE, EVENT, INTENT>,
+    > : AppCompatActivity(), MviDispatcher<INTENT> {
     private var _binding: VB? = null
 
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreate or after onDestroy")
 
-    protected lateinit var viewModel: VM
+    private lateinit var archViewModelHolder: VM
+
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
@@ -45,10 +52,15 @@ abstract class MviActivity<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
         super.onCreate(savedInstanceState)
         _binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
-        viewModel = createViewModel()
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         initView(savedInstanceState)
         initObservers()
     }
+
+    protected open fun injectViewModel(): VM? = null
+
+    /** 获取 [viewModel]；默认 [createViewModel]，Hilt 子类通过 [injectViewModel] 注入。 */
+    protected open fun obtainViewModel(): VM = createViewModel()
 
     abstract fun initView(savedInstanceState: Bundle?)
 

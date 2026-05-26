@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import com.answufeng.arch.demo.R
 import com.answufeng.arch.demo.databinding.FragmentContactDetailBinding
+import com.answufeng.arch.nav.AwNav
 class ContactDetailFragment : Fragment() {
 
     private var _binding: FragmentContactDetailBinding? = null
@@ -24,8 +25,7 @@ class ContactDetailFragment : Fragment() {
         binding.tvBreadcrumb.text = getString(R.string.wechat_contact_layer_2)
         binding.tvName.text = name
         binding.btnOpenExtra.setOnClickListener {
-            val page = ContactExtraFragment().apply { arguments = bundleOf("name" to name) }
-            (requireActivity() as WeChatActivity).pushOverlayPage(page, "contact_extra")
+            AwNav.from(this).navigate("contact_extra", bundleOf("name" to name))
         }
     }
 

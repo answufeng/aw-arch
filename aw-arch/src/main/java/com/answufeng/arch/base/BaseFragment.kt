@@ -31,7 +31,6 @@ import androidx.viewbinding.ViewBinding
  * @param VB ViewBinding 类型
  */
 abstract class BaseFragment<VB : ViewBinding> : Fragment() {
-
     private var _binding: VB? = null
 
     /**
@@ -46,7 +45,10 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
     private val lazyLoadHelper = LazyLoadHelper(this)
 
     /** 由子类实现：创建 ViewBinding 实例 */
-    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
+    abstract fun inflateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): VB
 
     /** 初始化视图 */
     abstract fun initView(savedInstanceState: Bundle?)
@@ -66,13 +68,20 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
         lazyLoadHelper.onCreate(savedInstanceState)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
         lazyLoadHelper.prepareForNewView()
         _binding = inflateBinding(inflater, container)
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         initView(savedInstanceState)
         initObservers()

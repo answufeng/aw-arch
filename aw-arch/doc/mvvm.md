@@ -17,12 +17,17 @@ BaseViewModel          ← 协程（launch / launchIO / SavedStateHandle 等）
 - 线程切换（`withMain`）
 - SavedStateHandle 读写（`getSavedState` / `setSavedState` / `savedStateFlow`）
 
+**MVVM 页面请继承 `MvvmViewModel`**（内置 `UiEvent`）。`BaseViewModel` 适用于 MVI 的 `MviViewModel` 父类或自定义 ViewModel：
+
 ```kotlin
-class MyViewModel : BaseViewModel() {
-    fun loadData() = launchIO {
-        val data = repository.fetch()
-        withMain { updateUI(data) }
-    }
+// MVVM 推荐
+class MyViewModel : MvvmViewModel() {
+    fun loadData() = launchIO { /* ... */ }
+}
+
+// 自定义 VM（无 UiEvent）时再用 BaseViewModel
+class CustomViewModel : BaseViewModel() {
+    fun loadData() = launchIO { /* ... */ }
 }
 ```
 
@@ -158,4 +163,4 @@ class HiltDemoActivity : HiltMvvmActivity<ActivityHiltDemoBinding, HiltDemoViewM
 
 - `UiEvent` 通道容量为 128，满时丢弃最旧未消费事件
 - `initObservers()` 默认已在 `STARTED` 状态收集 `uiEvent`，子类覆写时需调用 `super.initObservers()`
-- `MvvmViewModel.UiEvent` 与 MVI 的 `UiEvent` 标记接口是不同的类型，注意区分
+- `MvvmViewModel.UiEvent` 与 MVI 的 [`MviEffect`](mvi.md) 是不同的类型，注意 import 区分

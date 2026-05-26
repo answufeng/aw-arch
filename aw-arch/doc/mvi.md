@@ -1,13 +1,13 @@
 # MVI 模式
 
-aw-arch 提供完整的 MVI 架构基类，基于 `MviViewModel<State, Event, Intent>` + 对应 Activity/Fragment/Dialog 基类，实现严格单向数据流。
+aw-arch 提供完整的 MVI 架构基类，基于 `MviViewModel<State, Effect, Intent>` + 对应 Activity/Fragment/Dialog 基类，实现严格单向数据流。
 
 ## ViewModel 分层
 
 ```
 BaseViewModel          ← 协程（launch / launchIO / SavedStateHandle 等）
-└── MviViewModel       ← + State / Event / Intent
-    └── SimpleMviViewModel  ← 简化（NoEvent）
+└── MviViewModel       ← + State / Effect / Intent
+    └── SimpleMviViewModel  ← 简化（无独立 Effect 类型）
 ```
 
 ## 核心概念
@@ -15,22 +15,24 @@ BaseViewModel          ← 协程（launch / launchIO / SavedStateHandle 等）
 ```
 用户操作 → Intent → ViewModel.handleIntent() → updateState / sendMviEvent
                     ↓                              ↓
-              State (StateFlow)              Event (Channel)
+              State (StateFlow)              Effect (Channel)
                     ↓                              ↓
-              UI render(state)              UI handleEvent(event)
+              UI render(state)              UI handleEvent(effect)
 ```
 
 - **State**：屏幕完整 UI 状态快照，通过 `StateFlow` 暴露，UI 订阅后自动渲染
-- **Event**：一次性事件（Toast、导航等），消费后不会重放
+- **Effect**：一次性副作用（Toast、导航等），消费后不会重放；标记接口为 [`MviEffect`](../../src/main/java/com/answufeng/arch/mvi/MviEffect.kt)
 - **Intent**：用户意图，通过 `dispatch` 分发
+
+> 历史名称 `com.answufeng.arch.mvi.UiEvent` 为 `MviEffect` 的 deprecated typealias，勿与 `MvvmViewModel.UiEvent` 混淆。
 
 ## MviViewModel
 
 ```kotlin
 data class CounterState(val count: Int = 0, val isLoading: Boolean = false) : UiState
 
-sealed class CounterEvent : UiEvent {
-    data class ShowSnackbar(val message: String) : CounterEvent()
+sealed class CounterEffect : MviEffect {
+    data class ShowMessage(val message: String) : CounterEffect()
 }
 
 sealed class CounterIntent : UiIntent {
@@ -38,7 +40,7 @@ sealed class CounterIntent : UiIntent {
     data object LoadData : CounterIntent()
 }
 
-class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>(CounterState()) {
+class CounterViewModel : MviViewModel<CounterState, CounterEffect, CounterIntent>(CounterState()) {
     override fun handleIntent(intent: CounterIntent) {
         when (intent) {
             CounterIntent.Increment -> updateState { copy(count = count + 1) }
@@ -50,7 +52,7 @@ class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>
         updateState { copy(isLoading = true) }
         val data = repository.fetch()
         updateState { copy(isLoading = false, count = data.count) }
-        sendMviEvent(CounterEvent.ShowSnackbar("加载完成"))
+        sendMviEvent(CounterEffect.ShowMessage("加载完成"))
     }
 }
 ```
@@ -60,7 +62,7 @@ class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>
 | 方法 | 说明 |
 |------|------|
 | `updateState { copy(...) }` | 原子更新状态 |
-| `sendMviEvent(event)` | 发送一次性事件 |
+| `sendMviEvent(effect)` | 发送一次性 Effect |
 | `currentState` | 获取当前状态快照 |
 | `dispatch(intent)` | 分发意图（主线程） |
 | `dispatchThrottled(intent, windowMillis)` | 节流分发，同一 key 在窗口期内只处理一次 |
@@ -68,25 +70,22 @@ class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>
 ### dispatchThrottled
 
 ```kotlin
-// 默认按 Intent 类名节流，300ms 窗口
 dispatchThrottled(CounterIntent.Increment)
-
-// 自定义 key 和窗口
 dispatchThrottled(CounterIntent.Increment, windowMillis = 500) { "btn_increment" }
 ```
 
 ## 基类列表
 
-### 标准 MVI（State + Event + Intent）
+### 标准 MVI（State + Effect + Intent）
 
 | 基类 | 容器 | 泛型参数 |
 |------|------|----------|
-| `MviActivity<VB, S, E, I, VM>` | AppCompatActivity | 5 个 |
+| `MviActivity<VB, S, E, I, VM>` | AppCompatActivity | 5 个（E 为 `MviEffect`） |
 | `MviFragment<VB, S, E, I, VM>` | Fragment | 5 个 + 懒加载 |
 | `MviDialogFragment<VB, S, E, I, VM>` | DialogFragment | 5 个 |
 | `MviBottomSheetDialogFragment<VB, S, E, I, VM>` | BottomSheetDialogFragment | 5 个 |
 
-### 简化 MVI（State + Intent，无 Event）
+### 简化 MVI（State + Intent，无 Effect）
 
 | 基类 | 容器 | 泛型参数 |
 |------|------|----------|
@@ -101,7 +100,7 @@ dispatchThrottled(CounterIntent.Increment, windowMillis = 500) { "btn_increment"
 class CounterActivity : MviActivity<
     ActivityCounterBinding,
     CounterState,
-    CounterEvent,
+    CounterEffect,
     CounterIntent,
     CounterViewModel
 >() {
@@ -117,9 +116,10 @@ class CounterActivity : MviActivity<
         binding.progressBar.isVisible = state.isLoading
     }
 
-    override fun handleEvent(event: CounterEvent) {
+    override fun handleEvent(event: CounterEffect) {
         when (event) {
-            is CounterEvent.ShowSnackbar -> Snackbar.make(binding.root, event.message, Snackbar.LENGTH_SHORT).show()
+            is CounterEffect.ShowMessage ->
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
         }
     }
 }
@@ -127,7 +127,7 @@ class CounterActivity : MviActivity<
 
 ## SimpleMviViewModel
 
-不需要一次性事件时，使用简化版：
+不需要一次性 Effect 时，使用简化版：
 
 ```kotlin
 class SimpleCounterVM : SimpleMviViewModel<SimpleCounterState, SimpleCounterIntent>(SimpleCounterState()) {
@@ -136,17 +136,6 @@ class SimpleCounterVM : SimpleMviViewModel<SimpleCounterState, SimpleCounterInte
             SimpleCounterIntent.Inc -> updateState { copy(count = count + 1) }
         }
     }
-}
-
-class SimpleCounterActivity : SimpleMviActivity<
-    ActivitySimpleCounterBinding,
-    SimpleCounterState,
-    SimpleCounterIntent,
-    SimpleCounterVM
->() {
-    override fun inflateBinding(inflater: LayoutInflater) = ActivitySimpleCounterBinding.inflate(inflater)
-    override fun initView(savedInstanceState: Bundle?) { ... }
-    override fun render(state: SimpleCounterState) { ... }
 }
 ```
 
@@ -164,6 +153,7 @@ class SharedMviFragment : MviFragment<VB, S, E, I, VM>() {
 |------|------|
 | `HiltMviActivity<VB, S, E, I, VM>` | ViewModel 通过 Hilt 注入 |
 | `HiltMviFragment<VB, S, E, I, VM>` | 同上 + 懒加载 |
+| `HiltSimpleMviActivity<VB, S, I, VM>` | 无 Effect 的 Hilt 版 |
 
 ```kotlin
 @AndroidEntryPoint
@@ -178,6 +168,6 @@ class HiltMviDemoActivity : HiltMviActivity<VB, S, E, I, VM>() {
 ## 注意事项
 
 - `dispatch()` 和 `dispatchThrottled()` 必须在主线程调用
-- `event` 通道容量为 128，满时丢弃最旧事件
+- `event` 通道容量为 128，满时丢弃最旧 Effect
 - `SimpleMvi*` 的第四泛型参数 `VM` 必须是具体的 ViewModel 实现类，供反射创建
 - `MviDispatcher<INTENT>` 接口由基类自动实现，Fragment/Activity 可直接调用 `dispatch()`

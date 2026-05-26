@@ -15,6 +15,8 @@
     <color name="aw_demo_divider">#E2E8F0</color>
     <color name="aw_demo_log_bg">#F1F5F9</color>
     <color name="aw_demo_surface_muted">#F1F5F9</color>
+    <color name="aw_demo_icon_bg">#EEF2FF</color>
+    <color name="aw_demo_hero_gradient_start">#EFF6FF</color>
     <!-- WeChat-style demo accent (bottom nav / highlights only) -->
     <color name="aw_demo_wechat">#07C160</color>
     <color name="aw_demo_wechat_on_surface">#0F172A</color>

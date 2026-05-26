@@ -1,7 +1,7 @@
 package com.answufeng.arch.demo.wechat
 
-import com.answufeng.arch.mvi.UiEvent
+import com.answufeng.arch.mvi.MviEffect
 
-sealed class WeChatEvent : UiEvent {
+sealed class WeChatEvent : MviEffect {
     data class ShowMessage(val message: String) : WeChatEvent()
 }

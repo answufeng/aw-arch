@@ -27,26 +27,38 @@ import kotlinx.coroutines.launch
  * @see MvvmView
  */
 abstract class MvvmBottomSheetDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : BottomSheetDialogFragment(), MvvmView {
-
     private var _binding: VB? = null
 
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
-    protected lateinit var viewModel: VM
+    private lateinit var archViewModelHolder: VM
+
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
     protected open val awNav: AwNav? get() = null
 
-    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
+    abstract fun inflateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): VB
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
         _binding = inflateBinding(inflater, container)
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = createViewModel()
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         initView(savedInstanceState)
         initObservers()
     }
@@ -62,6 +74,10 @@ abstract class MvvmBottomSheetDialogFragment<VB : ViewBinding, VM : MvvmViewMode
             }
         }
     }
+
+    protected open fun injectViewModel(): VM? = null
+
+    protected open fun obtainViewModel(): VM = createViewModel()
 
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MvvmViewModel::class.java)

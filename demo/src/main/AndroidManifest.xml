@@ -35,6 +35,9 @@
             android:name=".HiltMviDemoActivity"
             android:exported="false" />
         <activity
+            android:name=".HiltSimpleMviDemoActivity"
+            android:exported="false" />
+        <activity
             android:name=".MvpDemoActivity"
             android:exported="false" />
         <activity
@@ -47,7 +50,16 @@
             android:name=".AwNavInterceptorDemoActivity"
             android:exported="false" />
         <activity
-            android:name=".wechat.WeChatMenuActivity"
+            android:name=".AwNavTabStackDemoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".hub.ArchPatternMenuActivity"
+            android:exported="false" />
+        <activity
+            android:name=".hub.HiltMenuActivity"
+            android:exported="false" />
+        <activity
+            android:name=".hub.NavMenuActivity"
             android:exported="false" />
         <activity
             android:name=".wechat.WeChatActivity"

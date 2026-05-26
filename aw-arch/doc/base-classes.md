@@ -58,6 +58,13 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
 - `onDestroyView` 中置空 `_binding`
 - 在 `onDestroyView` 之后访问 `binding` 会抛出 `IllegalStateException`
 
+## ArchView（MVVM / MVP 共用）
+
+`ArchView` 定义 Loading、Toast、`navigateTo` / `navigateBack` 等默认空实现：
+
+- **MVVM**：`MvvmView : ArchView`，并增加 `onUiEvent(UiEvent)` 分发
+- **MVP**：`MvpView : ArchView`，Contract 的 `View` 可继承 `MvpView` 或 `ArchView`
+
 ## 架构基类对照表
 
 | 架构 | Activity | Fragment | DialogFragment | BottomSheet |
@@ -74,6 +81,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
 |------|----------|----------|----------------|-------------|
 | MVVM | `HiltMvvmActivity<VB, VM>` | `HiltMvvmFragment<VB, VM>` | `HiltMvvmDialogFragment<VB, VM>` | `HiltMvvmBottomSheetDialogFragment<VB, VM>` |
 | MVI | `HiltMviActivity<VB, S, E, I, VM>` | `HiltMviFragment<VB, S, E, I, VM>` | `HiltMviDialogFragment<VB, S, E, I, VM>` | `HiltMviBottomSheetDialogFragment<VB, S, E, I, VM>` |
+| SimpleMVI | `HiltSimpleMviActivity<VB, S, I, VM>` | `HiltSimpleMviFragment<VB, S, I, VM>` | `HiltSimpleMviDialogFragment<VB, S, I, VM>` | `HiltSimpleMviBottomSheetDialogFragment<VB, S, I, VM>` |
 | MVP | `HiltMvpActivity<VB, V, P>` | `HiltMvpFragment<VB, V, P>` | `HiltMvpDialogFragment<VB, V, P>` | `HiltMvpBottomSheetDialogFragment<VB, V, P>` |
 
 ## 选型建议

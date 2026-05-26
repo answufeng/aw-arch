@@ -31,13 +31,15 @@ abstract class SimpleMviActivity<
     VM : SimpleMviViewModel<STATE, INTENT>,
     > :
     AppCompatActivity(), MviDispatcher<INTENT> {
-
     private var _binding: VB? = null
 
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreate or after onDestroy")
 
-    protected lateinit var viewModel: VM
+    private lateinit var archViewModelHolder: VM
+
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
     abstract fun inflateBinding(inflater: LayoutInflater): VB
 
@@ -45,17 +47,22 @@ abstract class SimpleMviActivity<
         super.onCreate(savedInstanceState)
         _binding = inflateBinding(layoutInflater)
         setContentView(binding.root)
-        viewModel = createViewModel()
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         initView(savedInstanceState)
         initObservers()
     }
 
     abstract fun initView(savedInstanceState: Bundle?)
+
     abstract fun render(state: STATE)
 
     protected open fun initObservers() {
         observeMvi(viewModel.state, viewModel.event, render = ::render)
     }
+
+    protected open fun injectViewModel(): VM? = null
+
+    protected open fun obtainViewModel(): VM = createViewModel()
 
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, SimpleMviViewModel::class.java)

@@ -20,36 +20,53 @@ import com.answufeng.arch.ext.observeMvi
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]
- * @param EVENT UI 事件类型，必须实现 [UiEvent]
+ * @param EVENT 一次性 Effect 类型，必须实现 [MviEffect]
  * @param INTENT UI 意图类型，必须实现 [UiIntent]
  * @param VM ViewModel 类型，必须继承 [MviViewModel]
  *
  * @see MviViewModel
  * @see UiState
- * @see UiEvent
+ * @see MviEffect
  * @see UiIntent
  * @see MviDispatcher
  */
-abstract class MviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
-    DialogFragment(), MviDispatcher<INTENT> {
-
+abstract class MviDialogFragment<
+    VB : ViewBinding,
+    STATE : UiState,
+    EVENT : MviEffect,
+    INTENT : UiIntent,
+    VM : MviViewModel<STATE, EVENT, INTENT>,
+    > : DialogFragment(), MviDispatcher<INTENT> {
     private var _binding: VB? = null
 
     protected val binding: VB
         get() = _binding ?: error("ViewBinding is not available before onCreateView or after onDestroyView")
 
-    protected lateinit var viewModel: VM
+    private lateinit var archViewModelHolder: VM
 
-    abstract fun inflateBinding(inflater: LayoutInflater, container: ViewGroup?): VB
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    abstract fun inflateBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+    ): VB
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
         _binding = inflateBinding(inflater, container)
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = createViewModel()
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         initView(savedInstanceState)
         initObservers()
     }
@@ -63,6 +80,10 @@ abstract class MviDialogFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEv
     protected open fun initObservers() {
         observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
+
+    protected open fun injectViewModel(): VM? = null
+
+    protected open fun obtainViewModel(): VM = createViewModel()
 
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MviViewModel::class.java)

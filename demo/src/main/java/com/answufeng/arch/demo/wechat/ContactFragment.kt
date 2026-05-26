@@ -41,7 +41,10 @@ class ContactFragment : BaseFragment<FragmentContactListBinding>() {
             ).apply { bottomMargin = 8.dp() }
             setOnClickListener {
                 val page = ContactDetailFragment().apply { arguments = bundleOf("name" to name) }
-                (requireActivity() as WeChatActivity).pushOverlayPage(page, "contact_detail")
+                (requireActivity() as WeChatActivity).pushOverlayRoute(
+                    "contact_detail",
+                    bundleOf("name" to name),
+                )
             }
         }
         val inner = LinearLayout(requireContext()).apply {

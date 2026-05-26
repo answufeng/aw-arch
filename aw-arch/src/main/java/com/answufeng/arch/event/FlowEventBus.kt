@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.KClass
@@ -18,8 +19,8 @@ import kotlin.reflect.KClass
  *
  * - **普通事件**：通过 [post] / [tryPost] 发送，[observe] 订阅，仅新订阅者收到后续事件
  * - **粘性事件**：通过 [postSticky] / [tryPostSticky] 发送，[observeSticky] 订阅，新订阅者会立即收到最近一条
- * - **自动清理**：仅当某类型事件**曾经有过订阅者**且当前订阅数归零超过 [autoCleanupDelay] 毫秒后，
- *   才释放该类型对应的 SharedFlow。仅调用 [observe] / [observeSticky] 取得 Flow、尚未开始 collect 时**不会**触发清理。
+ * - **自动清理**：仅当某类型事件**开始 collect** 且曾经有过订阅者、当前订阅数归零超过 [autoCleanupDelay] 毫秒后，
+ *   才释放该类型对应的 SharedFlow。仅调用 [observe] / [observeSticky] 取得 Flow、尚未 collect 时**不会**启动清理协程。
  *   普通事件与粘性事件分别独立清理。
  *
  * ```kotlin
@@ -35,7 +36,6 @@ import kotlin.reflect.KClass
  * ```
  */
 object FlowEventBus {
-
     private val flows = ConcurrentHashMap<KClass<*>, MutableSharedFlow<Any>>()
     private val stickyFlows = ConcurrentHashMap<KClass<*>, MutableSharedFlow<Any>>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -114,8 +114,9 @@ object FlowEventBus {
     fun <T : Any> observe(clazz: KClass<T>): Flow<T> {
         cancelPendingCleanup(clazz, sticky = false)
         val flow = getFlowInternal(clazz)
-        scheduleAutoCleanup(clazz, flow, sticky = false)
-        return flow.asSharedFlow() as Flow<T>
+        return flow.asSharedFlow()
+            .onStart { scheduleAutoCleanup(clazz, flow, sticky = false) }
+            as Flow<T>
     }
 
     /**
@@ -138,8 +139,9 @@ object FlowEventBus {
     fun <T : Any> observeSticky(clazz: KClass<T>): Flow<T> {
         cancelPendingCleanup(clazz, sticky = true)
         val flow = getStickyFlowInternal(clazz)
-        scheduleAutoCleanup(clazz, flow, sticky = true)
-        return flow.asSharedFlow() as Flow<T>
+        return flow.asSharedFlow()
+            .onStart { scheduleAutoCleanup(clazz, flow, sticky = true) }
+            as Flow<T>
     }
 
     /**
@@ -159,7 +161,7 @@ object FlowEventBus {
      * @param clazz 事件类型的 [KClass]
      */
     fun <T : Any> removeSticky(clazz: KClass<T>) {
-        stickyFlows.remove(clazz)
+        removeStickyInternal(clazz)
     }
 
     /**
@@ -172,6 +174,7 @@ object FlowEventBus {
     @PublishedApi
     internal fun removeStickyInternal(clazz: KClass<*>) {
         stickyFlows.remove(clazz)
+        cancelPendingCleanup(clazz, sticky = true)
     }
 
     @PublishedApi
@@ -207,34 +210,43 @@ object FlowEventBus {
         pendingCleanup.clear()
     }
 
-    private fun cancelPendingCleanup(clazz: KClass<*>, sticky: Boolean) {
+    private fun cancelPendingCleanup(
+        clazz: KClass<*>,
+        sticky: Boolean,
+    ) {
         pendingCleanup.remove(CleanupKey(clazz, sticky))?.cancel()
     }
 
-    private fun scheduleAutoCleanup(clazz: KClass<*>, flow: MutableSharedFlow<*>, sticky: Boolean) {
+    private fun scheduleAutoCleanup(
+        clazz: KClass<*>,
+        flow: MutableSharedFlow<*>,
+        sticky: Boolean,
+    ) {
         if (autoCleanupDelay <= 0) return
         cancelPendingCleanup(clazz, sticky)
         val key = CleanupKey(clazz, sticky)
-        val job = scope.launch {
-            var hadSubscribers = false
-            flow.subscriptionCount.collectLatest { count ->
-                if (count > 0) hadSubscribers = true
-                if (count == 0 && hadSubscribers) {
-                    delay(autoCleanupDelay)
-                    if (flow.subscriptionCount.value == 0) {
-                        val removed = if (sticky) {
-                            stickyFlows.remove(clazz, flow)
-                        } else {
-                            flows.remove(clazz, flow)
-                        }
-                        if (removed) {
-                            pendingCleanup.remove(key)
-                            coroutineContext[Job]?.cancel()
+        val job =
+            scope.launch {
+                var hadSubscribers = false
+                flow.subscriptionCount.collectLatest { count ->
+                    if (count > 0) hadSubscribers = true
+                    if (count == 0 && hadSubscribers) {
+                        delay(autoCleanupDelay)
+                        if (flow.subscriptionCount.value == 0) {
+                            val removed =
+                                if (sticky) {
+                                    stickyFlows.remove(clazz, flow)
+                                } else {
+                                    flows.remove(clazz, flow)
+                                }
+                            if (removed) {
+                                pendingCleanup.remove(key)
+                                coroutineContext[Job]?.cancel()
+                            }
                         }
                     }
                 }
             }
-        }
         pendingCleanup[key] = job
     }
 

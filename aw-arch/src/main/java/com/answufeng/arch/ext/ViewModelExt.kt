@@ -18,7 +18,7 @@ import androidx.lifecycle.ViewModel
 @Suppress("UNCHECKED_CAST")
 internal fun <VM : ViewModel> inferViewModelClass(
     javaClass: Class<*>,
-    baseClass: Class<out ViewModel>
+    baseClass: Class<out ViewModel>,
 ): Class<VM> {
     var current: Class<*>? = javaClass
     while (current != null) {
@@ -35,12 +35,13 @@ internal fun <VM : ViewModel> inferViewModelClass(
 
 private fun resolveViewModelArg(
     type: java.lang.reflect.Type,
-    baseClass: Class<out ViewModel>
-): Class<*>? = when (type) {
-    is Class<*> -> type.takeIf { baseClass.isAssignableFrom(it) }
-    is java.lang.reflect.ParameterizedType -> {
-        val raw = type.rawType as? Class<*> ?: return null
-        raw.takeIf { baseClass.isAssignableFrom(it) }
+    baseClass: Class<out ViewModel>,
+): Class<*>? =
+    when (type) {
+        is Class<*> -> type.takeIf { baseClass.isAssignableFrom(it) }
+        is java.lang.reflect.ParameterizedType -> {
+            val raw = type.rawType as? Class<*> ?: return null
+            raw.takeIf { baseClass.isAssignableFrom(it) }
+        }
+        else -> null
     }
-    else -> null
-}

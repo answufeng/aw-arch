@@ -133,16 +133,20 @@ class MyActivity : MvpActivity<VB, V, MyPresenter>() {
 
 ## Hilt 版本
 
-使用 `HiltMvpActivity` / `HiltMvpFragment`，Presenter 通过 Hilt 注入：
+`HiltMvp*` 继承 `Mvp*`，子类声明 `override val presenter` 即可（内部经 `injectPresenter()` 接入）：
 
 ```kotlin
 @AndroidEntryPoint
-class HiltMvpDemoActivity : HiltMvpActivity<VB, V, MyPresenter>() {
-    override val presenter: MyPresenter by viewModels() // 或通过 @Inject 注入
+class HiltMvpDemoActivity : HiltMvpActivity<VB, V, MyPresenter>(), MyContract.View {
+    @Inject lateinit var injectedPresenter: MyPresenter
+    override val presenter get() = injectedPresenter
+
     override fun inflateBinding(inflater: LayoutInflater) = ...
     override fun initView(savedInstanceState: Bundle?) { ... }
 }
 ```
+
+非 Hilt 也可覆写 `injectPresenter()` 返回手动创建的 Presenter。
 
 ## 注意事项
 

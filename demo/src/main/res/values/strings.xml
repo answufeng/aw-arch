@@ -1,23 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_playbook">演示清单</string>
-    <string name="demo_playbook_title">演示清单</string>
-    <string name="demo_playbook_message">索引见仓库 demo/DEMO_MATRIX.md。\n\n• LoadState / RetryLoadState · FlowEventBus（含 Sticky）\n• MVVM / MVI / MVP（普通 + Hilt）\n• AwNav（路由演示 / 微信式多 Tab）</string>
+    <string name="demo_main_title">aw-arch Demo</string>
+    <string name="demo_main_hero_title">Android 架构组件演示</string>
+    <string name="demo_main_hero_subtitle">按模块进入示例：每种能力单独一页，避免入口堆叠。集成说明见仓库 README。</string>
 
-    <string name="demo_main_title">aw-arch 演示</string>
-    <string name="demo_main_subtitle">LoadState · FlowEventBus · MVVM / MVI / MVP · AwNav</string>
-    <string name="demo_section_state">状态与加载</string>
-    <string name="demo_section_bus">FlowEventBus</string>
-    <string name="demo_section_arch">架构示例 Activity</string>
-    <string name="demo_section_log">运行日志</string>
-    <string name="demo_log_hint">操作后在此查看输出</string>
-    <string name="wechat_stack_depth">AwNav 返回栈 · %d 层</string>
-    <string name="wechat_overlay_stack">全屏层 · 内层栈 %d 层（Tab 与底栏被盖住，未销毁）</string>
-    <string name="wechat_layer_chat_detail">第 2 层：会话详情（可再进一层）</string>
-    <string name="wechat_layer_chat_info">第 3 层：聊天资料 / 模拟设置</string>
-    <string name="wechat_open_info">进入聊天资料（第 3 层）</string>
-    <string name="wechat_contact_layer_2">第 2 层：联系人详情</string>
-    <string name="wechat_contact_layer_3">第 3 层：标签与更多</string>
-    <string name="wechat_contact_open_extra">查看更多（第 3 层）</string>
-    <string name="wechat_tip_system_back">使用系统返回键或 Toolbar 返回逐级出栈</string>
+    <string name="demo_section_arch">架构模式</string>
+    <string name="demo_section_infra">状态与事件</string>
+    <string name="demo_section_nav">导航</string>
+
+    <string name="demo_entry_arch_title">架构模式</string>
+    <string name="demo_entry_arch_subtitle">MVVM · MVI · SimpleMVI · MVP</string>
+    <string name="demo_entry_hilt_title">Hilt 依赖注入</string>
+    <string name="demo_entry_hilt_subtitle">MVVM / MVI / SimpleMVI / MVP 的 Hilt 基类示例</string>
+    <string name="demo_entry_load_state_title">LoadState</string>
+    <string name="demo_entry_load_state_subtitle">Loading / Success / Error 与重试</string>
+    <string name="demo_entry_event_bus_title">FlowEventBus</string>
+    <string name="demo_entry_event_bus_subtitle">类型安全事件总线与粘性消息</string>
+    <string name="demo_entry_nav_title">AwNav 导航</string>
+    <string name="demo_entry_nav_subtitle">路由、拦截器、Tab 栈、Overlay</string>
+
+    <string name="demo_hub_arch_title">架构模式</string>
+    <string name="demo_hub_arch_desc">选择一种模式打开完整示例页。Hilt 版本在「Hilt 依赖注入」分组。</string>
+    <string name="demo_hub_hilt_title">Hilt 依赖注入</string>
+    <string name="demo_hub_hilt_desc">演示 `override val viewModel` / `presenter` 注入，需已配置 `@HiltAndroidApp`。</string>
+    <string name="demo_hub_nav_title">AwNav 导航</string>
+    <string name="demo_hub_nav_desc">从简单路由到多 Tab 独立栈与全屏 Overlay，按复杂度递增。</string>
+    <string name="demo_open_sample">打开示例</string>
+
+    <string name="wechat_stack_depth">内层栈 %d 层</string>
+    <string name="wechat_overlay_stack">全屏层 · 内层栈 %d 层</string>
+    <string name="wechat_layer_chat_detail">会话详情</string>
+    <string name="wechat_layer_chat_info">聊天资料</string>
+    <string name="wechat_open_info">进入聊天资料</string>
+    <string name="wechat_contact_layer_2">联系人详情</string>
+    <string name="wechat_contact_layer_3">更多资料</string>
+    <string name="wechat_contact_open_extra">查看更多</string>
+    <string name="wechat_tip_system_back">使用系统返回或 Toolbar 返回逐级退出</string>
+    <string name="demo_awnav_tab_stack_title">Tab 独立返回栈</string>
+    <string name="demo_awnav_tab_push_detail">压入 Detail</string>
+    <string name="demo_awnav_tab_status">Tab %1$s · %2$s · 栈深 %3$d</string>
+
+    <string name="demo_awnav_basic_title">AwNav · 基础路由</string>
+    <string name="demo_awnav_interceptor_title">AwNav · 拦截器</string>
+    <string name="demo_awnav_btn_home">首页</string>
+    <string name="demo_awnav_btn_detail">详情</string>
+    <string name="demo_awnav_btn_settings">设置</string>
+    <string name="demo_awnav_btn_back">返回</string>
+    <string name="demo_awnav_intercept_on">拦截详情：开启</string>
+    <string name="demo_awnav_intercept_off">拦截详情：关闭（可进入详情）</string>
+    <string name="demo_awnav_intercept_blocked">拦截器已阻止进入详情（切换下方开关可放行）</string>
+    <string name="demo_awnav_intercept_toggle">切换是否拦截 navigate → detail</string>
+
+    <string name="demo_nav_fragment_home">首页 Fragment\n栈深：%1$d</string>
+    <string name="demo_nav_fragment_detail">详情 Fragment\n参数：%1$s\n栈深：%2$d</string>
+    <string name="demo_nav_fragment_settings">设置 Fragment\n栈深：%1$d</string>
+    <string name="demo_nav_no_args">无参数</string>
+
+    <string name="demo_hilt_simple_mvi_title">Hilt + SimpleMVI</string>
+    <string name="demo_simple_mvi_effect_hint">无独立 Effect 类型，适合更轻量的单向数据流</string>
+    <string name="demo_mvi_effect_hint">State 驱动渲染；Effect 处理一次性提示</string>
 </resources>

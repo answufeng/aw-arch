@@ -20,26 +20,36 @@ import com.answufeng.arch.ext.observeMvi
  *
  * @param VB ViewBinding 类型
  * @param STATE UI 状态类型，必须实现 [UiState]
- * @param EVENT UI 事件类型，必须实现 [UiEvent]
+ * @param EVENT 一次性 Effect 类型，必须实现 [MviEffect]
  * @param INTENT UI 意图类型，必须实现 [UiIntent]
  * @param VM ViewModel 类型，必须继承 [MviViewModel]
  *
  * @see MviViewModel
  * @see UiState
- * @see UiEvent
+ * @see MviEffect
  * @see UiIntent
  * @see MviDispatcher
  * @see BaseFragment
  */
-abstract class MviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, INTENT : UiIntent, VM : MviViewModel<STATE, EVENT, INTENT>> :
-    BaseFragment<VB>(), MviDispatcher<INTENT> {
+abstract class MviFragment<
+    VB : ViewBinding,
+    STATE : UiState,
+    EVENT : MviEffect,
+    INTENT : UiIntent,
+    VM : MviViewModel<STATE, EVENT, INTENT>,
+    > : BaseFragment<VB>(), MviDispatcher<INTENT> {
+    private lateinit var archViewModelHolder: VM
 
-    protected lateinit var viewModel: VM
+    protected open val viewModel: VM
+        get() = archViewModelHolder
 
     open val shareViewModelWithActivity: Boolean = false
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        viewModel = createViewModel()
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        archViewModelHolder = injectViewModel() ?: obtainViewModel()
         super.onViewCreated(view, savedInstanceState)
     }
 
@@ -51,13 +61,18 @@ abstract class MviFragment<VB : ViewBinding, STATE : UiState, EVENT : UiEvent, I
         observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
 
+    protected open fun injectViewModel(): VM? = null
+
+    protected open fun obtainViewModel(): VM = createViewModel()
+
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MviViewModel::class.java)
-        val factory = if (shareViewModelWithActivity) {
-            ViewModelProvider(requireActivity())
-        } else {
-            ViewModelProvider(this)
-        }
+        val factory =
+            if (shareViewModelWithActivity) {
+                ViewModelProvider(requireActivity())
+            } else {
+                ViewModelProvider(this)
+            }
         @Suppress("UNCHECKED_CAST")
         return factory.get(vmClass) as VM
     }
