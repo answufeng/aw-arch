@@ -2,7 +2,7 @@
 
 [![](https://jitpack.io/v/answufeng/aw-arch.svg)](https://jitpack.io/#answufeng/aw-arch)
 
-基于 **Kotlin + MVVM / MVI / MVP** 的 Android 架构基础库，提供基类、**AwNav** 导航、**FlowEventBus**、**LoadState**、Flow 与生命周期扩展、ViewBinding 委托等。
+基于 **Kotlin + MVVM / MVI / MVP** 的 Android 架构基础库，提供基类、**AwNav** 导航、**FlowEventBus**、**LoadState**、Flow 与生命周期扩展等。
 
 如果你只想最快接入并跑通第一个页面，直接看下面的「5 分钟上手」即可；其它内容都可以后置按需查阅。
 
@@ -169,7 +169,6 @@ class CounterActivity :
 | **LoadState** | Loading/Success/Error：`map` / `fold` / `recover` 等 | [📖 LoadState](aw-arch/doc/load-state.md) |
 | **Flow 扩展** | `throttleFirst`、`select`、`throttleClicks`、`bindLifecycle` | [📖 扩展](aw-arch/doc/extensions.md) |
 | **生命周期扩展** | `collectOnLifecycle` / `bindLifecycle`、`observeEvent(sticky=)` | [📖 扩展](aw-arch/doc/extensions.md) |
-| **ViewBinding 委托** | 可选；推荐架构基类内置 `binding` | [📖 扩展](aw-arch/doc/extensions.md) |
 | **Hilt 集成** | `HiltMvvm*` / `HiltMvi*` / `HiltMvp*` / `HiltSimpleMvi*` 基类 | [📖 Hilt](aw-arch/doc/hilt.md) |
 | **全局配置** | `AwArch.init { ... }` | [📖 配置](aw-arch/doc/config.md) |
 
@@ -183,8 +182,8 @@ class CounterActivity :
 | 单向数据流、无一次性副作用 | **SimpleMVI** |
 | Toast/导航等与 State 分离 | **完整 MVI**（`MviEffect` + `handleEvent`） |
 | 遗留 MVP / 已有 Contract | **MVP**（Activity / Fragment Presenter 均跨配置变更保留） |
-| 单容器页面栈 | **AwNav** |
-| BottomNav 各 Tab 独立栈 | `AwNavTabSwitcher` + `selectTab` |
+| 单容器页面栈 | **AwNav**（默认左右滑动动画，整页转场） |
+| BottomNav 各 Tab 独立栈 | `AwNav.initTabs()` + `switchTab()` |
 | BottomNav + overlay + 子栈 | Activity AwNav + `AwNav.init(host)` + `BackDispatcherChain`，见 [AwNav](aw-arch/doc/awnav.md) |
 
 ---
@@ -210,7 +209,7 @@ BaseViewModel          ← 协程（launch / launchIO / SavedStateHandle 等）
 | **Hilt 依赖注入** | Hilt + MVVM / MVI / SimpleMVI / MVP |
 | **LoadState** | Loading / Success / Error 与重试 |
 | **FlowEventBus** | 类型安全总线与粘性消息 |
-| **AwNav 导航** | 基础路由、拦截器、Tab 独立栈、多 Tab + Overlay（WeChat 综合示例） |
+| **AwNav 导航** | 基础路由（多种动画）、拦截器、Tab 独立栈、多 Tab + Overlay（WeChat 综合示例） |
 
 本地运行：`./gradlew :demo:installDebug`（需 JDK 17）。
 
@@ -257,4 +256,4 @@ Apache License 2.0，见 [LICENSE](LICENSE)。
 
 ---
 
-*文档更新：2026-05-27*
+*文档更新：2026-06-10*

@@ -6,8 +6,16 @@ aw-arch 提供传统 MVP 架构基类，基于 `BaseMvpPresenter` + `MvpActivity
 
 ### MvpView 接口
 
+`MvpView` 继承 `ArchView`，本身为空接口，视图能力由 `ArchView` 提供：
+
 ```kotlin
-interface MvpView {
+interface MvpView : ArchView
+```
+
+`ArchView` 提供了以下默认空实现：
+
+```kotlin
+interface ArchView {
     fun onLoading(show: Boolean) {}
     fun showToast(message: String) {}
     fun navigateTo(route: String, extras: Bundle? = null) {}
@@ -24,6 +32,10 @@ interface MvpPresenter<V : MvpView> {
     val isViewAttached: Boolean
 }
 ```
+
+- `attachView(view)` — 绑定 View 实例
+- `detachView()` — 解绑 View，释放引用
+- `isViewAttached` — 当前是否有 View 绑定，访问 `viewOrNull` 前可用于判断
 
 ### BaseMvpPresenter
 
@@ -60,6 +72,14 @@ class CounterPresenter : BaseMvpPresenter<CounterContract.View>() {
 |------|------|
 | View 创建 | `attachView(view)` → `onViewAttached(view)` |
 | View 销毁 | `detachView()` → `onViewDetached(view)` + `presenterScope.cancel()` |
+
+#### 回调方法
+
+| 方法 | 说明 |
+|------|------|
+| `onViewAttached(view: V)` | View 绑定后的回调，可在此初始化与 View 相关的资源 |
+| `onViewDetached(view: V)` | View 解绑前的回调，可在此清理与 View 相关的资源 |
+| `onUnhandledException(throwable: Throwable)` | 协程中未捕获异常的回调，可覆写以自定义异常处理 |
 
 ## 基类列表
 

@@ -46,6 +46,9 @@
     <string name="demo_awnav_btn_detail">详情</string>
     <string name="demo_awnav_btn_settings">设置</string>
     <string name="demo_awnav_btn_back">返回</string>
+    <string name="demo_awnav_btn_back_to">backTo首页</string>
+    <string name="demo_awnav_btn_clear_stack">清空栈</string>
+    <string name="demo_awnav_btn_single_top">singleTop</string>
     <string name="demo_awnav_intercept_on">拦截详情：开启</string>
     <string name="demo_awnav_intercept_off">拦截详情：关闭（可进入详情）</string>
     <string name="demo_awnav_intercept_blocked">拦截器已阻止进入详情（切换下方开关可放行）</string>
@@ -55,6 +58,16 @@
     <string name="demo_nav_fragment_detail">详情 Fragment\n参数：%1$s\n栈深：%2$d</string>
     <string name="demo_nav_fragment_settings">设置 Fragment\n栈深：%1$d</string>
     <string name="demo_nav_no_args">无参数</string>
+    <string name="demo_nav_home_welcome">欢迎来到 AwNav Demo</string>
+    <string name="demo_nav_home_quick_entry">快速入口</string>
+    <string name="demo_nav_stack_depth">栈深：%1$d</string>
+    <string name="demo_nav_detail_breadcrumb">第 %1$d 层详情页</string>
+    <string name="demo_nav_detail_title">详情：%1$s</string>
+    <string name="demo_nav_detail_args">参数: key=%1$s, index=%2$d</string>
+    <string name="demo_nav_detail_go_deeper">继续深入 → 下一层详情</string>
+    <string name="demo_nav_detail_back_to_home">backTo(\"home\") 回到首页</string>
+    <string name="demo_nav_detail_clear_navigate">clearAndNavigate(\"settings\")</string>
+    <string name="demo_nav_settings_title">设置</string>
 
     <string name="demo_hilt_simple_mvi_title">Hilt + SimpleMVI</string>
     <string name="demo_simple_mvi_effect_hint">无独立 Effect 类型，适合更轻量的单向数据流</string>

@@ -67,6 +67,20 @@ class CounterViewModel : MviViewModel<CounterState, CounterEffect, CounterIntent
 | `dispatch(intent)` | 分发意图（主线程） |
 | `dispatchThrottled(intent, windowMillis)` | 节流分发，同一 key 在窗口期内只处理一次 |
 
+### MviDispatcher 接口
+
+Activity/Fragment 基类通过实现 `MviDispatcher<INTENT>` 接口获得 `dispatch` 能力：
+
+```kotlin
+interface MviDispatcher<INTENT : UiIntent> {
+    fun dispatch(intent: INTENT)
+    fun dispatchThrottled(intent: INTENT, windowMillis: Long = 300, key: () -> String = { intent.key })
+}
+```
+
+- `dispatch(intent)` — 将 Intent 发送给 ViewModel 处理，必须在主线程调用
+- `dispatchThrottled(intent, windowMillis, key)` — 节流版 dispatch，同一 key 在指定时间窗口内只处理一次，防止快速重复点击
+
 ### dispatchThrottled
 
 ```kotlin

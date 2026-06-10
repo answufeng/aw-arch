@@ -83,10 +83,14 @@ abstract class MvvmActivity<VB : ViewBinding, VM : MvvmViewModel> : AppCompatAct
         }
     }
 
+    protected open fun viewModelFactory(): ViewModelProvider.Factory? = null
+
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MvvmViewModel::class.java)
+        val factory = viewModelFactory()
+        val provider = if (factory != null) ViewModelProvider(this, factory) else ViewModelProvider(this)
         @Suppress("UNCHECKED_CAST")
-        return ViewModelProvider(this).get(vmClass) as VM
+        return provider.get(vmClass) as VM
     }
 
     override fun showToast(message: String) {

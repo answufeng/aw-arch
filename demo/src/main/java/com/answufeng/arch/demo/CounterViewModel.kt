@@ -11,8 +11,8 @@ data class CounterState(
     val isLoading: Boolean = false
 ) : UiState
 
-sealed class CounterEvent : MviEffect {
-    data class ShowSnackbar(val message: String) : CounterEvent()
+sealed class CounterEffect : MviEffect {
+    data class ShowSnackbar(val message: String) : CounterEffect()
 }
 
 sealed class CounterIntent : UiIntent {
@@ -22,7 +22,7 @@ sealed class CounterIntent : UiIntent {
     data object LoadData : CounterIntent()
 }
 
-class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>(CounterState()) {
+class CounterViewModel : MviViewModel<CounterState, CounterEffect, CounterIntent>(CounterState()) {
 
     override fun handleIntent(intent: CounterIntent) {
         when (intent) {
@@ -37,6 +37,6 @@ class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>
         updateState { copy(isLoading = true) }
         delay(1500)
         updateState { copy(isLoading = false, count = 100) }
-        sendMviEvent(CounterEvent.ShowSnackbar("Data loaded!"))
+        sendMviEvent(CounterEffect.ShowSnackbar("Data loaded!"))
     }
 }

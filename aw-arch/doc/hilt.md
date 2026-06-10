@@ -87,8 +87,10 @@ class HiltMviDemoFragment : HiltMviFragment<VB, S, E, I, VM>() {
 
 ```kotlin
 @AndroidEntryPoint
-class HiltMvpDemoActivity : HiltMvpActivity<VB, V, P>() {
-    override val presenter: P by viewModels() // 或其他注入方式
+class HiltMvpDemoActivity : HiltMvpActivity<VB, V, MyPresenter>(), MyContract.View {
+    @Inject lateinit var injectedPresenter: MyPresenter
+    override val presenter get() = injectedPresenter
+
     override fun inflateBinding(inflater: LayoutInflater) = ...
     override fun initView(savedInstanceState: Bundle?) { ... }
 }
@@ -106,6 +108,10 @@ class HiltMvpDemoActivity : HiltMvpActivity<VB, V, P>() {
 | `HiltMviFragment<VB, S, E, I, VM>` | MVI | Fragment |
 | `HiltMviDialogFragment<VB, S, E, I, VM>` | MVI | DialogFragment |
 | `HiltMviBottomSheetDialogFragment<VB, S, E, I, VM>` | MVI | BottomSheetDialogFragment |
+| `HiltSimpleMviActivity<VB, S, I, VM>` | SimpleMVI | AppCompatActivity |
+| `HiltSimpleMviFragment<VB, S, I, VM>` | SimpleMVI | Fragment |
+| `HiltSimpleMviDialogFragment<VB, S, I, VM>` | SimpleMVI | DialogFragment |
+| `HiltSimpleMviBottomSheetDialogFragment<VB, S, I, VM>` | SimpleMVI | BottomSheetDialogFragment |
 | `HiltMvpActivity<VB, V, P>` | MVP | AppCompatActivity |
 | `HiltMvpFragment<VB, V, P>` | MVP | Fragment |
 | `HiltMvpDialogFragment<VB, V, P>` | MVP | DialogFragment |

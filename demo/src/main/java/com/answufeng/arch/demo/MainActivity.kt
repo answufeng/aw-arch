@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.answufeng.arch.demo.hub.ArchPatternMenuActivity
 import com.answufeng.arch.demo.hub.HiltMenuActivity
 import com.answufeng.arch.demo.hub.NavMenuActivity
+import com.answufeng.arch.demo.loadstate.LoadStateListActivity
 import com.google.android.material.appbar.MaterialToolbar
 
 class MainActivity : AppCompatActivity() {
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
             iconRes = R.drawable.ic_demo_state_24,
             title = getString(R.string.demo_entry_load_state_title),
             subtitle = getString(R.string.demo_entry_load_state_subtitle),
-        ) { startActivity(Intent(this, LoadStateDemoActivity::class.java)) }
+        ) { startActivity(Intent(this, LoadStateListActivity::class.java)) }
 
         bindEntry(
             root = findViewById(R.id.entryEventBus),

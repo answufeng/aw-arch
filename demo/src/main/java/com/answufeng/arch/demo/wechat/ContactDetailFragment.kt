@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import com.answufeng.arch.demo.R
 import com.answufeng.arch.demo.databinding.FragmentContactDetailBinding
 import com.answufeng.arch.nav.AwNav
+
 class ContactDetailFragment : Fragment() {
 
     private var _binding: FragmentContactDetailBinding? = null
@@ -22,6 +23,10 @@ class ContactDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val name = arguments?.getString("name") ?: ""
+        binding.toolbar.title = name
+        binding.toolbar.setNavigationOnClickListener {
+            (activity as? WeChatActivity)?.popOverlayOrDismiss()
+        }
         binding.tvBreadcrumb.text = getString(R.string.wechat_contact_layer_2)
         binding.tvName.text = name
         binding.btnOpenExtra.setOnClickListener {

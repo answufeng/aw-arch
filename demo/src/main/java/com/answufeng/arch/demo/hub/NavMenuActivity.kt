@@ -16,24 +16,24 @@ class NavMenuActivity : BaseMenuActivity() {
     override fun buildMenu(savedInstanceState: Bundle?) {
         addMenuItem(
             "基础路由",
-            subtitle = "register · navigate · back",
+            subtitle = "navigate · back · backTo · clearStack · singleTop · currentRouteFlow",
             intent = Intent(this, AwNavBasicRouteDemoActivity::class.java),
         )
         addMenuItem(
             "路由拦截器",
-            subtitle = "addInterceptor",
+            subtitle = "addInterceptor · 登录拦截模拟",
             outlined = true,
             intent = Intent(this, AwNavInterceptorDemoActivity::class.java),
         )
         addMenuItem(
             "Tab 独立返回栈",
-            subtitle = "AwNavTabSwitcher",
+            subtitle = "AwNavTabSwitcher · onReselect · switchAnim",
             outlined = true,
             intent = Intent(this, AwNavTabStackDemoActivity::class.java),
         )
         addMenuItem(
             "多 Tab + Overlay",
-            subtitle = "Tab 栈 · 全屏层 · 内层 AwNav",
+            subtitle = "Tab 栈 · 全屏层 · 内层 AwNav · BackDispatcherChain",
             intent = Intent(this, WeChatActivity::class.java),
         )
     }

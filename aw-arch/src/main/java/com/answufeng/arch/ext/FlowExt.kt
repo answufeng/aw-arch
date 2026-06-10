@@ -7,12 +7,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.answufeng.arch.mvi.MviEffect
+import com.answufeng.arch.mvi.NoEvent
 import com.answufeng.arch.mvi.UiState
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -34,17 +34,6 @@ fun <T : Any> Flow<T>.collectOnLifecycle(
             collect { action(it) }
         }
     }
-}
-
-/**
- * 在 [LifecycleOwner] 的指定生命周期状态下收集 Flow，语义同 [collectOnLifecycle]。
- */
-fun <T : Any> Flow<T>.bindLifecycle(
-    lifecycleOwner: LifecycleOwner,
-    state: Lifecycle.State = Lifecycle.State.STARTED,
-    action: suspend (T) -> Unit,
-) {
-    collectOnLifecycle(lifecycleOwner, state, action)
 }
 
 /**
@@ -91,28 +80,6 @@ internal class ThrottleFirstFlow<T>(
 }
 
 /**
- * 防抖操作：在 [timeoutMillis] 时间内无新事件才发射最后一个。
- *
- * @deprecated 请直接使用 [debounce]。
- */
-@Deprecated(
-    message = "Use debounce(timeoutMillis) instead",
-    replaceWith = ReplaceWith("debounce(timeoutMillis)"),
-)
-fun <T> Flow<T>.debounceAction(timeoutMillis: Long): Flow<T> {
-    return debounce(timeoutMillis)
-}
-
-/**
- * 从 StateFlow 中选择子字段，仅在字段值变化时发射。
- *
- * @param selector 字段选择器
- */
-fun <T, R> StateFlow<T>.select(selector: (T) -> R): Flow<R> {
-    return map(selector).distinctUntilChanged()
-}
-
-/**
  * 从 Flow 中选择子字段，仅在字段值变化时发射。
  *
  * @param selector 字段选择器
@@ -152,7 +119,7 @@ fun <S : UiState, E : MviEffect> LifecycleOwner.observeMvi(
     eventFlow: Flow<E>,
     state: Lifecycle.State = Lifecycle.State.STARTED,
     render: (S) -> Unit,
-    handleEvent: (E) -> Unit = {},
+    handleEvent: (E) -> Unit,
 ) {
     lifecycleScope.launch {
         repeatOnLifecycle(state) {
@@ -160,4 +127,23 @@ fun <S : UiState, E : MviEffect> LifecycleOwner.observeMvi(
             launch { eventFlow.collect { handleEvent(it) } }
         }
     }
+}
+
+/**
+ * 观察 MVI 架构的 StateFlow 和 NoEvent 事件流，在指定生命周期状态下自动收集。
+ *
+ * 适用于不需要处理 Effect 的场景（如 [NoEvent]），无需提供 [handleEvent] 回调。
+ *
+ * @param stateFlow UI 状态流
+ * @param eventFlow NoEvent 事件流
+ * @param state     生命周期状态，默认 STARTED
+ * @param render    状态渲染回调
+ */
+fun <S : UiState> LifecycleOwner.observeMvi(
+    stateFlow: StateFlow<S>,
+    eventFlow: Flow<NoEvent>,
+    state: Lifecycle.State = Lifecycle.State.STARTED,
+    render: (S) -> Unit,
+) {
+    observeMvi(stateFlow, eventFlow, state, render) { /* NoEvent 不需要处理 */ }
 }

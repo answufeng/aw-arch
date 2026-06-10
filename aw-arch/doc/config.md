@@ -25,7 +25,7 @@ class MyApp : Application() {
 | `logger` | `AwLogger` | `DefaultAwLogger()` | 全局日志实现 |
 | `strictMainThreadForAwNav` | `Boolean` | `false` | AwNav 操作是否强制主线程断言 |
 | `logAwNavThrottledNavigations` | `Boolean` | `false` | 是否记录被节流忽略的导航日志 |
-| `flowEventBusAutoCleanupDelayMs` | `Long?` | `null` | FlowEventBus 自动清理延迟（毫秒） |
+| `flowEventBusAutoCleanupDelayMs` | `Long?` | `null` | FlowEventBus 自动清理延迟（毫秒），`null` 表示使用 FlowEventBus 内部默认值 30 秒，设为具体值则覆盖 |
 
 ## AwLogger 接口
 
@@ -50,6 +50,14 @@ class TimberAwLogger : AwLogger {
     override fun e(tag: String, message: String, throwable: Throwable?) = Timber.tag(tag).e(throwable, message)
 }
 ```
+
+## 默认行为
+
+不调用 `AwArch.init` 时，所有组件仍可正常工作：
+
+- 默认使用 `DefaultAwLogger`（Android 环境使用 `android.util.Log`，非 Android 环境降级为 `println`）
+- FlowEventBus 自动清理延迟为 30 秒
+- 其余配置项均使用默认值
 
 ## 注意事项
 

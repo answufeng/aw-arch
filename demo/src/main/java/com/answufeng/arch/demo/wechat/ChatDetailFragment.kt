@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import com.answufeng.arch.demo.R
 import com.answufeng.arch.demo.databinding.FragmentChatDetailBinding
 import com.answufeng.arch.nav.AwNav
+
 class ChatDetailFragment : Fragment() {
 
     private var _binding: FragmentChatDetailBinding? = null
@@ -23,8 +24,13 @@ class ChatDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val title = arguments?.getString("title") ?: "会话"
         val snippet = arguments?.getString("snippet") ?: ""
+
+        binding.toolbar.title = title
+        binding.toolbar.setNavigationOnClickListener {
+            (activity as? WeChatActivity)?.popOverlayOrDismiss()
+        }
+
         binding.tvBreadcrumb.text = getString(R.string.wechat_layer_chat_detail)
-        binding.tvTitle.text = title
         binding.tvSnippet.text = snippet
         binding.tvThread.text = buildString {
             repeat(8) {

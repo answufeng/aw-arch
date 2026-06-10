@@ -2,26 +2,30 @@ package com.answufeng.arch.demo.wechat
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.commit
-import com.answufeng.arch.R as ArchR
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.answufeng.arch.demo.R
 import com.answufeng.arch.demo.databinding.ActivityWechatBinding
 import com.answufeng.arch.nav.AwNav
-import com.answufeng.arch.nav.AwNavTab
 import com.answufeng.arch.nav.BackDispatcherChain
+import com.answufeng.arch.nav.NavAnim
+import com.answufeng.arch.nav.TabConfig
+import kotlinx.coroutines.launch
+
 /**
  * 演示两种层级：
- * - **Tab 内（AwNav）**：`container` 内切换微信/通讯录/发现/我。
- * - **全屏 overlay**：内层由 [WeChatOverlayHostFragment] 的 **AwNav.init(host)** 管理子栈。
+ * - **Tab 内（AwNav）**：`container` 内切换微信/通讯录/发现/我，每个 Tab Fragment 自带标题栏。
+ * - **全屏 overlay**：内层由 [WeChatOverlayHostFragment] 的 **AwNav.init(host)** 管理子栈，
+ *   每个 overlay Fragment 自带 toolbar（含返回按钮），整页动画。
  */
 class WeChatActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityWechatBinding
     private lateinit var nav: AwNav
-    private lateinit var tabSwitcher: com.answufeng.arch.nav.AwNavTabSwitcher
     private lateinit var backChain: BackDispatcherChain
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,36 +33,35 @@ class WeChatActivity : AppCompatActivity() {
         binding = ActivityWechatBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(true)
-
         nav =
-            AwNav.init(this, R.id.container, handleBackPressed = false)
+            AwNav.init(this, R.id.container, handleBackPressed = false, savedInstanceState = savedInstanceState)
                 .register<WeChatFragment>("wechat")
                 .register<ContactFragment>("contact")
                 .register<DiscoverFragment>("discover")
                 .register<ProfileFragment>("profile")
 
-        tabSwitcher =
-            nav.tabSwitcher(
-                listOf(
-                    AwNavTab(id = "wechat", rootRoute = "wechat"),
-                    AwNavTab(id = "contact", rootRoute = "contact"),
-                    AwNavTab(id = "discover", rootRoute = "discover"),
-                    AwNavTab(id = "profile", rootRoute = "profile"),
-                ),
-            )
+        nav.initTabs(
+            TabConfig("wechat", rootRoute = "wechat", switchAnim = NavAnim.FADE),
+            TabConfig("contact", rootRoute = "contact", switchAnim = NavAnim.FADE),
+            TabConfig("discover", rootRoute = "discover", switchAnim = NavAnim.FADE),
+            TabConfig("profile", rootRoute = "profile", switchAnim = NavAnim.FADE),
+        )
 
         backChain =
             BackDispatcherChain(onBackPressedDispatcher, this)
                 .add(100) { popOverlayOrDismiss() }
-                .add(50) { nav.back() }
+                .add(50) {
+                    if (nav.canGoBack()) nav.back() else false
+                }
                 .install(enabled = false)
 
-        supportFragmentManager.addOnBackStackChangedListener { syncWeChatChrome() }
-
-        binding.toolbar.setNavigationOnClickListener {
-            popOverlayOrDismiss()
+        // 监听路由变化，更新返回链启用状态
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nav.currentRouteFlow.collect {
+                    backChain.setEnabled(binding.overlay.isVisible || nav.canGoBack())
+                }
+            }
         }
 
         setupBottomNavigation()
@@ -79,7 +82,7 @@ class WeChatActivity : AppCompatActivity() {
                     "profile" -> R.id.tab_profile
                     else -> R.id.tab_wechat
                 }
-            tabSwitcher.selectTab(tabId)
+            nav.switchTab(tabId)
 
             when (intent.getStringExtra(EXTRA_OPEN_OVERLAY)) {
                 OVERLAY_CHAT_DETAIL -> pushOverlayRoute("chat_detail")
@@ -93,40 +96,31 @@ class WeChatActivity : AppCompatActivity() {
                     pushOverlayRoute("contact_extra", bundleOf("name" to "小明"))
                 }
             }
-        } else {
-            tabSwitcher.restoreState(savedInstanceState)
-            syncWeChatChrome()
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (::tabSwitcher.isInitialized) {
-            tabSwitcher.saveState(outState)
-        }
+        nav.saveState(outState)
     }
 
-    fun syncWeChatChrome() {
-        val host = overlayHost()
-        val showing = host != null && binding.overlay.isVisible
-        binding.toolbar.navigationIcon = if (showing) {
-            AppCompatResources.getDrawable(this, R.drawable.ic_arrow_back_24)
-        } else {
-            null
-        }
-        binding.toolbar.subtitle = if (showing && host != null) {
-            getString(R.string.wechat_overlay_stack, host.innerStackDepth)
-        } else {
-            null
-        }
-        backChain.setEnabled(showing || nav.stackDepth > 0)
+    fun updateBackChainState() {
+        backChain.setEnabled(binding.overlay.isVisible || nav.canGoBack())
     }
 
     fun pushOverlayRoute(route: String, args: Bundle? = null) {
+        val isNewOverlay = overlayHost() == null
         binding.overlay.isVisible = true
         val host = ensureOverlayHost()
         host.navigate(route, args)
-        syncWeChatChrome()
+        backChain.setEnabled(true)
+        if (isNewOverlay) {
+            binding.overlay.translationX = binding.overlay.width.toFloat()
+            binding.overlay.animate()
+                .translationX(0f)
+                .setDuration(250)
+                .start()
+        }
     }
 
     private fun ensureOverlayHost(): WeChatOverlayHostFragment {
@@ -134,12 +128,6 @@ class WeChatActivity : AppCompatActivity() {
         if (host == null) {
             host = WeChatOverlayHostFragment()
             supportFragmentManager.commit {
-                setCustomAnimations(
-                    ArchR.anim.aw_nav_slide_in_right,
-                    ArchR.anim.aw_nav_slide_out_left,
-                    ArchR.anim.aw_nav_slide_in_left,
-                    ArchR.anim.aw_nav_slide_out_right,
-                )
                 replace(R.id.overlay, host, "overlay_host")
             }
             supportFragmentManager.executePendingTransactions()
@@ -151,28 +139,29 @@ class WeChatActivity : AppCompatActivity() {
         supportFragmentManager.findFragmentById(R.id.overlay) as? WeChatOverlayHostFragment
 
     private fun dismissOverlayCompletely() {
-        overlayHost()?.let { host ->
-            supportFragmentManager.commit {
-                remove(host)
+        binding.overlay.animate()
+            .translationX(binding.overlay.width.toFloat())
+            .setDuration(250)
+            .withEndAction {
+                binding.overlay.isVisible = false
+                binding.overlay.translationX = 0f
+                overlayHost()?.let { host ->
+                    supportFragmentManager.commit { remove(host) }
+                }
+                backChain.setEnabled(nav.canGoBack())
             }
-        }
-        binding.overlay.isVisible = false
-        syncWeChatChrome()
+            .start()
     }
 
-    private fun popOverlayOrDismiss(): Boolean {
+    fun popOverlayOrDismiss(): Boolean {
         val host = overlayHost() ?: return false
         if (!binding.overlay.isVisible) return false
-        if (host.innerStackDepth > 0) {
-            if (host.popInner()) {
-                if (host.innerStackDepth == 0) {
-                    dismissOverlayCompletely()
-                } else {
-                    syncWeChatChrome()
-                }
-            }
+        // overlay 内层栈 > 1 时，先 pop 内层
+        if (host.innerStackDepth > 1) {
+            host.popInner()
             return true
         }
+        // 内层只剩根页面或为空，直接 dismiss overlay
         dismissOverlayCompletely()
         return true
     }
@@ -188,8 +177,7 @@ class WeChatActivity : AppCompatActivity() {
                     R.id.tab_profile -> "profile"
                     else -> return@setOnItemSelectedListener false
                 }
-            tabSwitcher.selectTab(tabId)
-            syncWeChatChrome()
+            nav.switchTab(tabId)
             true
         }
     }

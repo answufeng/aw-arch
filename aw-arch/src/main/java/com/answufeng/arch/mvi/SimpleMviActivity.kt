@@ -1,12 +1,6 @@
 package com.answufeng.arch.mvi
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
 import androidx.viewbinding.ViewBinding
-import com.answufeng.arch.ext.inferViewModelClass
-import com.answufeng.arch.ext.observeMvi
 
 /**
  * 简化版 MVI 架构 Activity 基类
@@ -30,60 +24,4 @@ abstract class SimpleMviActivity<
     INTENT : UiIntent,
     VM : SimpleMviViewModel<STATE, INTENT>,
     > :
-    AppCompatActivity(), MviDispatcher<INTENT> {
-    private var _binding: VB? = null
-
-    protected val binding: VB
-        get() = _binding ?: error("ViewBinding is not available before onCreate or after onDestroy")
-
-    private lateinit var archViewModelHolder: VM
-
-    protected open val viewModel: VM
-        get() = archViewModelHolder
-
-    abstract fun inflateBinding(inflater: LayoutInflater): VB
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        _binding = inflateBinding(layoutInflater)
-        setContentView(binding.root)
-        archViewModelHolder = injectViewModel() ?: obtainViewModel()
-        initView(savedInstanceState)
-        initObservers()
-    }
-
-    abstract fun initView(savedInstanceState: Bundle?)
-
-    abstract fun render(state: STATE)
-
-    protected open fun initObservers() {
-        observeMvi(viewModel.state, viewModel.event, render = ::render)
-    }
-
-    protected open fun injectViewModel(): VM? = null
-
-    protected open fun obtainViewModel(): VM = createViewModel()
-
-    protected open fun createViewModel(): VM {
-        val vmClass = inferViewModelClass<VM>(javaClass, SimpleMviViewModel::class.java)
-        @Suppress("UNCHECKED_CAST")
-        return ViewModelProvider(this).get(vmClass) as VM
-    }
-
-    override fun dispatch(intent: INTENT) {
-        viewModel.dispatch(intent)
-    }
-
-    override fun dispatchThrottled(
-        intent: INTENT,
-        windowMillis: Long,
-        keySelector: (INTENT) -> String,
-    ) {
-        viewModel.dispatchThrottled(intent, windowMillis, keySelector)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        _binding = null
-    }
-}
+    MviActivity<VB, STATE, NoEvent, INTENT, VM>()

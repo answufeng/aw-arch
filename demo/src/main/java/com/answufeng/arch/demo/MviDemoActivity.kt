@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import com.answufeng.arch.mvi.MviActivity
 import com.answufeng.arch.demo.databinding.ActivityMviDemoBinding
 
-class MviDemoActivity : MviActivity<ActivityMviDemoBinding, CounterState, CounterEvent, CounterIntent, CounterViewModel>() {
+class MviDemoActivity : MviActivity<ActivityMviDemoBinding, CounterState, CounterEffect, CounterIntent, CounterViewModel>() {
 
     override fun inflateBinding(inflater: LayoutInflater) = ActivityMviDemoBinding.inflate(inflater)
 
@@ -23,9 +23,9 @@ class MviDemoActivity : MviActivity<ActivityMviDemoBinding, CounterState, Counte
         binding.progressBar.visibility = if (state.isLoading) android.view.View.VISIBLE else android.view.View.GONE
     }
 
-    override fun handleEvent(event: CounterEvent) {
+    override fun handleEvent(event: CounterEffect) {
         when (event) {
-            is CounterEvent.ShowSnackbar ->
+            is CounterEffect.ShowSnackbar ->
                 android.widget.Toast.makeText(this, event.message, android.widget.Toast.LENGTH_SHORT).show()
         }
     }

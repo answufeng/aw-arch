@@ -23,7 +23,10 @@ internal fun <P : MvpPresenter<*>> inferPresenterClass(
         }
         current = current.superclass
     }
-    throw IllegalStateException("Cannot infer Presenter class. Override createPresenter() or specify generic type parameters.")
+    throw IllegalStateException(
+        "Cannot infer Presenter class for ${javaClass.name}. " +
+            "Override createPresenter() or specify generic type parameters.",
+    )
 }
 
 private fun resolvePresenterArg(

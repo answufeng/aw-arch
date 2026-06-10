@@ -30,7 +30,10 @@ internal fun <VM : ViewModel> inferViewModelClass(
         }
         current = current.superclass
     }
-    throw IllegalStateException("Cannot infer ViewModel class. Override createViewModel() or specify generic type parameters.")
+    throw IllegalStateException(
+        "Cannot infer ViewModel class for ${javaClass.name}. " +
+            "Override createViewModel() or specify generic type parameters.",
+    )
 }
 
 private fun resolveViewModelArg(

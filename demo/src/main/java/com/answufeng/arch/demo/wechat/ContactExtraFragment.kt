@@ -21,6 +21,9 @@ class ContactExtraFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val name = arguments?.getString("name") ?: ""
+        binding.toolbar.setNavigationOnClickListener {
+            (activity as? WeChatActivity)?.popOverlayOrDismiss()
+        }
         binding.tvBreadcrumb.text = getString(R.string.wechat_contact_layer_3)
         binding.tvName.text = name
     }

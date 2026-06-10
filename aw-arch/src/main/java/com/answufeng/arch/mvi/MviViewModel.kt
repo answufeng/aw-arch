@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap
  * - **Intent**: 用户意图，通过 [dispatch] 分发，由 [handleIntent] 处理
  *
  * ```kotlin
- * class CounterViewModel : MviViewModel<CounterState, CounterEvent, CounterIntent>(CounterState()) {
+ * class CounterViewModel : MviViewModel<CounterState, CounterEffect, CounterIntent>(CounterState()) {
  *     override fun handleIntent(intent: CounterIntent) {
  *         when (intent) {
  *             CounterIntent.Increment -> updateState { copy(count = count + 1) }
@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap
  *         updateState { copy(isLoading = true) }
  *         val data = repository.fetch()
  *         updateState { copy(isLoading = false, count = data.count) }
- *         sendMviEvent(CounterEvent.ShowSnackbar("加载完成"))
+ *         sendMviEvent(CounterEffect.ShowSnackbar("加载完成"))
  *     }
  * }
  * ```

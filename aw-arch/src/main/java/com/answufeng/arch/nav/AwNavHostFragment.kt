@@ -32,6 +32,10 @@ abstract class AwNavHostFragment(
     layoutResId: Int,
     @IdRes private val navContainerId: Int,
 ) : Fragment(layoutResId) {
+
+    /** 子类可重写为 `false` 以禁用 AwNav 内置的返回键处理（例如由外部 BackDispatcherChain 统一管理）。 */
+    protected open val handleBackPressed: Boolean = true
+
     protected lateinit var nav: AwNav
         private set
 
@@ -40,6 +44,6 @@ abstract class AwNavHostFragment(
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
-        nav = AwNav.init(this, navContainerId)
+        nav = AwNav.init(this, navContainerId, handleBackPressed)
     }
 }

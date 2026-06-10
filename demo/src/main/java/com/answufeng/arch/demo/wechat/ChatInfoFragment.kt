@@ -20,6 +20,9 @@ class ChatInfoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.toolbar.setNavigationOnClickListener {
+            (activity as? WeChatActivity)?.popOverlayOrDismiss()
+        }
         binding.tvBreadcrumb.text = getString(R.string.wechat_layer_chat_info)
         binding.tvChatName.text = arguments?.getString("title") ?: ""
     }

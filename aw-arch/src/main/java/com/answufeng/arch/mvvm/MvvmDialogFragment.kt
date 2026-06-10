@@ -37,6 +37,8 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
     protected open val viewModel: VM
         get() = archViewModelHolder
 
+    open val shareViewModelWithActivity: Boolean = false
+
     protected open val awNav: AwNav? get() = null
 
     abstract fun inflateBinding(
@@ -79,10 +81,15 @@ abstract class MvvmDialogFragment<VB : ViewBinding, VM : MvvmViewModel> : Dialog
 
     protected open fun obtainViewModel(): VM = createViewModel()
 
+    protected open fun viewModelFactory(): ViewModelProvider.Factory? = null
+
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MvvmViewModel::class.java)
+        val factory = viewModelFactory()
+        val storeOwner = if (shareViewModelWithActivity) requireActivity() else this
+        val provider = if (factory != null) ViewModelProvider(storeOwner, factory) else ViewModelProvider(storeOwner)
         @Suppress("UNCHECKED_CAST")
-        return ViewModelProvider(this).get(vmClass) as VM
+        return provider.get(vmClass) as VM
     }
 
     override fun showToast(message: String) {

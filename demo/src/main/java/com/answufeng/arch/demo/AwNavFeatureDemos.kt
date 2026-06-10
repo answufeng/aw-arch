@@ -1,13 +1,19 @@
 package com.answufeng.arch.demo
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.answufeng.arch.demo.databinding.ActivityAwnNavBasicBinding
 import com.answufeng.arch.demo.databinding.ActivityAwnNavInterceptorBinding
-import com.answufeng.arch.nav.AwNav
-import com.answufeng.arch.nav.AwNavTab
-import com.answufeng.arch.nav.NavAnim
 import com.answufeng.arch.demo.databinding.ActivityAwnavTabStackBinding
+import com.answufeng.arch.nav.AwNav
+import com.answufeng.arch.nav.NavAnim
+import com.answufeng.arch.nav.TabConfig
+import kotlinx.coroutines.launch
 
 class AwNavBasicRouteDemoActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAwnNavBasicBinding
@@ -19,26 +25,69 @@ class AwNavBasicRouteDemoActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.toolbar.setNavigationOnClickListener { finish() }
 
-        nav = AwNav.init(this, binding.container.id)
-            .register<HomeFragment>("home")
-            .register<DetailFragment>("detail")
-            .register<SettingsFragment>("settings")
+        nav = AwNav.init(this, binding.container.id, savedInstanceState = savedInstanceState)
+            .registerAnnotated<HomeFragment>()
+            .registerAnnotated<DetailFragment>()
+            .registerAnnotated<SettingsFragment>()
 
         if (savedInstanceState == null) {
-            nav.navigate("home") { addToBackStack = false; anim = NavAnim.NONE }
+            nav.navigate("home") { anim = NavAnim.NONE }
         }
 
-        binding.btnHome.setOnClickListener { nav.navigate("home") { anim = NavAnim.FADE; singleTop = true } }
-        binding.btnDetail.setOnClickListener { nav.navigate("detail") { anim = NavAnim.SLIDE_HORIZONTAL } }
-        binding.btnSettings.setOnClickListener { nav.navigate("settings") { anim = NavAnim.SLIDE_VERTICAL } }
-        binding.btnBack.setOnClickListener { if (!nav.back()) finish() }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nav.currentRouteFlow.collect { route ->
+                    binding.tvNavStatus.text =
+                        "当前路由: ${route ?: "-"}  |  栈深: ${nav.stackDepth}"
+                }
+            }
+        }
+
+        // 默认动画：左右滑动（最常用，无需显式指定）
+        binding.btnHome.setOnClickListener {
+            nav.navigate("home") { singleTop = true; anim = NavAnim.FADE }
+        }
+        binding.btnDetail.setOnClickListener {
+            nav.navigate("detail") // 默认 SLIDE_HORIZONTAL
+        }
+        binding.btnSettings.setOnClickListener {
+            nav.navigate("settings") { anim = NavAnim.SLIDE_VERTICAL }
+        }
+        binding.btnBack.setOnClickListener {
+            if (!nav.back()) finish()
+        }
+        binding.btnBackTo.setOnClickListener {
+            if (!nav.backTo("home")) {
+                Toast.makeText(this, "返回栈中没有 home", Toast.LENGTH_SHORT).show()
+            }
+        }
+        binding.btnClearStack.setOnClickListener {
+            nav.clearStack()
+            Toast.makeText(this, "返回栈已清空", Toast.LENGTH_SHORT).show()
+        }
+        binding.btnSingleTop.setOnClickListener {
+            nav.navigate("detail") {
+                singleTop = true
+                onSingleTopReuse = {
+                    Toast.makeText(
+                        this@AwNavBasicRouteDemoActivity,
+                        "singleTop: 复用了现有 DetailFragment",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        nav.saveState(outState)
     }
 }
 
 class AwNavTabStackDemoActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAwnavTabStackBinding
     private lateinit var nav: AwNav
-    private lateinit var tabSwitcher: com.answufeng.arch.nav.AwNavTabSwitcher
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,41 +97,38 @@ class AwNavTabStackDemoActivity : AppCompatActivity() {
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         binding.toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
 
-        nav =
-            AwNav.init(this, binding.container.id).apply {
-                register<HomeFragment>("tab_a_home")
-                register<DetailFragment>("tab_a_detail")
-                register<HomeFragment>("tab_b_home")
-                register<DetailFragment>("tab_b_detail")
-                register<HomeFragment>("tab_c_home")
-                register<DetailFragment>("tab_c_detail")
-            }
+        nav = AwNav.init(this, binding.container.id, savedInstanceState = savedInstanceState)
+            .registerAnnotated<HomeFragment>()
+            .registerAnnotated<DetailFragment>()
+            .registerAnnotated<SettingsFragment>()
 
-        tabSwitcher =
-            nav.tabSwitcher(
-                listOf(
-                    AwNavTab(id = "a", rootRoute = "tab_a_home"),
-                    AwNavTab(id = "b", rootRoute = "tab_b_home"),
-                    AwNavTab(id = "c", rootRoute = "tab_c_home"),
-                ),
-            )
-
-        supportFragmentManager.addOnBackStackChangedListener { refreshStatus() }
+        nav.initTabs(
+            TabConfig("a", rootRoute = "home", switchAnim = NavAnim.FADE),
+            TabConfig("b", rootRoute = "home", switchAnim = NavAnim.FADE),
+            TabConfig("c", rootRoute = "home", switchAnim = NavAnim.FADE),
+        )
 
         if (savedInstanceState == null) {
             binding.bottomNavigation.selectedItemId = R.id.tab_a
-            tabSwitcher.selectTab("a")
-        } else {
-            tabSwitcher.restoreState(savedInstanceState)
-            refreshStatus()
+            nav.switchTab("a")
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                nav.currentRouteFlow.collect { route ->
+                    binding.tvTabStatus.text =
+                        getString(
+                            R.string.demo_awnav_tab_status,
+                            nav.currentTabId ?: "-",
+                            route ?: "-",
+                            nav.stackDepth,
+                        )
+                }
+            }
         }
 
         binding.btnPushDetail.setOnClickListener {
-            val tab = tabSwitcher.selectedTabId ?: return@setOnClickListener
-            nav.navigate("${tab}_detail", Bundle().apply { putString("key", "from tab $tab") }) {
-                anim = NavAnim.SLIDE_HORIZONTAL
-            }
-            refreshStatus()
+            nav.navigate("detail", bundleOf("key" to "from tab ${nav.currentTabId}"))
         }
 
         binding.bottomNavigation.setOnItemSelectedListener { item ->
@@ -93,25 +139,14 @@ class AwNavTabStackDemoActivity : AppCompatActivity() {
                     R.id.tab_c -> "c"
                     else -> return@setOnItemSelectedListener false
                 }
-            tabSwitcher.selectTab(tabId)
-            refreshStatus()
+            nav.switchTab(tabId)
             true
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        tabSwitcher.saveState(outState)
-    }
-
-    private fun refreshStatus() {
-        binding.tvTabStatus.text =
-            getString(
-                R.string.demo_awnav_tab_status,
-                tabSwitcher.selectedTabId ?: "-",
-                nav.currentRoute ?: "-",
-                nav.stackDepth,
-            )
+        nav.saveState(outState)
     }
 }
 
@@ -119,7 +154,6 @@ class AwNavInterceptorDemoActivity : AppCompatActivity() {
     private lateinit var binding: ActivityAwnNavInterceptorBinding
     private lateinit var nav: AwNav
 
-    /** 为 true 时拦截跳转到 detail，用于演示 [AwNav.addInterceptor] */
     private var blockDetailNavigation = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,9 +162,9 @@ class AwNavInterceptorDemoActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.toolbar.setNavigationOnClickListener { finish() }
 
-        nav = AwNav.init(this, binding.container.id)
-            .register<HomeFragment>("home")
-            .register<DetailFragment>("detail")
+        nav = AwNav.init(this, binding.container.id, savedInstanceState = savedInstanceState)
+            .registerAnnotated<HomeFragment>()
+            .registerAnnotated<DetailFragment>()
             .addInterceptor { _, to, _ ->
                 if (blockDetailNavigation && to == "detail") {
                     binding.tvInterceptStatus.setText(R.string.demo_awnav_intercept_blocked)
@@ -141,11 +175,11 @@ class AwNavInterceptorDemoActivity : AppCompatActivity() {
             }
 
         if (savedInstanceState == null) {
-            nav.navigate("home") { addToBackStack = false; anim = NavAnim.NONE }
+            nav.navigate("home") { anim = NavAnim.NONE }
         }
 
-        binding.btnHome.setOnClickListener { nav.navigate("home") { anim = NavAnim.FADE; singleTop = true } }
-        binding.btnDetail.setOnClickListener { nav.navigate("detail") { anim = NavAnim.SLIDE_HORIZONTAL } }
+        binding.btnHome.setOnClickListener { nav.navigate("home") { singleTop = true; anim = NavAnim.FADE } }
+        binding.btnDetail.setOnClickListener { nav.navigate("detail") }
         binding.btnBack.setOnClickListener { if (!nav.back()) finish() }
 
         binding.btnToggleIntercept.setOnClickListener {
@@ -159,5 +193,9 @@ class AwNavInterceptorDemoActivity : AppCompatActivity() {
             )
         }
     }
-}
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        nav.saveState(outState)
+    }
+}

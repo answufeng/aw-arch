@@ -64,5 +64,20 @@
         <activity
             android:name=".wechat.WeChatActivity"
             android:exported="false" />
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".loadstate.LoadStateListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".article.ArticleListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".todo.TodoListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".userlist.UserListActivity"
+            android:exported="false" />
     </application>
 </manifest>

@@ -72,10 +72,14 @@ abstract class MviActivity<
         observeMvi(viewModel.state, viewModel.event, render = ::render, handleEvent = ::handleEvent)
     }
 
+    protected open fun viewModelFactory(): ViewModelProvider.Factory? = null
+
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MviViewModel::class.java)
+        val factory = viewModelFactory()
+        val provider = if (factory != null) ViewModelProvider(this, factory) else ViewModelProvider(this)
         @Suppress("UNCHECKED_CAST")
-        return ViewModelProvider(this).get(vmClass) as VM
+        return provider.get(vmClass) as VM
     }
 
     override fun dispatch(intent: INTENT) {

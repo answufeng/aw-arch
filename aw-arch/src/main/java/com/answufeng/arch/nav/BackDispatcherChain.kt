@@ -24,6 +24,9 @@ class BackDispatcherChain(
     private val handlers = mutableListOf<Pair<Int, () -> Boolean>>()
     private var callback: OnBackPressedCallback? = null
 
+    /** 防止 handleOnBackPressed 递归重入 */
+    private var isHandling = false
+
     /**
      * @param handler 返回 `true` 表示已消费返回事件
      * @return this，便于链式调用
@@ -37,18 +40,43 @@ class BackDispatcherChain(
         return this
     }
 
+    /**
+     * 移除指定优先级的所有 handler。
+     *
+     * @param priority 要移除的优先级
+     * @return this，便于链式调用
+     */
+    fun remove(priority: Int): BackDispatcherChain {
+        handlers.removeAll { it.first == priority }
+        return this
+    }
+
+    /**
+     * 清除所有 handler。
+     *
+     * @return this，便于链式调用
+     */
+    fun clear(): BackDispatcherChain {
+        handlers.clear()
+        return this
+    }
+
     @MainThread
     fun install(enabled: Boolean = true): BackDispatcherChain {
         callback?.remove()
         callback =
             object : OnBackPressedCallback(enabled) {
                 override fun handleOnBackPressed() {
+                    if (isHandling) return
                     for ((_, handler) in handlers) {
                         if (handler()) return
                     }
+                    // 临时禁用自身，委托系统处理返回；使用标志位防止递归
+                    isHandling = true
                     isEnabled = false
                     dispatcher.onBackPressed()
                     isEnabled = true
+                    isHandling = false
                 }
             }.also {
                 dispatcher.addCallback(owner, it)

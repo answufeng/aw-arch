@@ -3,7 +3,7 @@ package com.answufeng.arch.demo
 import android.os.Bundle
 import androidx.lifecycle.lifecycleScope
 import com.answufeng.arch.event.FlowEventBus
-import com.answufeng.arch.ext.collectOnLifecycle
+import com.answufeng.arch.ext.observeEvent
 import kotlinx.coroutines.launch
 
 class FlowEventBusDemoActivity : BaseLogDemoActivity() {
@@ -12,7 +12,7 @@ class FlowEventBusDemoActivity : BaseLogDemoActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FlowEventBus.observe<DemoEvent>().collectOnLifecycle(this) { event ->
+        observeEvent<DemoEvent> { event ->
             log("[收到] ${event.message}")
         }
     }

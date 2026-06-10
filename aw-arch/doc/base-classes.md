@@ -19,6 +19,8 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
 1. `inflateBinding()` → 2. `initView()` → 3. `initObservers()`
 
+> **注意**：架构基类（MvvmActivity、MviActivity、MvpActivity 等）的 `inflateBinding` 签名为 `inflateBinding(inflater: LayoutInflater)`，因为架构基类在 `onCreate` 中已有 `layoutInflater` 实例，直接传入以避免重复获取。BaseActivity 的 `inflateBinding()` 无参数，需子类自行获取 inflater。
+
 ## BaseFragment
 
 基础 Fragment 基类，自动管理 ViewBinding 生命周期并支持懒加载：
@@ -58,9 +60,51 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
 - `onDestroyView` 中置空 `_binding`
 - 在 `onDestroyView` 之后访问 `binding` 会抛出 `IllegalStateException`
 
+## BaseViewModel
+
+所有 ViewModel 的公共父类，封装了协程启动、线程切换、SavedStateHandle 等核心能力：
+
+```kotlin
+abstract class BaseViewModel : ViewModel() {
+    protected val savedStateHandle: SavedStateHandle
+}
+```
+
+### 协程方法
+
+| 方法 | 调度器 | 说明 |
+|------|--------|------|
+| `launch(onError, block)` | Main | 主线程启动协程，`onError` 可自定义异常处理 |
+| `launchIO(onError, block)` | IO | IO 线程启动协程，适用于网络请求、数据库操作 |
+| `launchDefault(onError, block)` | Default | Default 线程启动协程，适用于 CPU 密集型计算 |
+| `withMain(block)` | Main | 切换到主线程，通常在 `launchIO` 内部使用 |
+
+### SavedStateHandle 操作
+
+| 方法 / 属性 | 说明 |
+|-------------|------|
+| `getSavedState<T>(key)` | 获取 SavedState 中指定 key 的值 |
+| `setSavedState(key, value)` | 写入 SavedState |
+| `savedStateFlow<T>(key, defaultValue)` | 获取 key 对应的 StateFlow，可观察状态变化 |
+
+### 异常处理
+
+| 方法 | 说明 |
+|------|------|
+| `handleException(throwable)` | 全局异常处理，子类可覆写以自定义异常处理逻辑 |
+
 ## ArchView（MVVM / MVP 共用）
 
 `ArchView` 定义 Loading、Toast、`navigateTo` / `navigateBack` 等默认空实现：
+
+```kotlin
+interface ArchView {
+    fun onLoading(show: Boolean) {}
+    fun showToast(message: String) {}
+    fun navigateTo(route: String, extras: Bundle? = null) {}
+    fun navigateBack() {}
+}
+```
 
 - **MVVM**：`MvvmView : ArchView`，并增加 `onUiEvent(UiEvent)` 分发
 - **MVP**：`MvpView : ArchView`，Contract 的 `View` 可继承 `MvpView` 或 `ArchView`

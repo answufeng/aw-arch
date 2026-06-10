@@ -45,6 +45,7 @@ FlowEventBus.observe<LoginSuccessEvent>()
 observeEvent<LoginSuccessEvent> { event ->
     updateUI(event.userId)
 }
+// import com.answufeng.arch.ext.observeEvent
 ```
 
 ### 粘性事件
@@ -80,7 +81,7 @@ FlowEventBus.clearAll()
 
 ## 自动清理机制
 
-- 默认延迟 30000ms（30秒）
+- 默认延迟 30000ms（30秒），此为 FlowEventBus 内部默认值；`AwArch.init` 中 `flowEventBusAutoCleanupDelayMs` 默认为 `null`（不覆盖），设为具体值则覆盖此默认值
 - 仅当某类型事件**曾经有过订阅者**且当前订阅数归零超过延迟时间后，才释放对应通道
 - 普通/粘性通道分别独立清理
 - 可通过 `AwArch.init` 配置：

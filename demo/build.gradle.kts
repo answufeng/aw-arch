@@ -50,6 +50,9 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    implementation(libs.recyclerview)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
     implementation(libs.material)

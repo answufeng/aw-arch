@@ -169,6 +169,30 @@ itemsLoadStateFlow
     .mapLoadState { items -> items.map { it.name } }
 ```
 
+## MVVM 模式使用示例
+
+```kotlin
+class MyViewModel : MvvmViewModel() {
+    private val _items = MutableStateFlow<LoadState<List<String>>>(LoadState.Loading)
+    val items: StateFlow<LoadState<List<String>>> = _items.asStateFlow()
+
+    fun loadItems() = launchIO {
+        _items.value = LoadState.Loading
+        val result = loadStateCatching { repository.fetchItems() }
+        _items.value = result
+    }
+}
+
+// 在 Activity/Fragment 中
+viewModel.items.collectOnLifecycle(this) { state ->
+    state.fold(
+        onLoading = { showLoading() },
+        onSuccess = { adapter.submitList(it) },
+        onError = { showError(it) }
+    )
+}
+```
+
 ## 注意事项
 
 - `LoadState.Error` 的默认 `message` 取自 `exception.message`，为 null 时回退为 "未知错误"

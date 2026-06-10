@@ -25,6 +25,18 @@
         android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <!-- 路由状态栏：由 currentRouteFlow 驱动 -->
+        <TextView
+            android:id="@+id/tvNavStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/aw_demo_log_bg"
+            android:paddingHorizontal="@dimen/demo_space_md"
+            android:paddingVertical="@dimen/demo_space_sm"
+            android:textColor="@color/aw_demo_on_surface_muted"
+            android:textSize="12sp" />
+
+        <!-- 第一行：基础导航 -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -40,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/demo_awnav_btn_home"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDetail"
@@ -50,7 +62,7 @@
                 android:layout_marginStart="@dimen/demo_space_sm"
                 android:layout_weight="1"
                 android:text="@string/demo_awnav_btn_detail"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSettings"
@@ -60,7 +72,7 @@
                 android:layout_marginStart="@dimen/demo_space_sm"
                 android:layout_weight="1"
                 android:text="@string/demo_awnav_btn_settings"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBack"
@@ -70,7 +82,49 @@
                 android:layout_marginStart="@dimen/demo_space_sm"
                 android:layout_weight="1"
                 android:text="@string/demo_awnav_btn_back"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
+
+        </LinearLayout>
+
+        <!-- 第二行：高级操作 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingStart="@dimen/demo_space_sm"
+            android:paddingEnd="@dimen/demo_space_sm"
+            android:paddingBottom="@dimen/demo_space_sm"
+            android:background="@color/aw_demo_surface"
+            android:elevation="2dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBackTo"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/demo_awnav_btn_back_to"
+                android:textSize="11sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearStack"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/demo_space_sm"
+                android:layout_weight="1"
+                android:text="@string/demo_awnav_btn_clear_stack"
+                android:textSize="11sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSingleTop"
+                style="@style/Widget.AwArchDemo.Button.Outlined"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/demo_space_sm"
+                android:layout_weight="1"
+                android:text="@string/demo_awnav_btn_single_top"
+                android:textSize="11sp" />
 
         </LinearLayout>
 

@@ -1,14 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/aw_demo_bg"
-    android:clipToPadding="false"
-    android:padding="@dimen/demo_space_md">
+    android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/listRoot"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" />
-</androidx.core.widget.NestedScrollView>
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/aw_demo_bg"
+        app:title="通讯录"
+        app:titleTextColor="@color/aw_demo_on_surface" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:padding="@dimen/demo_space_md">
+
+        <LinearLayout
+            android:id="@+id/listRoot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

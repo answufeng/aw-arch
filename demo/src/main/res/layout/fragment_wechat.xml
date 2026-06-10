@@ -1,28 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/aw_demo_bg">
+    android:background="@color/aw_demo_bg"
+    android:orientation="vertical">
 
-    <androidx.core.widget.NestedScrollView
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:padding="@dimen/demo_space_md">
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/aw_demo_bg"
+        app:title="微信"
+        app:titleTextColor="@color/aw_demo_on_surface" />
 
-        <LinearLayout
-            android:id="@+id/listRoot"
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </androidx.core.widget.NestedScrollView>
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="@dimen/demo_space_md">
 
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"
-        app:indicatorColor="@color/aw_demo_wechat" />
-</FrameLayout>
+            <LinearLayout
+                android:id="@+id/listRoot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </androidx.core.widget.NestedScrollView>
+
+        <com.google.android.material.progressindicator.CircularProgressIndicator
+            android:id="@+id/progress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            app:indicatorColor="@color/aw_demo_wechat" />
+    </FrameLayout>
+</LinearLayout>

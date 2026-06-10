@@ -44,6 +44,8 @@ abstract class MviBottomSheetDialogFragment<
     protected open val viewModel: VM
         get() = archViewModelHolder
 
+    open val shareViewModelWithActivity: Boolean = false
+
     abstract fun inflateBinding(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -82,10 +84,15 @@ abstract class MviBottomSheetDialogFragment<
 
     protected open fun obtainViewModel(): VM = createViewModel()
 
+    protected open fun viewModelFactory(): ViewModelProvider.Factory? = null
+
     protected open fun createViewModel(): VM {
         val vmClass = inferViewModelClass<VM>(javaClass, MviViewModel::class.java)
+        val factory = viewModelFactory()
+        val storeOwner = if (shareViewModelWithActivity) requireActivity() else this
+        val provider = if (factory != null) ViewModelProvider(storeOwner, factory) else ViewModelProvider(storeOwner)
         @Suppress("UNCHECKED_CAST")
-        return ViewModelProvider(this).get(vmClass) as VM
+        return provider.get(vmClass) as VM
     }
 
     override fun dispatch(intent: INTENT) {

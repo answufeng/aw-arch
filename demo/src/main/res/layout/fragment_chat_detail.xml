@@ -4,68 +4,75 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/aw_demo_bg"
-    android:orientation="vertical"
-    android:padding="@dimen/demo_space_md">
+    android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvBreadcrumb"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textColor="@color/aw_demo_wechat"
-        android:textSize="12sp"
-        android:textStyle="bold" />
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/aw_demo_bg"
+        app:navigationIcon="?attr/homeAsUpIndicator"
+        app:navigationIconTint="@color/aw_demo_on_surface"
+        app:titleTextColor="@color/aw_demo_on_surface" />
 
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/demo_space_sm"
-        android:textColor="@color/aw_demo_on_surface"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvSnippet"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/demo_space_sm"
-        android:textColor="@color/aw_demo_on_surface_muted"
-        android:textSize="15sp" />
-
-    <com.google.android.material.card.MaterialCardView
-        style="@style/Widget.AwArchDemo.Card"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="@dimen/demo_space_md"
-        android:layout_weight="1">
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:padding="@dimen/demo_space_md">
 
-        <androidx.core.widget.NestedScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="@dimen/demo_space_md">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvThread"
+                android:id="@+id/tvBreadcrumb"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:lineSpacingExtra="6dp"
-                android:textColor="@color/aw_demo_on_surface"
-                android:textSize="14sp" />
-        </androidx.core.widget.NestedScrollView>
-    </com.google.android.material.card.MaterialCardView>
+                android:textColor="@color/aw_demo_wechat"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnOpenInfo"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/demo_space_md"
-        android:text="@string/wechat_open_info" />
+            <TextView
+                android:id="@+id/tvSnippet"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/demo_space_sm"
+                android:textColor="@color/aw_demo_on_surface_muted"
+                android:textSize="15sp" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/demo_space_sm"
-        android:text="@string/wechat_tip_system_back"
-        android:textColor="@color/aw_demo_on_surface_muted"
-        android:textSize="12sp" />
+            <com.google.android.material.card.MaterialCardView
+                style="@style/Widget.AwArchDemo.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/demo_space_md">
+
+                <TextView
+                    android:id="@+id/tvThread"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:lineSpacingExtra="6dp"
+                    android:padding="@dimen/demo_space_md"
+                    android:textColor="@color/aw_demo_on_surface"
+                    android:textSize="14sp" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/demo_space_md"
+                android:text="@string/wechat_open_info" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/demo_space_sm"
+                android:text="@string/wechat_tip_system_back"
+                android:textColor="@color/aw_demo_on_surface_muted"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 </LinearLayout>
